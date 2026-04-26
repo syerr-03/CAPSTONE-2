@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-function AchievementPage({ studentData }) {
+function AchievementPage({ studentData = {} }) { // Tambah = {} di sini
   const [selectedBadge, setSelectedBadge] = useState(null);
 
   const achievements = [

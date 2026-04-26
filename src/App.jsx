@@ -1,121 +1,125 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState } from 'react';
+import './App.css';
+
+// 1. IMPORT PAGES (Halaman Besar)
+import Dashboard from './Pages/Dashboard.jsx';
+import Login from './Pages/Login.jsx';
+import Register from './Pages/Register.jsx';
+
+// 2. IMPORT MODUL ROSE (Progress Management)
+import PerformancePage from './ProgressManagement/PerformancePage.jsx';
+import AchievementPage from './ProgressManagement/AchievementPage.jsx';
+
+// 3. IMPORT COMPONENTS (Halaman Kecil/Sub-halaman)
+import SubjectGrid from './components/SubjectGrid.jsx';
+import QuizPage from './components/QuizPage.jsx';
+
+// DATA DUMMY (Supaya Performance & Achievement tak blank)
+const dummyStudentData = {
+  completedModules: 3,
+  progressPercent: 65,
+  quizScore: 85,
+  practicalScore: 90,
+  difficultyLevel: "Medium"
+};
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [activePage, setActivePage] = useState('dashboard');
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
+    <div className="app-container" style={{ minHeight: '100vh', backgroundColor: '#f3f0ff' }}>
+      
+      {/* NAVIGATION BAR - Tema Dark Purple/Gaming */}
+      <nav className="module-card" style={{ 
+        display: 'flex', 
+        gap: '12px', 
+        justifyContent: 'center', 
+        margin: '15px 20px', 
+        padding: '12px', 
+        background: '#111827',
+        borderRadius: '12px',
+        position: 'sticky',
+        top: '10px',
+        zIndex: 100
+      }}>
+        <button 
+          className={activePage === 'dashboard' ? "tag active-tag" : "tag"} 
+          style={{ background: activePage === 'dashboard' ? '#7C3AED' : 'transparent', color: 'white', border: 'none', cursor: 'pointer' }}
+          onClick={() => setActivePage('dashboard')}
         >
-          Count is {count}
+          🏠 Dashboard
         </button>
-      </section>
 
-      <div className="ticks"></div>
+        <button 
+          className="tag" 
+          style={{ background: activePage === 'subjects' ? '#7C3AED' : 'transparent', color: 'white', border: 'none', cursor: 'pointer' }}
+          onClick={() => setActivePage('subjects')}
+        >
+          📚 Subjects
+        </button>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+        <button 
+          className="tag" 
+          style={{ background: activePage === 'quiz' ? '#7C3AED' : 'transparent', color: 'white', border: 'none', cursor: 'pointer' }}
+          onClick={() => setActivePage('quiz')}
+        >
+          📝 Quiz
+        </button>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+        <button 
+          className="tag" 
+          style={{ background: activePage === 'performance' ? '#7C3AED' : 'transparent', color: 'white', border: 'none', cursor: 'pointer' }}
+          onClick={() => setActivePage('performance')}
+        >
+          📊 Performance
+        </button>
+
+        <button 
+          className="tag" 
+          style={{ color: '#ff4d4d', border: 'none', cursor: 'pointer' }}
+          onClick={() => setActivePage('login')}
+        >
+          🚪 Logout
+        </button>
+      </nav>
+
+      {/* MAIN CONTENT AREA */}
+      <main style={{ padding: '0 20px 40px' }}>
+        
+        {/* Navigasi Logic */}
+        {activePage === 'dashboard' && <Dashboard />}
+        
+        {activePage === 'login' && (
+          <Login 
+            goToRegister={() => setActivePage('register')} 
+            goToDashboard={() => setActivePage('dashboard')} 
+          />
+        )}
+        
+        {activePage === 'register' && (
+          <Register goToLogin={() => setActivePage('login')} />
+        )}
+        
+        {activePage === 'subjects' && (
+          <div className="app">
+             <h2 className="main-title" style={{ textAlign: 'center', marginTop: '20px' }}>Available Subjects</h2>
+             <SubjectGrid onEnroll={(s) => alert(`Enrolled in ${s.title}`)} />
+          </div>
+        )}
+
+        {activePage === 'quiz' && <QuizPage />}
+        
+        {activePage === 'performance' && (
+          <PerformancePage studentData={dummyStudentData} />
+        )}
+        
+        {activePage === 'achievement' && (
+          <AchievementPage studentData={dummyStudentData} />
+        )}
+
+      </main>
+    </div>
+  );
 }
 
-export default App
+export default App;
