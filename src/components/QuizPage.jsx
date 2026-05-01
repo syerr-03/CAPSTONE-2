@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
-import '../App.css';
+import React, { useState } from "react";
+import "../App.css";
 
 function QuizPage({
   title = "Data Science Quiz",
   content,
-  onBack,
   onSubmitQuiz,
   quizScore = 0,
   difficultyLevel = "Medium",
@@ -13,7 +12,6 @@ function QuizPage({
   const [quizAnswers, setQuizAnswers] = useState({});
   const [quizSubmitted, setQuizSubmitted] = useState(false);
 
-  // Data kecemasan jika props 'content' kosong
   const defaultQuestions = [
     {
       id: 1,
@@ -25,13 +23,17 @@ function QuizPage({
     {
       id: 2,
       question: "What does EDA stand for?",
-      options: ["Exploratory Data Analysis", "Every Day Analysis", "External Data Assets", "Efficient Data Access"],
+      options: [
+        "Exploratory Data Analysis",
+        "Every Day Analysis",
+        "External Data Assets",
+        "Efficient Data Access"
+      ],
       correctAnswer: "Exploratory Data Analysis",
       explanation: "EDA is the process of investigating datasets to summarize their main characteristics."
     }
   ];
 
-  // Gunakan content.questions jika ada, jika tidak guna defaultQuestions
   const activeQuestions = content?.questions || defaultQuestions;
 
   const handleAnswerChange = (questionId, answer) => {
@@ -49,6 +51,7 @@ function QuizPage({
 
   const handleQuizSubmit = () => {
     setQuizSubmitted(true);
+
     const scoreValue = getQuizScore();
     const total = activeQuestions.length;
     const percent = Math.round((scoreValue / total) * 100);
@@ -61,61 +64,71 @@ function QuizPage({
   const currentScore = getQuizScore();
 
   return (
-    <div className="app module-page" style={{ padding: '20px', minHeight: '100vh' }}>
-      <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-        
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '20px' }}>
-          <button className="tag" onClick={onBack} style={{ cursor: 'pointer', border: 'none' }}>
-            ← Back
-          </button>
-          <h1 className="main-title" style={{ margin: 0, fontSize: '28px' }}>{title}</h1>
+    <div className="quiz-page-wrapper">
+      <div className="quiz-container-box">
+
+        <div className="quiz-page-header no-back">
+          <div>
+            <p className="quiz-small-label">Assessment</p>
+            <h1 className="quiz-page-title">{title}</h1>
+          </div>
         </div>
 
-        <div className="module-card">
+        <div className="quiz-main-card">
           {activeQuestions.map((q, index) => (
-            <div key={q.id} style={{ marginBottom: '30px', padding: '15px', borderBottom: '1px solid #eee' }}>
-              <h3 className="section-title" style={{ color: '#111827' }}>
+            <div key={q.id} className="quiz-question-card">
+              <h3 className="quiz-question-title">
                 {index + 1}. {q.question}
               </h3>
 
-              <div style={{ display: 'grid', gap: '10px', marginTop: '15px' }}>
-                {q.options.map((option) => (
-                  <label 
-                    key={option} 
-                    className="module-card" 
-                    style={{ 
-                      display: 'flex', 
-                      gap: '10px', 
-                      padding: '12px', 
-                      cursor: 'pointer',
-                      backgroundColor: quizAnswers[q.id] === option ? '#f3f0ff' : 'white',
-                      border: quizAnswers[q.id] === option ? '1px solid #7C3AED' : '1px solid #e5e7eb'
-                    }}
-                  >
-                    <input
-                      type="radio"
-                      name={q.id}
-                      value={option}
-                      checked={quizAnswers[q.id] === option}
-                      onChange={() => handleAnswerChange(q.id, option)}
-                      disabled={quizSubmitted}
-                    />
-                    <span style={{ color: '#374151' }}>{option}</span>
-                  </label>
-                ))}
+              <div className="quiz-options-grid">
+                {q.options.map((option) => {
+                  const isSelected = quizAnswers[q.id] === option;
+
+                  return (
+                    <label
+                      key={option}
+                      className={`quiz-answer-card ${isSelected ? "selected" : ""}`}
+                    >
+                      <input
+                        type="radio"
+                        name={`question-${q.id}`}
+                        value={option}
+                        checked={isSelected}
+                        onChange={() => handleAnswerChange(q.id, option)}
+                        disabled={quizSubmitted}
+                      />
+
+                      <span>{option}</span>
+                    </label>
+                  );
+                })}
               </div>
 
-              {/* Feedback Section */}
               {quizSubmitted && (
-                <div style={{ marginTop: '15px', padding: '10px', borderRadius: '8px', backgroundColor: quizAnswers[q.id] === q.correctAnswer ? '#ecfdf5' : '#fef2f2' }}>
+                <div
+                  className={
+                    quizAnswers[q.id] === q.correctAnswer
+                      ? "quiz-feedback-correct"
+                      : "quiz-feedback-wrong"
+                  }
+                >
                   {quizAnswers[q.id] === q.correctAnswer ? (
-                    <p style={{ color: '#059669', margin: 0 }}><strong>Correct!</strong> Good job.</p>
+                    <p>
+                      <strong>Correct!</strong> Good job.
+                    </p>
                   ) : (
-                    <div style={{ color: '#dc2626' }}>
-                      <p style={{ margin: '0 0 5px 0' }}><strong>Wrong Answer.</strong></p>
-                      <p style={{ margin: 0, fontSize: '14px' }}><strong>Correct:</strong> {q.correctAnswer}</p>
-                      <p style={{ margin: 0, fontSize: '14px' }}><strong>Why:</strong> {q.explanation}</p>
-                    </div>
+                    <>
+                      <p>
+                        <strong>Wrong Answer.</strong>
+                      </p>
+                      <p>
+                        <strong>Correct:</strong> {q.correctAnswer}
+                      </p>
+                      <p>
+                        <strong>Why:</strong> {q.explanation}
+                      </p>
+                    </>
                   )}
                 </div>
               )}
@@ -123,25 +136,27 @@ function QuizPage({
           ))}
 
           {!quizSubmitted ? (
-            <button 
-              className="hero-button" 
-              style={{ width: '100%', padding: '15px' }} 
-              onClick={handleQuizSubmit}
-            >
+            <button className="quiz-submit-button" onClick={handleQuizSubmit}>
               Submit Quiz
             </button>
           ) : (
-            <div className="module-card" style={{ backgroundColor: '#111827', color: 'white', textAlign: 'center' }}>
-              <h3 style={{ color: '#A78BFA' }}>Quiz Results</h3>
-              <p style={{ fontSize: '32px', fontWeight: 'bold', margin: '10px 0' }}>
+            <div className="quiz-result-card">
+              <h3>Quiz Results</h3>
+
+              <p className="quiz-score-text">
                 {currentScore} / {activeQuestions.length}
               </p>
-              <div style={{ textAlign: 'left', display: 'inline-block' }}>
-                <p><strong>Percentage:</strong> {Math.round((currentScore / activeQuestions.length) * 100)}%</p>
-                <p><strong>Difficulty Level:</strong> {difficultyLevel}</p>
-              </div>
+
+              <p>
+                <strong>Percentage:</strong>{" "}
+                {Math.round((currentScore / activeQuestions.length) * 100)}%
+              </p>
+              <p>
+                <strong>Difficulty Level:</strong> {difficultyLevel}
+              </p>
+
               {practicalScore === null && (
-                <p style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '15px' }}>
+                <p className="quiz-note">
                   Complete the practical assignment for adaptive feedback.
                 </p>
               )}
