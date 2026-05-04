@@ -3,9 +3,20 @@ import SubjectGrid from "../components/SubjectGrid.jsx";
 import QuizPage from "../components/QuizPage.jsx";
 import Drawer from "../components/Drawer.jsx";
 import PerformancePage from "../ProgressManagement/PerformancePage.jsx";
+import ProgressPage from "../ProgressManagement/ProgressPage.jsx";
+import AchievementPage from "../ProgressManagement/AchievementPage.jsx";
+import ForumPage from "../ProgressManagement/ForumPage.jsx";
 import "../App.css";
 
-function Dashboard({ handleEnroll, studentData, setActivePage }) {
+function Dashboard({
+  handleEnroll,
+  studentData,
+  leaderboard,
+  updateLeaderboard,
+  setQuizScore,
+  setActivePage,
+  handleLogout
+}) {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -95,7 +106,11 @@ function Dashboard({ handleEnroll, studentData, setActivePage }) {
             closeDrawer={() => setDrawerOpen(false)}
             openSchedule={openSchedule}
             openGoals={openGoals}
-          />
+            openProgress={() => setActivePage("progress")}
+            openAchievement={() => setActivePage("achievement")}
+            openForum={() => setActivePage("forum")}
+        />
+      
         )}
 
         {/* MAIN CONTENT */}
@@ -110,6 +125,14 @@ function Dashboard({ handleEnroll, studentData, setActivePage }) {
             </button>
 
             <h1 className="simple-menu-logo">BrainyBits</h1>
+
+            <button
+              className="simple-menu-tab"
+              onClick={handleLogout}
+              style={{ marginLeft: "auto", position: "relative", zIndex: 9999 }}
+            >
+              Logout
+            </button>
 
             <nav className="simple-menu-tabs">
               <button
@@ -149,32 +172,26 @@ function Dashboard({ handleEnroll, studentData, setActivePage }) {
               <section className="dashboard-compact-top">
                 <div className="compact-welcome-card">
                   <span className="compact-welcome-pill">Welcome</span>
-
                   <h2>Welcome!</h2>
-
                   <p>Keep going. Small progress still counts.</p>
                 </div>
 
                 <div className="compact-action-column">
                   <button className="compact-action-card" onClick={openSchedule}>
                     <div className="compact-action-icon">📅</div>
-
                     <div className="compact-action-text">
                       <h3>Set Schedule</h3>
                       <p>Plan your study time</p>
                     </div>
-
                     <span className="compact-action-arrow">›</span>
                   </button>
 
                   <button className="compact-action-card" onClick={openGoals}>
                     <div className="compact-action-icon">🎯</div>
-
                     <div className="compact-action-text">
                       <h3>Set Goal</h3>
                       <p>Stay focused and achieve more</p>
                     </div>
-
                     <span className="compact-action-arrow">›</span>
                   </button>
                 </div>
@@ -184,17 +201,15 @@ function Dashboard({ handleEnroll, studentData, setActivePage }) {
               <section className="compact-streak-card">
                 <div className="compact-streak-info">
                   <div className="main-fire-circle">
-                   <span className="streak-fire-emoji">🔥</span>
+                    <span className="streak-fire-emoji">🔥</span>
                   </div>
 
                   <div className="streak-info-text">
                     <h3>Learning Streak</h3>
-
                     <div className="compact-streak-number">
                       <strong>7</strong>
                       <span>Day Streak</span>
                     </div>
-
                     <p>Amazing! You’re on fire. Keep it up!</p>
                   </div>
                 </div>
@@ -205,7 +220,6 @@ function Dashboard({ handleEnroll, studentData, setActivePage }) {
                   {streakDays.map((item) => (
                     <div className="compact-streak-day" key={item.day}>
                       <span>{item.day}</span>
-
                       <div className={item.active ? "compact-fire active" : "compact-fire"}>
                         <span className="streak-fire-emoji small">🔥</span>
                       </div>
@@ -232,7 +246,6 @@ function Dashboard({ handleEnroll, studentData, setActivePage }) {
                 <div className="certificate-info">
                   <div className="certificate-title-row">
                     <h2>E-Certificate</h2>
-
                     <span className={`certificate-status ${isCertificateUnlocked ? "unlocked" : ""}`}>
                       {isCertificateUnlocked ? "Unlocked" : "Locked"}
                     </span>
@@ -247,12 +260,10 @@ function Dashboard({ handleEnroll, studentData, setActivePage }) {
                       <span>{certificateProgress >= 100 ? "✓" : ""}</span>
                       Complete all modules
                     </li>
-
                     <li className={certificateProgress >= 100 ? "done" : ""}>
                       <span>{certificateProgress >= 100 ? "✓" : ""}</span>
                       Complete quiz and practical
                     </li>
-
                     <li className={certificateProgress >= 100 ? "done" : ""}>
                       <span>{certificateProgress >= 100 ? "✓" : ""}</span>
                       Reach 100% progress
@@ -279,7 +290,7 @@ function Dashboard({ handleEnroll, studentData, setActivePage }) {
                   >
                     {isCertificateUnlocked
                       ? "Purchase Certificate - RM40"
-                      : "🔒 Claim Certificate"}
+                      : "🔒Claim Certificate"}
                   </button>
 
                   <small>
@@ -309,15 +320,50 @@ function Dashboard({ handleEnroll, studentData, setActivePage }) {
           {/* QUIZ TAB */}
           {activeTab === "quiz" && (
             <section className="dashboard-content-section">
-              <QuizPage />
+              <QuizPage
+                onSubmitQuiz={setQuizScore}
+                quizScore={performanceData.quizScore}
+                difficultyLevel={performanceData.difficultyLevel}
+                practicalScore={performanceData.practicalScore}
+                leaderboard={leaderboard}
+                updateLeaderboard={updateLeaderboard}
+              />
             </section>
           )}
 
           {/* PERFORMANCE TAB */}
           {activeTab === "performance" && (
             <section className="dashboard-content-section">
-              <PerformancePage studentData={performanceData} />
+              <PerformancePage studentData={performanceData} leaderboard={leaderboard} />
             </section>
+          )}
+
+          {/* LEADERBOARD TAB */}
+          {activeTab === "leaderboard" && (
+            <section className="dashboard-content-section">
+              <LeaderboardPage />
+            </section>
+          )}
+
+          {/* PROGRESS TAB */}
+          {activeTab === "progress" && (
+            <section className="dashboard-content-section">
+              <ProgressPage studentData={performanceData} />
+            </section>
+          )}
+
+          {/* ACHIEVEMENT TAB */}
+          {activeTab === "achievement" && (
+            <section className="dashboard-content-section">
+              <AchievementPage studentData={performanceData} />
+            </section>
+          )}
+
+          {/* FORUM TAB */}
+          {activeTab === "forum" && (
+            <section className="dashboard-content-section">
+            <ForumPage />
+          </section>
           )}
         </main>
       </div>
@@ -344,7 +390,6 @@ function Dashboard({ handleEnroll, studentData, setActivePage }) {
 
                 <div style={navRow}>
                   <span style={back} onClick={() => setStep(0)}>←</span>
-
                   <button
                     className="hero-button"
                     style={{ padding: "10px 25px" }}
@@ -374,7 +419,6 @@ function Dashboard({ handleEnroll, studentData, setActivePage }) {
 
                 <div style={navRow}>
                   <span style={back} onClick={() => setStep(1)}>←</span>
-
                   <button
                     className="hero-button"
                     style={{ padding: "10px 25px" }}
@@ -404,7 +448,6 @@ function Dashboard({ handleEnroll, studentData, setActivePage }) {
 
                 <div style={navRow}>
                   <span style={back} onClick={() => setStep(2)}>←</span>
-
                   <button
                     className="hero-button"
                     style={{ padding: "10px 25px" }}
@@ -419,7 +462,6 @@ function Dashboard({ handleEnroll, studentData, setActivePage }) {
             {step === 4 && (
               <div style={{ textAlign: "center" }}>
                 <h3 className="section-title">Saved. ✅</h3>
-
                 <button
                   className="hero-button"
                   style={{ marginTop: "15px" }}
@@ -455,7 +497,6 @@ function Dashboard({ handleEnroll, studentData, setActivePage }) {
 
                 <div style={navRow}>
                   <span style={back} onClick={() => setGoalStep(0)}>←</span>
-
                   <button
                     className="hero-button"
                     style={{ padding: "10px 25px" }}
@@ -486,7 +527,6 @@ function Dashboard({ handleEnroll, studentData, setActivePage }) {
 
                 <div style={navRow}>
                   <span style={back} onClick={() => setGoalStep(1)}>←</span>
-
                   <button
                     className="hero-button"
                     style={{ padding: "10px 25px" }}
@@ -517,7 +557,6 @@ function Dashboard({ handleEnroll, studentData, setActivePage }) {
 
                 <div style={navRow}>
                   <span style={back} onClick={() => setGoalStep(2)}>←</span>
-
                   <button
                     className="hero-button"
                     style={{ padding: "10px 25px" }}
@@ -532,7 +571,6 @@ function Dashboard({ handleEnroll, studentData, setActivePage }) {
             {goalStep === 4 && (
               <div style={{ textAlign: "center" }}>
                 <h3 className="section-title">Saved. 🎯</h3>
-
                 <button
                   className="hero-button"
                   style={{ marginTop: "15px" }}

@@ -6,26 +6,42 @@ import Login from "./Pages/Login.jsx";
 import Register from "./Pages/Register.jsx";
 import NewQuizSystem from "./components/NewQuizSystem.jsx";
 import CertificatePreview from "./components/CertificatePreview.jsx";
+import "./ProgressManagement/ProgressManagement.css";
+import ProgressPage from "./ProgressManagement/ProgressPage.jsx";
+import AchievementPage from "./ProgressManagement/AchievementPage.jsx";
+import ForumPage from "./ProgressManagement/ForumPage.jsx";
 
 function App() {
-  const [activePage, setActivePage] = useState("dashboard");
-  const [selectedSubject, setSelectedSubject] = useState(null);
+  const [activePage, setActivePage] = useState(
+    localStorage.getItem("isLoggedIn") === "true" ? "dashboard" : "login"
+  );
 
-  const [completedItems, setCompletedItems] = useState([]);
-  const [difficultyLevel, setDifficultyLevel] = useState("Medium");
-  const [quizScore, setQuizScore] = useState(null);
-  const [practicalScore, setPracticalScore] = useState(null);
-  const [adaptiveMessage, setAdaptiveMessage] = useState("");
+ const [selectedSubject, setSelectedSubject] = useState(null);
+const [completedItems, setCompletedItems] = useState([]);
+const [difficultyLevel, setDifficultyLevel] = useState("Medium");
+const [quizScore, setQuizScore] = useState(null);
+const [practicalScore, setPracticalScore] = useState(null);
+const [leaderboard, setLeaderboard] = useState([
+  { name: "Aina", score: 80 },
+  { name: "Amar", score: 88 },
+  { name: "Kevin", score: 70 }
+]);
+const [adaptiveMessage, setAdaptiveMessage] = useState("");
+  const totalLearningItems = 8;
 
   const handleEnroll = (subject) => {
     setSelectedSubject(subject);
     setActivePage("learning-content");
-
     setCompletedItems([]);
     setDifficultyLevel("Medium");
     setQuizScore(null);
     setPracticalScore(null);
     setAdaptiveMessage("");
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("isLoggedIn");
+    setActivePage("login");
   };
 
   const getAdaptiveMessage = (level) => {
@@ -57,17 +73,31 @@ function App() {
     setAdaptiveMessage(getAdaptiveMessage(newLevel));
   };
 
-  const totalLearningItems = 8;
+  const updateLeaderboard = (studentName, score) => {
+  const newEntry = {
+    name: studentName || "Student",
+    score: score
+  };
+
+  setLeaderboard((prev) => {
+    const updated = [...prev, newEntry].sort(
+      (a, b) => b.score - a.score
+    );
+    return updated;
+  });
+};
 
   const studentData = {
     completedModules: completedItems.length,
+    totalModules: totalLearningItems,
     progressPercent: selectedSubject
       ? Math.round((completedItems.length / totalLearningItems) * 100)
       : 0,
     quizScore: quizScore || 0,
     practicalScore: practicalScore || 0,
+    averageScore: Math.round(((quizScore || 0) + (practicalScore || 0)) / 2),
     difficultyLevel: difficultyLevel,
-    adaptiveMessage: adaptiveMessage
+    adaptiveMessage: adaptiveMessage || "Complete quiz and practical task to get adaptive feedback.",
   };
 
   return (
@@ -76,7 +106,11 @@ function App() {
         <Dashboard
           handleEnroll={handleEnroll}
           studentData={studentData}
+          leaderboard={leaderboard}
+          updateLeaderboard={updateLeaderboard}
+          setQuizScore={setQuizScore}
           setActivePage={setActivePage}
+          handleLogout={handleLogout}
         />
       )}
 
@@ -101,12 +135,31 @@ function App() {
           setCompletedItems={setCompletedItems}
           difficultyLevel={difficultyLevel}
           updateAdaptiveLevel={updateAdaptiveLevel}
+          updateLeaderboard={updateLeaderboard}
+          leaderboard={leaderboard}
         />
       )}
 
       {activePage === "certificate-preview" && (
         <CertificatePreview onBack={() => setActivePage("dashboard")} />
       )}
+      {activePage === "progress" && (
+  <ProgressPage
+    studentData={studentData}
+    onBack={() => setActivePage("dashboard")}
+  />
+)}
+
+{activePage === "achievement" && (
+  <AchievementPage
+    studentData={studentData}
+    onBack={() => setActivePage("dashboard")}
+  />
+)}
+
+{activePage === "forum" && (
+  <ForumPage onBack={() => setActivePage("dashboard")} />
+)}
     </div>
   );
 }

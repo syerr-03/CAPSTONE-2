@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import "../App.css";
+import LeaderboardPage from "../ProgressManagement/LeaderboardPage.jsx";
 
 function NewQuizSystem({
   module,
@@ -8,8 +9,11 @@ function NewQuizSystem({
   setPracticalScore,
   updateAdaptiveLevel,
   completedItems = [],
-  setCompletedItems
+  setCompletedItems,
+  updateLeaderboard,
+  leaderboard
 }) {
+  
   const topic = module?.title || "What is Data Science?";
 
   const safeCompletedItems = Array.isArray(completedItems) ? completedItems : [];
@@ -225,6 +229,11 @@ function NewQuizSystem({
       setQuizScore(percent);
     }
 
+    if (typeof updateLeaderboard === "function") {
+  const studentName = localStorage.getItem("username") || "Student";
+  updateLeaderboard(studentName, percent);
+    }
+
     if (typeof updateAdaptiveLevel === "function") {
       updateAdaptiveLevel(percent, null);
     }
@@ -363,24 +372,30 @@ function NewQuizSystem({
           })}
 
           {!quizSubmitted ? (
-            <button
-              className="hero-button"
-              style={{ marginTop: "20px", width: "100%" }}
-              onClick={handleQuizSubmit}
-            >
-              Submit Quiz
-            </button>
-          ) : (
-            <div
-              className="quiz-result-box"
-              style={{ marginTop: "20px", textAlign: "center" }}
-            >
-              <p style={{ fontSize: "24px", fontWeight: "bold" }}>
-                Score: {correctCount} / {questions.length} (
-                {Math.round((correctCount / questions.length) * 100)}%)
-              </p>
-            </div>
-          )}
+  <button
+    className="hero-button"
+    style={{ marginTop: "20px", width: "100%" }}
+    onClick={handleQuizSubmit}
+  >
+    Submit Quiz
+  </button>
+) : (
+  <>
+    <div
+      className="quiz-result-box"
+      style={{ marginTop: "20px", textAlign: "center" }}
+    >
+      <p style={{ fontSize: "24px", fontWeight: "bold" }}>
+        Score: {correctCount} / {questions.length} (
+        {Math.round((correctCount / questions.length) * 100)}%)
+      </p>
+    </div>
+
+    <div style={{ marginTop: "30px" }}>
+      <LeaderboardPage leaderboard={leaderboard} />
+    </div>
+  </>
+)}
         </div>
       </div>
     );
