@@ -66,6 +66,9 @@ function Register({ goToLogin }) {
         createdAt: new Date()
       });
 
+      localStorage.setItem("justRegistered", "true");
+      localStorage.setItem("name", name);
+
       alert("Account created successfully!");
       goToLogin();
     } catch (error) {

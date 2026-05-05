@@ -11,7 +11,7 @@ import {
 import "../App.css";
 import LeaderboardPage from "./LeaderboardPage.jsx";
 
-function PerformancePage({ studentData, leaderboard }) {
+function PerformancePage({ studentData, leaderboard, learningLevel }) {
   const [selectedMetric, setSelectedMetric] = useState("quiz");
   const [mainTab, setMainTab] = useState("performance");
 
@@ -66,7 +66,7 @@ function PerformancePage({ studentData, leaderboard }) {
       </div>
 
       {mainTab === "leaderboard" && (
-        <LeaderboardPage leaderboard={leaderboard} />
+        <LeaderboardPage learningLevel={learningLevel || "beginner"} />
       )}
 
       {mainTab === "performance" && (

@@ -8,6 +8,8 @@ function Drawer({
   openProgress,
   openAchievement,
   openForum,
+  openSettings,
+  handleLogout,
 }) {
   return (
     <aside className={`drawer-panel ${drawerOpen ? "open" : ""}`}>
@@ -52,15 +54,15 @@ function Drawer({
         <span>›</span>
       </button>
 
-      <button className="drawer-link">
+      <button className="drawer-link" onClick={openSettings}>
         <span>Settings</span>
         <span>›</span>
       </button>
 
       <div className="drawer-divider"></div>
 
-      <button className="drawer-link logout">
-        <span>Logout</span>
+      <button className="drawer-link logout" onClick={handleLogout}>
+        <span>🚪 Logout</span>
       </button>
     </aside>
   );

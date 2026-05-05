@@ -14,17 +14,40 @@ function App() {
   );
 
   const [selectedSubject, setSelectedSubject] = useState(null);
-  const [completedItems, setCompletedItems] = useState([]);
+  const [completedItems, setCompletedItems] = useState([1, 2, 3]);
   const [difficultyLevel, setDifficultyLevel] = useState("Medium");
-  const [quizScore, setQuizScore] = useState(null);
-  const [practicalScore, setPracticalScore] = useState(null);
+  const [quizScore, setQuizScore] = useState(75);
+  const [practicalScore, setPracticalScore] = useState(80);
   const [adaptiveMessage, setAdaptiveMessage] = useState("");
 
   const [leaderboard, setLeaderboard] = useState([
-    { name: "Aina", score: 80 },
-    { name: "Amar", score: 88 },
-    { name: "Kevin", score: 70 }
+    { name: "Aina", score: 80, level: "beginner" },
+    { name: "Amar", score: 88, level: "beginner" },
+    { name: "Kevin", score: 70, level: "beginner" },
+
+    { name: "Aina", score: 75, level: "intermediate" },
+    { name: "Amar", score: 85, level: "intermediate" },
+    { name: "Kevin", score: 65, level: "intermediate" },
+
+    { name: "Aina", score: 90, level: "advanced" },
+    { name: "Amar", score: 92, level: "advanced" },
+    { name: "Kevin", score: 88, level: "advanced" }
   ]);
+
+  const [showLevelPopup, setShowLevelPopup] = useState(
+    localStorage.getItem("learningLevel") ? false : true
+  );
+
+  const [learningLevel, setLearningLevel] = useState(
+    localStorage.getItem("learningLevel") || ""
+  );
+
+  const handleSelectLevel = (level) => {
+    localStorage.setItem("learningLevel", level);
+    setLearningLevel(level);
+    setShowLevelPopup(false);
+  };
+
 
   const totalLearningItems = 8;
 
@@ -39,7 +62,12 @@ function App() {
   };
 
   const handleLogout = () => {
+    const confirmLogout = window.confirm("Are you sure you want to logout?");
+
+    if (!confirmLogout) return;
+
     localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("username");
     setActivePage("login");
   };
 
@@ -72,13 +100,28 @@ function App() {
     setAdaptiveMessage(getAdaptiveMessage(newLevel));
   };
 
-  const updateLeaderboard = (studentName, score) => {
-    const newEntry = {
-      name: studentName || "Student",
-      score
-    };
+  const updateLeaderboard = (studentName, score, level = "beginner") => {
+    const name = studentName || "Student";
 
-    setLeaderboard((prev) => [...prev, newEntry].sort((a, b) => b.score - a.score));
+    setLeaderboard((prev) => {
+      const existing = prev.find(
+        (item) => item.name === name && item.level === level
+      );
+
+      let updated;
+
+      if (existing) {
+        updated = prev.map((item) =>
+          item.name === name && item.level === level
+            ? { ...item, score: Math.max(item.score, score) }
+            : item
+        );
+      } else {
+        updated = [...prev, { name, score, level }];
+      }
+
+      return updated.sort((a, b) => b.score - a.score);
+    });
   };
 
   const studentData = {
@@ -90,7 +133,14 @@ function App() {
     quizScore: quizScore || 0,
     practicalScore: practicalScore || 0,
     averageScore: Math.round(((quizScore || 0) + (practicalScore || 0)) / 2),
-    difficultyLevel,
+    difficultyLevel:
+      learningLevel === "beginner"
+        ? "Beginner"
+        : learningLevel === "intermediate"
+        ? "Intermediate"
+        : learningLevel === "advanced"
+        ? "Advanced"
+        : "Beginner",
     adaptiveMessage:
       adaptiveMessage || "Complete quiz and practical task to get adaptive feedback."
   };
@@ -106,6 +156,9 @@ function App() {
           setQuizScore={setQuizScore}
           setActivePage={setActivePage}
           handleLogout={handleLogout}
+          learningLevel={learningLevel}
+          showLevelPopup={showLevelPopup}
+          handleSelectLevel={handleSelectLevel}
         />
       )}
 

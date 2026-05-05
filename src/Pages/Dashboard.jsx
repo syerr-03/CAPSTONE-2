@@ -16,8 +16,14 @@ function Dashboard({
   updateLeaderboard,
   setQuizScore,
   setActivePage,
-  handleLogout
+  handleLogout,
+  learningLevel,
+  showLevelPopup,
+  handleSelectLevel
 }) {
+  const studentName = localStorage.getItem("name") || "Student";
+  const welcomeType = localStorage.getItem("welcomeType");
+
   const [activeTab, setActiveTab] = useState("dashboard");
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -110,6 +116,8 @@ function Dashboard({
             openProgress={() => goToTab("progress")}
             openAchievement={() => goToTab("achievement")}
             openForum={() => goToTab("forum")}
+            openSettings={() => goToTab("settings")}
+            handleLogout={handleLogout}
           />
         )}
 
@@ -125,14 +133,6 @@ function Dashboard({
             </button>
 
             <h1 className="simple-menu-logo">BrainyBits</h1>
-
-            <button
-              className="simple-menu-tab"
-              onClick={handleLogout}
-              style={{ marginLeft: "auto", position: "relative", zIndex: 9999 }}
-            >
-              Logout
-            </button>
 
             <nav className="simple-menu-tabs">
               <button
@@ -171,8 +171,11 @@ function Dashboard({
               {/* WELCOME + ACTIONS */}
               <section className="dashboard-compact-top">
                 <div className="compact-welcome-card">
-                  <span className="compact-welcome-pill">Welcome</span>
-                  <h2>Welcome!</h2>
+                  <h2>
+                    {welcomeType === "new"
+                      ? `Welcome, ${studentName}!`
+                      : `Welcome Back, ${studentName}!`}
+                  </h2>
                   <p>Keep going. Small progress still counts.</p>
                 </div>
               </section>
@@ -284,7 +287,7 @@ function Dashboard({
               {/* MY COURSES */}
               <section className="dashboard-content-section">
                 <h2 className="section-title">My Courses</h2>
-                <SubjectGrid onEnroll={enrollSubject} />
+                <SubjectGrid onEnroll={enrollSubject} learningLevel={learningLevel} />
               </section>
             </>
           )}
@@ -293,7 +296,10 @@ function Dashboard({
           {activeTab === "subjects" && (
             <section className="dashboard-content-section">
               <h2 className="section-title">Available Subjects</h2>
-              <SubjectGrid onEnroll={enrollSubject} />
+              <SubjectGrid
+                onEnroll={enrollSubject}
+                learningLevel={learningLevel}
+              />
             </section>
           )}
 
@@ -307,6 +313,7 @@ function Dashboard({
                 practicalScore={performanceData.practicalScore}
                 leaderboard={leaderboard}
                 updateLeaderboard={updateLeaderboard}
+                learningLevel={learningLevel}
               />
             </section>
           )}
@@ -314,36 +321,89 @@ function Dashboard({
           {/* PERFORMANCE TAB */}
           {activeTab === "performance" && (
             <section className="dashboard-content-section">
-              <PerformancePage studentData={performanceData} leaderboard={leaderboard} />
+              <PerformancePage 
+                studentData={performanceData} 
+                leaderboard={leaderboard}
+                learningLevel={learningLevel}
+              />
             </section>
           )}
 
           {/* LEADERBOARD TAB */}
           {activeTab === "leaderboard" && (
             <section className="dashboard-content-section">
-              <LeaderboardPage />
+              <LeaderboardPage learningLevel={learningLevel} />
             </section>
           )}
 
           {/* PROGRESS TAB */}
           {activeTab === "progress" && (
             <section className="dashboard-content-section">
+
+              <button className="back-btn" onClick={() => goToTab("dashboard")}>
+                ← Back
+              </button>
+
               <ProgressPage studentData={performanceData} />
+
             </section>
           )}
 
           {/* ACHIEVEMENT TAB */}
           {activeTab === "achievement" && (
             <section className="dashboard-content-section">
+
+              <button className="back-btn" onClick={() => goToTab("dashboard")}>
+                ← Back
+              </button>
+
               <AchievementPage studentData={performanceData} />
+
             </section>
           )}
 
           {/* FORUM TAB */}
           {activeTab === "forum" && (
             <section className="dashboard-content-section">
-            <ForumPage />
-          </section>
+
+              <button className="back-btn" onClick={() => goToTab("dashboard")}>
+                ← Back
+              </button>
+
+              <ForumPage />
+
+            </section>
+          )}
+          {/* SETTINGS TAB */}
+          {activeTab === "settings" && (
+            <section className="dashboard-content-section">
+              <button className="back-btn" onClick={() => goToTab("dashboard")}>
+                ← Back
+              </button>
+
+              <div className="module-card" style={{ textAlign: "center" }}>
+                <h2 className="section-title">Learning Level Settings</h2>
+
+                <p style={{ marginBottom: "20px" }}>
+                  Current level: <strong>{learningLevel || "Not selected"}</strong>
+                </p>
+
+                <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
+                  <button className="hero-button" onClick={() => handleSelectLevel("beginner")}>
+                    Beginner
+                  </button>
+
+                  <button className="hero-button" onClick={() => handleSelectLevel("intermediate")}>
+                    Intermediate
+                  </button>
+
+                  <button className="hero-button" onClick={() => handleSelectLevel("advanced")}>
+                    Advanced
+                  </button>
+                </div>
+              </div>
+            </section>
+
           )}
         </main>
       </div>
@@ -560,6 +620,31 @@ function Dashboard({
                 </button>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {showLevelPopup && (
+        <div style={overlay}>
+          <div className="module-card popup-card" style={{ textAlign: "center" }}>
+            <h2 className="section-title">Choose Your Learning Level</h2>
+            <p style={{ marginBottom: "20px", color: "#6b7280" }}>
+              Select your current learning level to personalize your modules and quizzes.
+            </p>
+
+            <div style={{ display: "grid", gap: "12px" }}>
+              <button className="hero-button" onClick={() => handleSelectLevel("beginner")}>
+                Beginner
+              </button>
+
+              <button className="hero-button" onClick={() => handleSelectLevel("intermediate")}>
+                Intermediate
+              </button>
+
+              <button className="hero-button" onClick={() => handleSelectLevel("advanced")}>
+                Advanced
+              </button>
+            </div>
           </div>
         </div>
       )}

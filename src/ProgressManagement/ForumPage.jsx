@@ -122,12 +122,29 @@ function ForumPage({ onBack }) {
             value={newAuthor}
             onChange={(e) => setNewAuthor(e.target.value)}
           />
+
           <textarea
-            className="custom-textarea"
             placeholder="Write your post here"
             value={newPost}
             onChange={(e) => setNewPost(e.target.value)}
+            rows={5}
+            style={{
+              width: "100%",
+              minHeight: "140px",
+              padding: "14px",
+              borderRadius: "12px",
+              border: "1px solid #ddd",
+              fontFamily: "Poppins, sans-serif",
+              fontSize: "14px",
+              color: "#111827",
+              backgroundColor: "#ffffff",
+              resize: "vertical",
+              outline: "none",
+              position: "relative",
+              zIndex: 9999
+            }}
           />
+
           <button className="primary-btn" onClick={handleAddPost}>
             Post Discussion
           </button>

@@ -1949,3 +1949,27 @@ input {
 .page-wrapper .back-btn:hover {
   background: #eadcff !important;
 }
+
+.custom-textarea {
+  pointer-events: auto;
+  user-select: text;
+}
+
+.back-btn {
+  background: #ede9fe;
+  color: #7c3aed;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 15px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: 0.2s;
+}
+
+.back-btn:hover {
+  background: #ddd6fe;
+}

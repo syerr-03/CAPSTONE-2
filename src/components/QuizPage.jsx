@@ -1,18 +1,40 @@
 import React, { useState } from "react";
 import "../App.css";
 import LeaderboardPage from "../ProgressManagement/LeaderboardPage.jsx";
+import { useEffect } from "react";
+
+import { auth, db } from "../firebase";
+
+import {
+  collection,
+  addDoc,
+  serverTimestamp,
+  doc,
+  setDoc,
+  getDoc
+} from "firebase/firestore";
 
 function QuizPage({
   difficultyLevel = "Medium",
   practicalScore = null,
   leaderboard = [],
   updateLeaderboard,
-  onSubmitQuiz
+  onSubmitQuiz,
+  learningLevel = "beginner"
 }) {
   const [selectedQuiz, setSelectedQuiz] = useState(null);
+    useEffect(() => {
+    setSelectedQuiz(null);
+  }, [learningLevel]);
+
   const [quizAnswers, setQuizAnswers] = useState({});
   const [quizSubmitted, setQuizSubmitted] = useState(false);
-
+  const [leaderboardRefresh, setLeaderboardRefresh] = useState(0);
+  const allowedLevels = {
+    beginner: ["beginner"],
+    intermediate: ["beginner", "intermediate"],
+    advanced: ["beginner", "intermediate", "advanced"]
+  };
   
  const quizCategories = {
   dataScience: {
@@ -21,6 +43,7 @@ function QuizPage({
     questions: [
       {
         id: 1,
+        level: "beginner",
         question: "What is the main purpose of Data Science?",
         options: [
           "To collect data without using it",
@@ -33,6 +56,7 @@ function QuizPage({
       },
       {
         id: 2,
+        level: "beginner",
         question: "Why is data cleaning important before analysis?",
         options: [
           "It makes the dataset look colorful",
@@ -45,6 +69,7 @@ function QuizPage({
       },
       {
         id: 3,
+        level: "intermediate",
         question: "Which method is commonly used to understand relationships between variables?",
         options: [
           "Correlation analysis",
@@ -57,6 +82,7 @@ function QuizPage({
       },
       {
         id: 4,
+        level: "intermediate",
         question: "What does data visualization help users do?",
         options: [
           "Hide important patterns",
@@ -69,6 +95,7 @@ function QuizPage({
       },
       {
         id: 5,
+        level: "advanced",
         question: "Which example best represents a data-driven decision?",
         options: [
           "Choosing a strategy based on sales trends",
@@ -88,6 +115,7 @@ function QuizPage({
     questions: [
       {
         id: 1,
+        level: "beginner",
         question: "What best describes Artificial Intelligence?",
         options: [
           "A system that performs tasks requiring human-like intelligence",
@@ -100,6 +128,7 @@ function QuizPage({
       },
       {
         id: 2,
+        level: "beginner",
         question: "Which application is an example of AI in daily life?",
         options: [
           "Voice assistants such as Siri or Google Assistant",
@@ -112,6 +141,7 @@ function QuizPage({
       },
       {
         id: 3,
+        level: "intermediate",
         question: "Why is ethical AI important?",
         options: [
           "To ensure AI is fair, transparent, and responsible",
@@ -124,6 +154,7 @@ function QuizPage({
       },
       {
         id: 4,
+        level: "intermediate",
         question: "Which AI task involves identifying objects in pictures?",
         options: [
           "Image recognition",
@@ -136,6 +167,7 @@ function QuizPage({
       },
       {
         id: 5,
+        level: "advanced",
         question: "What is one limitation of AI systems?",
         options: [
           "They may produce biased results if trained on biased data",
@@ -155,6 +187,7 @@ function QuizPage({
     questions: [
       {
         id: 1,
+        level: "beginner",
         question: "What is Machine Learning?",
         options: [
           "A method where computers learn patterns from data",
@@ -167,6 +200,7 @@ function QuizPage({
       },
       {
         id: 2,
+        level: "beginner",
         question: "What is the difference between training data and testing data?",
         options: [
           "Training data teaches the model, while testing data evaluates it",
@@ -179,6 +213,7 @@ function QuizPage({
       },
       {
         id: 3,
+        level: "intermediate",
         question: "Which problem is suitable for classification?",
         options: [
           "Predicting whether an email is spam or not spam",
@@ -191,6 +226,7 @@ function QuizPage({
       },
       {
         id: 4,
+        level: "intermediate",
         question: "What does overfitting mean?",
         options: [
           "A model performs well on training data but poorly on new data",
@@ -203,6 +239,7 @@ function QuizPage({
       },
       {
         id: 5,
+        level: "advanced",
         question: "Why do we evaluate a machine learning model?",
         options: [
           "To measure how accurately it performs on unseen data",
@@ -222,6 +259,7 @@ function QuizPage({
     questions: [
       {
         id: 1,
+        level: "beginner",
         question: "Which data type is most suitable for storing multiple values in order?",
         options: [
           "List",
@@ -234,6 +272,7 @@ function QuizPage({
       },
       {
         id: 2,
+        level: "beginner",
         question: "What is the purpose of an if statement in Python?",
         options: [
           "To make decisions based on conditions",
@@ -246,6 +285,7 @@ function QuizPage({
       },
       {
         id: 3,
+        level: "beginner",
         question: "Why are functions useful in programming?",
         options: [
           "They allow code reuse and better organization",
@@ -258,6 +298,7 @@ function QuizPage({
       },
       {
         id: 4,
+        level: "intermediate",
         question: "What will a loop help a programmer do?",
         options: [
           "Repeat a block of code efficiently",
@@ -270,6 +311,7 @@ function QuizPage({
       },
       {
         id: 5,
+        level: "intermediate",
         question: "Which statement best describes a variable?",
         options: [
           "A named storage location for data",
@@ -284,29 +326,208 @@ function QuizPage({
   }
 };
   const activeQuiz = selectedQuiz ? quizCategories[selectedQuiz] : null;
-  const activeQuestions = activeQuiz?.questions || [];
+  
+  const activeQuestions = activeQuiz
+    ? activeQuiz.questions.filter((q) =>
+        allowedLevels[learningLevel || "beginner"]?.includes(q.level)
+      )
+    : [];
+
+  const getAnswerKey = (questionId) => `${selectedQuiz}_${learningLevel}_${questionId}`;
 
   const handleAnswerChange = (id, ans) => {
-    setQuizAnswers((prev) => ({ ...prev, [id]: ans }));
+    setQuizAnswers((prev) => ({
+      ...prev,
+      [getAnswerKey(id)]: ans
+    }));
   };
 
   const getScore = () => {
-    return activeQuestions.reduce(
-      (acc, q) => acc + (quizAnswers[q.id] === q.correctAnswer ? 1 : 0),
-      0
-    );
+    return activeQuestions.reduce((acc, q) => {
+      const userAnswer = quizAnswers[getAnswerKey(q.id)];
+      return acc + (userAnswer === q.correctAnswer ? 1 : 0);
+    }, 0);
   };
 
-  const handleSubmit = () => {
-    setQuizSubmitted(true);
-
+  const handleSubmit = async () => {
     const percent = Math.round((getScore() / activeQuestions.length) * 100);
 
     if (onSubmitQuiz) onSubmitQuiz(percent);
 
-    if (updateLeaderboard) {
-      const name = localStorage.getItem("username") || "Student";
-      updateLeaderboard(name, percent);
+    const user = auth.currentUser;
+
+    const name =
+      localStorage.getItem("name") ||
+      localStorage.getItem("username") ||
+      user?.email ||
+      "Student";
+
+    const level = learningLevel || "beginner";
+
+    try {
+      // ✅ 1. Save quiz history
+      await addDoc(collection(db, "quizResults"), {
+        uid: user?.uid || "guest",
+        name,
+        email: user?.email || "",
+        score: percent,
+        level,
+        subject: activeQuiz?.title,
+        createdAt: serverTimestamp()
+      });
+
+      // ✅ 2. Save leaderboard ikut level + user
+      const attemptNo = Number(localStorage.getItem(`${selectedQuiz}_${level}_attempt`)) + 1 || 1;
+
+      localStorage.setItem(`${selectedQuiz}_${level}_attempt`, attemptNo);
+
+      const leaderboardRef = doc(
+        db,
+        "leaderboard",
+        `${selectedQuiz}_${level}_${name}_${attemptNo}_${Date.now()}`
+      );
+
+      await setDoc(leaderboardRef, {
+        uid: user?.uid || "guest",
+        name,
+        email: user?.email || "",
+        score: percent,
+        level, 
+        learningLevel: level,
+        quizId: selectedQuiz,
+        subject: activeQuiz?.title || "Unknown",
+        attemptNo: attemptNo,
+        createdAt: serverTimestamp()
+      });
+
+      // 🔥 PROGRESS TRACKING
+const practical = practicalScore || 0;
+
+const assessment = practical
+  ? Math.round((percent + practical) / 2)
+  : percent;
+
+const progressRef = doc(
+  db,
+  "progressTracking",
+  `${user?.uid || name}_${selectedQuiz}_${level}`
+);
+
+await setDoc(
+  progressRef,
+  {
+    uid: user?.uid || "guest",
+    name,
+    email: user?.email || "",
+
+    level,
+    learningLevel: level,
+
+    quizId: selectedQuiz,
+    subject: activeQuiz?.title || "Unknown",
+
+    quizScore: percent,
+    practicalScore: practical,
+    assessment,
+
+    totalQuestions: activeQuestions.length,
+    completedQuestions: activeQuestions.length,
+    progressPercent: 100,
+    status: "Completed",
+
+    updatedAt: serverTimestamp()
+  },
+  { merge: true }
+);
+
+// 🔥 WEAKNESS TRACKING
+const wrongQuestions = activeQuestions
+  .filter((q) => quizAnswers[getAnswerKey(q.id)] !== q.correctAnswer)
+  .map((q) => ({
+    questionId: q.id,
+    question: q.question,
+    selectedAnswer: quizAnswers[getAnswerKey(q.id)] || "Not answered",
+    correctAnswer: q.correctAnswer,
+    level: q.level,
+    explanation: q.explanation
+  }));
+
+const weaknessStatus =
+  percent >= 80
+    ? "Strong"
+    : percent >= 60
+    ? "Moderate"
+    : "Weak";
+
+const recommendation =
+  percent >= 80
+    ? "You are doing well. Try a higher level quiz."
+    : percent >= 60
+    ? "Review the questions you answered incorrectly."
+    : "You need more revision for this topic.";
+
+const weaknessRef = doc(
+  db,
+  "weaknessTracking",
+  `${user?.uid || name}_${selectedQuiz}_${level}`
+);
+
+await setDoc(
+  weaknessRef,
+  {
+    uid: user?.uid || "guest",
+    name,
+    email: user?.email || "",
+
+    quizId: selectedQuiz,
+    subject: activeQuiz?.title || "Unknown",
+    level,
+    learningLevel: level,
+
+    score: percent,
+    weaknessStatus,
+    wrongCount: wrongQuestions.length,
+    totalQuestions: activeQuestions.length,
+    wrongQuestions,
+    recommendation,
+
+    updatedAt: serverTimestamp()
+  },
+  { merge: true }
+);
+
+// 🔥 PERFORMANCE HISTORY
+await addDoc(collection(db, "performanceHistory"), {
+  uid: user?.uid || "guest",
+  name,
+  email: user?.email || "",
+
+  level,
+  learningLevel: level,
+
+  quizId: selectedQuiz,
+  subject: activeQuiz?.title || "Unknown",
+
+  score: percent,
+  quizScore: percent,
+  practicalScore: practical,
+  assessment,
+
+  attemptNo: attemptNo,
+  totalQuestions: activeQuestions.length,
+
+  createdAt: serverTimestamp()
+});
+
+      if (updateLeaderboard) {
+        updateLeaderboard(name, percent, level);
+      }
+      
+      setQuizSubmitted(true);
+
+      console.log("✅ Quiz result, leaderboard and progress saved");
+    } catch (error) {
+      console.error("❌ Error saving quiz:", error);
     }
   };
 
@@ -315,7 +536,7 @@ function QuizPage({
     return (
       <div className="quiz-page-wrapper">
         <div className="quiz-container-box">
-         <h2 style={{ marginBottom: "20px" }}>✨ Choose Your Quiz</h2>
+         <h2 style={{ marginBottom: "20px" }}>✨ Choose Your Quiz to Test Your Knowledge !</h2>
 
 <div
   style={{
@@ -330,7 +551,11 @@ function QuizPage({
   {Object.keys(quizCategories).map((key) => (
     <button
       key={key}
-      onClick={() => setSelectedQuiz(key)}
+      onClick={() => {
+        setSelectedQuiz(key);
+        setQuizAnswers({});
+        setQuizSubmitted(false);
+      }}
       style={{
         border: "2px solid #e9d5ff",
         borderRadius: "24px",
@@ -368,7 +593,11 @@ function QuizPage({
           {quizCategories[key].title}
         </h3>
         <p style={{ margin: "6px 0 0", color: "#7c6aa8", fontSize: "14px" }}>
-          5 questions • Test your skills
+          {
+            quizCategories[key].questions.filter((q) =>
+              allowedLevels[learningLevel || "beginner"]?.includes(q.level)
+            ).length
+          } questions • Test your skills
         </p>
       </div>
 
@@ -386,9 +615,27 @@ function QuizPage({
   // ✅ STEP 2: SHOW QUESTIONS
   return (
     <div className="quiz-page-wrapper">
+      <div style={{ marginBottom: "15px" }}>
+        <button
+          className="back-btn"
+          onClick={() => {
+            setSelectedQuiz(null);
+            setQuizAnswers({});
+            setQuizSubmitted(false);
+          }}
+        >
+          ← Back
+        </button>
+      </div>
       <div className="quiz-container-box">
 
-        <h2>{activeQuiz.title}</h2>
+        <p style={{ textAlign: "center", marginBottom: "10px" }}>
+          Current Level: <strong>{learningLevel}</strong>
+        </p>
+
+        <h2 style={{ textAlign: "center", marginBottom: "20px" }}>
+          {activeQuiz.title}
+        </h2>
 
         {activeQuestions.map((q, i) => (
           <div key={q.id} className="quiz-question-card">
@@ -405,7 +652,10 @@ function QuizPage({
 >
   {q.options.map((opt, optIndex) => {
     const letters = ["A", "B", "C", "D"];
-    const isSelected = quizAnswers[q.id] === opt;
+    const isSelected = quizAnswers[getAnswerKey(q.id)] === opt;
+    const isCorrect = opt === q.correctAnswer;
+    const isWrongSelected = quizSubmitted && isSelected && !isCorrect;
+    const showCorrect = quizSubmitted && isCorrect;
 
     return (
       <label
@@ -416,8 +666,21 @@ function QuizPage({
           gap: "14px",
           padding: "16px 18px",
           borderRadius: "18px",
-          border: isSelected ? "2px solid #7C3AED" : "2px solid #E9D5FF",
-          background: isSelected ? "#EDE9FE" : "#FFFFFF",
+          border: showCorrect
+            ? "2px solid #22C55E"
+            : isWrongSelected
+            ? "2px solid #EF4444"
+            : isSelected
+            ? "2px solid #7C3AED"
+            : "2px solid #E9D5FF",
+
+          background: showCorrect
+            ? "#DCFCE7"
+            : isWrongSelected
+            ? "#FEE2E2"
+            : isSelected
+            ? "#EDE9FE"
+            : "#FFFFFF",
           cursor: quizSubmitted ? "not-allowed" : "pointer",
           boxShadow: isSelected
             ? "0 8px 20px rgba(124, 58, 237, 0.18)"
@@ -465,17 +728,75 @@ function QuizPage({
   })}
 </div>
 </div>
+
+{quizSubmitted && (
+  <div
+    style={{
+      marginTop: "16px",
+      padding: "14px",
+      borderRadius: "14px",
+      background:
+        quizAnswers[getAnswerKey(q.id)] === q.correctAnswer ? "#DCFCE7" : "#FEE2E2",
+
+      color:
+        quizAnswers[getAnswerKey(q.id)] === q.correctAnswer ? "#166534" : "#991B1B",
+      textAlign: "left"
+    }}
+  >
+    <strong>
+      {quizAnswers[getAnswerKey(q.id)] === q.correctAnswer ? "Correct!" : "Wrong Answer"}
+    </strong>
+
+    <p style={{ marginTop: "8px" }}>
+      Correct answer: <strong>{q.correctAnswer}</strong>
+    </p>
+
+    <p style={{ marginTop: "6px" }}>{q.explanation}</p>
+  </div>
+)}
           </div>
         ))}
 
         {!quizSubmitted ? (
-          <button onClick={handleSubmit}>Submit Quiz</button>
+          <button
+            onClick={handleSubmit}
+            className="hero-button"
+            style={{
+              marginTop: "20px",
+              width: "100%",
+              padding: "14px",
+              fontSize: "16px",
+              fontWeight: "600"
+            }}
+          >
+            Submit Quiz
+          </button>
         ) : (
           <>
             <h3>Score: {getScore()} / {activeQuestions.length}</h3>
+            <button
+              onClick={() => {
+                setQuizAnswers({});
+                setQuizSubmitted(false);
+              }}
+              className="hero-button"
+              style={{
+                marginTop: "15px",
+                width: "100%",
+                padding: "14px",
+                fontSize: "16px",
+                fontWeight: "600"
+              }}
+            >
+              Try Again
+            </button>
 
             {/* ✅ LEADERBOARD */}
-            <LeaderboardPage leaderboard={leaderboard} />
+            <LeaderboardPage
+              learningLevel={learningLevel || "beginner"}
+              selectedQuiz={selectedQuiz}
+              showLeaderboard={true}
+            />
           </>
         )}
       </div>

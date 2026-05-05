@@ -31,12 +31,25 @@ function Login({ goToRegister, goToDashboard }) {
       }
 
       const userData = querySnapshot.docs[0].data();
-      const email = userData.email;
+const email = userData.email;
 
-      await signInWithEmailAndPassword(auth, email, password);
+await signInWithEmailAndPassword(auth, email, password);
 
-      setSuccess("Login Successful!");
-      localStorage.setItem("isLoggedIn", "true");
+// 🔥 Simpan nama user
+localStorage.setItem("name", userData.name);
+
+// 🔥 Check user baru ke tak
+const justRegistered = localStorage.getItem("justRegistered") === "true";
+
+// 🔥 Set welcome type
+localStorage.setItem("welcomeType", justRegistered ? "new" : "returning");
+
+// 🔥 Clear flag register
+localStorage.removeItem("justRegistered");
+
+// Login success
+setSuccess("Login Successful!");
+localStorage.setItem("isLoggedIn", "true");
 
       setTimeout(() => {
         goToDashboard();
