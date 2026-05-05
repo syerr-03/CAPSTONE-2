@@ -8,7 +8,9 @@ import NewQuizSystem from "./components/NewQuizSystem.jsx";
 import CertificatePreview from "./components/CertificatePreview.jsx";
 
 function App() {
-  const [activePage, setActivePage] = useState("dashboard");
+  const [activePage, setActivePage] = useState(
+  localStorage.getItem("isLoggedIn") === "true" ? "dashboard" : "login"
+);
   const [selectedSubject, setSelectedSubject] = useState(null);
 
   const [completedItems, setCompletedItems] = useState([]);
@@ -27,6 +29,12 @@ function App() {
     setPracticalScore(null);
     setAdaptiveMessage("");
   };
+
+  const handleLogout = () => {
+  console.log("APP LOGOUT");
+  localStorage.removeItem("isLoggedIn");
+  setActivePage("login");
+};
 
   const getAdaptiveMessage = (level) => {
     if (level === "Easy") {
@@ -74,10 +82,11 @@ function App() {
     <div className="app-container">
       {activePage === "dashboard" && (
         <Dashboard
-          handleEnroll={handleEnroll}
-          studentData={studentData}
-          setActivePage={setActivePage}
-        />
+  handleEnroll={handleEnroll}
+  studentData={studentData}
+  setActivePage={setActivePage}
+  handleLogout={handleLogout}
+/>
       )}
 
       {activePage === "login" && (

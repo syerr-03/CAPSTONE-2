@@ -1,95 +1,269 @@
 import { useState } from "react";
-import '../App.css';
+
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
+import { auth, db } from "../firebase";
+
+import "../App.css";
 
 function Register({ goToLogin }) {
   const [step, setStep] = useState(1);
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [level, setLevel] = useState("Beginner");
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
 
-  const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  const passwordValid = (pass) => /^(?=.*[A-Z])(?=.*[!@#$%^&*])(?=.{8,})/.test(pass);
-
-  const nextStep = () => {
-    setError("");
-    if (step === 1) {
-      if (!name || !isEmailValid) { setError("Please fill all fields correctly"); return; }
-      setStep(2);
-    } else if (step === 2) {
-      if (!username || !passwordValid(password) || password !== confirmPassword) {
-        setError("Check your security setup"); return;
-      }
-      setStep(3);
-    }
+  const inputStyle = {
+    width: "100%",
+    border: "1px solid #ddd",
+    padding: "14px",
+    fontSize: "16px",
+    height: "50px",
+    borderRadius: "10px",
+    backgroundColor: "#F9FAFB",
+    color: "#111827"
   };
 
-  const handleRegister = () => {
-    localStorage.setItem("username", username);
-    localStorage.setItem("password", password);
-    setSuccess("Registration Successfully!");
-    setTimeout(() => goToLogin(), 2000);
+  const labelStyle = {
+    display: "block",
+    marginBottom: "6px",
+    fontWeight: "500",
+    textAlign: "left",
+    paddingLeft: "2px"
   };
+
+  const isValidEmail = email.endsWith("@gmail.com");
+
+  const isValidPassword =
+    password.length >= 6 &&
+    /[A-Z]/.test(password) &&
+    /[!@#&]/.test(password);
+
+  const canGoNextStep1 = name && isValidEmail;
+  const canRegister =
+    username &&
+    isValidPassword &&
+    confirmPassword &&
+    password === confirmPassword;
+
+  const handleRegister = async () => {
+  try {
+    // create account dalam Firebase Authentication
+    const userCredential =
+      await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+    const user = userCredential.user;
+
+    // simpan data dalam Firestore
+    await setDoc(doc(db, "users", user.uid), {
+      name: name,
+      email: email,
+      username: username,
+      role: "student",
+      createdAt: new Date()
+    });
+
+    alert("Account created successfully!");
+    goToLogin();
+
+  } catch (error) {
+    alert(error.message);
+  }
+};
 
   return (
-    <div className="app module-page" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
-      <div className="module-card" style={{ width: '100%', maxWidth: '450px', position: 'relative' }}>
-        
-        <p onClick={step === 1 ? goToLogin : () => setStep(step - 1)} 
-           style={{ cursor: "pointer", fontSize: "24px", color: "#7C3AED", position: "absolute", top: "15px", left: "15px" }}>
-          ←
-        </p>
-
-        <h1 className="main-title" style={{ textAlign: 'center', fontSize: '24px' }}>
-          {step === 1 && "Create Account"}
-          {step === 2 && "Security Setup"}
-          {step === 3 && "Learning Level"}
+    <div
+      className="app"
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: "100vh",
+        background: "linear-gradient(135deg, #F5F3FF, #EDE9FE)"
+      }}
+    >
+      <div className="module-card" style={{ width: "100%", maxWidth: "430px" }}>
+        <h1 className="main-title" style={{ textAlign: "center" }}>
+          Create Account
         </h1>
 
         {step === 1 && (
-          <div style={{ marginTop: '20px' }}>
-            <label style={{ display: 'block', marginBottom: '5px' }}>Full Name</label>
-            <input className="search-input" style={{ width: '100%', border: '1px solid #ddd', marginBottom: '15px' }} 
-                   value={name} onChange={(e) => setName(e.target.value)} />
-            <label style={{ display: 'block', marginBottom: '5px' }}>Email</label>
-            <input className="search-input" style={{ width: '100%', border: '1px solid #ddd' }} 
-                   value={email} onChange={(e) => setEmail(e.target.value)} />
-            <button className="hero-button" style={{ width: "100%", marginTop: "20px" }} onClick={nextStep}>Next</button>
-          </div>
+          <>
+            <p className="hero-subtitle" style={{ textAlign: "center", marginBottom: "20px" }}>
+              Enter your personal details
+            </p>
+
+            <div style={{ marginBottom: "15px", textAlign: "left" }}>
+              <label style={labelStyle}>Name</label>
+              <input
+                type="text"
+                style={inputStyle}
+                placeholder="Enter your name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+            </div>
+
+            <div style={{ marginBottom: "15px", textAlign: "left" }}>
+              <label style={labelStyle}>Email</label>
+              <input
+                type="email"
+                style={inputStyle}
+                placeholder="example@gmail.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+
+              {email && !isValidEmail && (
+                <p style={{ color: "red", fontSize: "12px", marginTop: "6px" }}>
+                  Email must use @gmail.com
+                </p>
+              )}
+            </div>
+
+            <button
+              className="hero-button"
+              disabled={!canGoNextStep1}
+              style={{
+                width: "100%",
+                marginTop: "15px",
+                opacity: canGoNextStep1 ? 1 : 0.5,
+                cursor: canGoNextStep1 ? "pointer" : "not-allowed"
+              }}
+              onClick={() => setStep(2)}
+            >
+              Next
+            </button>
+          </>
         )}
 
         {step === 2 && (
-          <div style={{ marginTop: '20px' }}>
-             <label>Username</label>
-             <input className="search-input" style={{ width: '100%', border: '1px solid #ddd', marginBottom: '15px' }} 
-                    value={username} onChange={(e) => setUsername(e.target.value)} />
-             <label>Password</label>
-             <input type={showPassword ? "text" : "password"} className="search-input" 
-                    style={{ width: '100%', border: '1px solid #ddd' }} value={password} onChange={(e) => setPassword(e.target.value)} />
-             <button className="hero-button" style={{ width: "100%", marginTop: "20px" }} onClick={nextStep}>Next</button>
-          </div>
+          <>
+            <p className="hero-subtitle" style={{ textAlign: "center", marginBottom: "20px" }}>
+              Security Setup
+            </p>
+
+            <div style={{ marginBottom: "15px", textAlign: "left" }}>
+              <label style={labelStyle}>Username</label>
+              <input
+                type="text"
+                style={inputStyle}
+                placeholder="Enter username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
+            </div>
+
+            <div style={{ marginBottom: "15px", textAlign: "left" }}>
+              <label style={labelStyle}>Password</label>
+
+              <div style={{ position: "relative" }}>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  style={{ ...inputStyle, paddingRight: "45px" }}
+                  placeholder="Enter password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+
+                <span
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: "absolute",
+                    right: "12px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    cursor: "pointer"
+                  }}
+                >
+                  {showPassword ? "🙈" : "👁️"}
+                </span>
+              </div>
+
+              {password && !isValidPassword && (
+                <p style={{ color: "red", fontSize: "12px", marginTop: "6px" }}>
+                  Password must be at least 6 characters, include 1 uppercase letter and 1 symbol (!@#&).
+                </p>
+              )}
+            </div>
+
+            <div style={{ marginBottom: "15px", textAlign: "left" }}>
+              <label style={labelStyle}>Confirm Password</label>
+
+              <div style={{ position: "relative" }}>
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  style={{ ...inputStyle, paddingRight: "45px" }}
+                  placeholder="Re-enter password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+
+                <span
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  style={{
+                    position: "absolute",
+                    right: "12px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    cursor: "pointer"
+                  }}
+                >
+                  {showConfirmPassword ? "🙈" : "👁️"}
+                </span>
+              </div>
+
+              {confirmPassword && password !== confirmPassword && (
+                <p style={{ color: "red", fontSize: "12px", marginTop: "6px" }}>
+                  Password does not match.
+                </p>
+              )}
+            </div>
+
+            <div style={{ display: "flex", gap: "10px", marginTop: "15px" }}>
+              <button
+                className="hero-button"
+                style={{ width: "50%" }}
+                onClick={() => setStep(1)}
+              >
+                Back
+              </button>
+
+              <button
+                className="hero-button"
+                disabled={!canRegister}
+                style={{
+                  width: "50%",
+                  opacity: canRegister ? 1 : 0.5,
+                  cursor: canRegister ? "pointer" : "not-allowed"
+                }}
+                onClick={handleRegister}
+              >
+                Register
+              </button>
+            </div>
+          </>
         )}
 
-        {step === 3 && (
-          <div style={{ marginTop: '20px', textAlign: 'center' }}>
-            <select value={level} onChange={(e) => setLevel(e.target.value)} 
-                    style={{ width: "100%", padding: "12px", borderRadius: "12px", border: '1px solid #ddd', background: '#f3f4f6' }}>
-              <option>Beginner</option>
-              <option>Intermediate</option>
-              <option>Advanced</option>
-            </select>
-            <button className="hero-button" style={{ width: "100%", marginTop: "20px" }} onClick={handleRegister}>Finish</button>
-          </div>
-        )}
-
-        {error && <p style={{ color: "red", fontSize: "12px", marginTop: "10px", textAlign: 'center' }}>{error}</p>}
-        {success && <p style={{ color: "green", fontSize: "13px", marginTop: "15px", textAlign: "center" }}>{success}</p>}
+        <p style={{ textAlign: "center", fontSize: "14px", marginTop: "20px" }}>
+          Already have an account?{" "}
+          <span
+            style={{ color: "#7C3AED", cursor: "pointer", fontWeight: "600" }}
+            onClick={goToLogin}
+          >
+            Sign In
+          </span>
+        </p>
       </div>
     </div>
   );

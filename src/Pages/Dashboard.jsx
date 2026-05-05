@@ -5,7 +5,7 @@ import Drawer from "../components/Drawer.jsx";
 import PerformancePage from "../ProgressManagement/PerformancePage.jsx";
 import "../App.css";
 
-function Dashboard({ handleEnroll, studentData, setActivePage }) {
+function Dashboard({ handleEnroll, studentData, setActivePage, handleLogout }) {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -110,6 +110,13 @@ function Dashboard({ handleEnroll, studentData, setActivePage }) {
             </button>
 
             <h1 className="simple-menu-logo">BrainyBits</h1>
+            <button
+              className="simple-menu-tab"
+              onClick={handleLogout}
+              style={{ marginLeft: "auto", position: "relative", zIndex: 9999 }}
+            >
+              Logout
+            </button>
 
             <nav className="simple-menu-tabs">
               <button

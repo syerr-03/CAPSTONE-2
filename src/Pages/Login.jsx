@@ -1,5 +1,10 @@
 import { useState } from "react";
-import '../App.css'; 
+
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { db, auth } from "../firebase";
+
+import "../App.css";
 
 function Login({ goToRegister, goToDashboard }) {
   const [showPassword, setShowPassword] = useState(false);
@@ -8,78 +13,161 @@ function Login({ goToRegister, goToDashboard }) {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     setError("");
     setSuccess("");
 
-    if (!username || !password) {
-      setError("Please fill all fields");
-      return;
-    }
+    try {
+      const q = query(
+        collection(db, "users"),
+        where("username", "==", username)
+      );
 
-    const savedUser = localStorage.getItem("username");
-    const savedPass = localStorage.getItem("password");
+      const querySnapshot = await getDocs(q);
 
-    if (username !== savedUser || password !== savedPass) {
-      setError("Invalid username or password");
-      return;
-    }
+      if (querySnapshot.empty) {
+        setError("Username not found");
+        return;
+      }
 
-    setSuccess("Login Successful!");
-    setTimeout(() => {
+      const userData = querySnapshot.docs[0].data();
+      const email = userData.email;
+
+      await signInWithEmailAndPassword(auth, email, password);
+
+      setSuccess("Login Successful!");
+      localStorage.setItem("isLoggedIn", "true");
+
+      setTimeout(() => {
         goToDashboard();
-    }, 1000);
+      }, 1000);
+    } catch (error) {
+      setError("Invalid username or password");
+    }
   };
 
   return (
-    <div className="app module-page" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
-      <div className="module-card" style={{ width: '100%', maxWidth: '400px' }}>
-        <h1 className="main-title" style={{ textAlign: 'center' }}>Welcome Back!</h1>
-        <p className="hero-subtitle" style={{ textAlign: 'center', marginBottom: '20px' }}>Sign in to your account</p>
+    <div
+      className="app"
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: "100vh",
+        background: "linear-gradient(135deg, #F5F3FF, #EDE9FE)"
+      }}
+    >
+      <div className="module-card" style={{ width: "100%", maxWidth: "400px" }}>
+        <h1 className="main-title" style={{ textAlign: "center" }}>
+          Welcome Back!
+        </h1>
 
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Username</label>
+        <p className="hero-subtitle" style={{ textAlign: "center", marginBottom: "20px" }}>
+          Sign in to your account
+        </p>
+
+        <div style={{ marginBottom: "15px" }}>
+          <label
+            style={{
+              display: "block",
+              marginBottom: "6px",
+              fontWeight: "500",
+              textAlign: "left",
+              paddingLeft: "2px"
+            }}
+          >
+            Username
+          </label>
+
           <input
             type="text"
-            className="search-input" // Guna style input sedia ada
-            style={{ width: '100%', border: '1px solid #ddd' }}
+            className="search-input"
+            style={{
+              width: "100%",
+              border: "1px solid #ddd",
+              padding: "14px",
+              fontSize: "16px",
+              height: "48px",
+              borderRadius: "10px"
+            }}
             placeholder="Enter username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
           />
         </div>
 
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Password</label>
+        <div style={{ marginBottom: "15px" }}>
+          <label
+            style={{
+              display: "block",
+              marginBottom: "6px",
+              fontWeight: "500",
+              textAlign: "left",
+              paddingLeft: "2px"
+            }}
+          >
+            Password
+          </label>
+
           <div style={{ position: "relative" }}>
             <input
               type={showPassword ? "text" : "password"}
               className="search-input"
-              style={{ width: '100%', border: '1px solid #ddd' }}
+              style={{
+                width: "100%",
+                border: "1px solid #ddd",
+                padding: "14px",
+                fontSize: "16px",
+                height: "48px",
+                borderRadius: "10px"
+              }}
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
+
             <span
               onClick={() => setShowPassword(!showPassword)}
-              style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", cursor: "pointer" }}
+              style={{
+                position: "absolute",
+                right: "10px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                cursor: "pointer"
+              }}
             >
               {showPassword ? "🙈" : "👁️"}
             </span>
           </div>
         </div>
 
-        {error && <p style={{ color: "red", fontSize: "12px", marginTop: "5px" }}>{error}</p>}
-        {success && <p style={{ color: "green", fontSize: "12px", marginTop: "5px" }}>{success}</p>}
+        {error && (
+          <p style={{ color: "red", fontSize: "12px", marginTop: "5px" }}>
+            {error}
+          </p>
+        )}
 
-        <button className="hero-button" style={{ width: "100%", marginTop: "15px" }} onClick={handleLogin}>
+        {success && (
+          <p style={{ color: "green", fontSize: "12px", marginTop: "5px" }}>
+            {success}
+          </p>
+        )}
+
+        <button
+          className="hero-button"
+          style={{ width: "100%", marginTop: "15px" }}
+          onClick={handleLogin}
+        >
           Sign In
         </button>
 
-        <p style={{ textAlign: 'center', fontSize: '14px', marginTop: '20px' }}>
-          Don’t have an account? <span 
-            style={{ color: "#7C3AED", cursor: "pointer", fontWeight: '600' }} 
-            onClick={goToRegister}>Sign Up
+        <p style={{ textAlign: "center", fontSize: "14px", marginTop: "20px" }}>
+          Don’t have an account?{" "}
+          <span
+            style={{ color: "#7C3AED", cursor: "pointer", fontWeight: "600" }}
+            onClick={goToRegister}
+          >
+            Sign Up
           </span>
         </p>
       </div>
