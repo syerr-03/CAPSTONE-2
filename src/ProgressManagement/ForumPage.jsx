@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-function ForumPage() {
+function ForumPage({ onBack }) {
   const formatTimeAgo = (dateString) => {
     const now = new Date();
     const postTime = new Date(dateString);
@@ -99,6 +99,10 @@ function ForumPage() {
 
   return (
     <div className="page-wrapper">
+      <button className="back-btn" onClick={onBack}>
+        ← Back
+      </button>
+
       <div className="hero-section">
         <h2 className="main-title">Discussion Forum</h2>
         <p className="subtitle-text">

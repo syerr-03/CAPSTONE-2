@@ -1,11 +1,23 @@
-import { useState } from "react"; 
-import SubjectGrid from "../components/SubjectGrid.jsx"; 
-import QuizPage from "../components/QuizPage.jsx"; 
-import Drawer from "../components/Drawer.jsx"; 
-import PerformancePage from "../ProgressManagement/PerformancePage.jsx"; 
-import "../App.css"; 
+import { useState } from "react";
+import SubjectGrid from "../components/SubjectGrid.jsx";
+import QuizPage from "../components/QuizPage.jsx";
+import Drawer from "../components/Drawer.jsx";
+import PerformancePage from "../ProgressManagement/PerformancePage.jsx";
+import ProgressPage from "../ProgressManagement/ProgressPage.jsx";
+import AchievementPage from "../ProgressManagement/AchievementPage.jsx";
+import ForumPage from "../ProgressManagement/ForumPage.jsx";
+import LeaderboardPage from "../ProgressManagement/LeaderboardPage.jsx";
+import "../App.css";
 
-function Dashboard({ handleEnroll, studentData, setActivePage, handleLogout }) {
+function Dashboard({
+  handleEnroll,
+  studentData,
+  leaderboard,
+  updateLeaderboard,
+  setQuizScore,
+  setActivePage,
+  handleLogout
+}) {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -95,6 +107,9 @@ function Dashboard({ handleEnroll, studentData, setActivePage, handleLogout }) {
             closeDrawer={() => setDrawerOpen(false)}
             openSchedule={openSchedule}
             openGoals={openGoals}
+            openProgress={() => goToTab("progress")}
+            openAchievement={() => goToTab("achievement")}
+            openForum={() => goToTab("forum")}
           />
         )}
 
@@ -110,6 +125,7 @@ function Dashboard({ handleEnroll, studentData, setActivePage, handleLogout }) {
             </button>
 
             <h1 className="simple-menu-logo">BrainyBits</h1>
+
             <button
               className="simple-menu-tab"
               onClick={handleLogout}
@@ -156,9 +172,7 @@ function Dashboard({ handleEnroll, studentData, setActivePage, handleLogout }) {
               <section className="dashboard-compact-top">
                 <div className="compact-welcome-card">
                   <span className="compact-welcome-pill">Welcome</span>
-
                   <h2>Welcome!</h2>
-
                   <p>Keep going. Small progress still counts.</p>
                 </div>
               </section>
@@ -167,17 +181,15 @@ function Dashboard({ handleEnroll, studentData, setActivePage, handleLogout }) {
               <section className="compact-streak-card">
                 <div className="compact-streak-info">
                   <div className="main-fire-circle">
-                   <span className="streak-fire-emoji">🔥</span>
+                    <span className="streak-fire-emoji">🔥</span>
                   </div>
 
                   <div className="streak-info-text">
                     <h3>Learning Streak</h3>
-
                     <div className="compact-streak-number">
                       <strong>7</strong>
                       <span>Day Streak</span>
                     </div>
-
                     <p>Amazing! You’re on fire. Keep it up!</p>
                   </div>
                 </div>
@@ -188,7 +200,6 @@ function Dashboard({ handleEnroll, studentData, setActivePage, handleLogout }) {
                   {streakDays.map((item) => (
                     <div className="compact-streak-day" key={item.day}>
                       <span>{item.day}</span>
-
                       <div className={item.active ? "compact-fire active" : "compact-fire"}>
                         <span className="streak-fire-emoji small">🔥</span>
                       </div>
@@ -215,7 +226,6 @@ function Dashboard({ handleEnroll, studentData, setActivePage, handleLogout }) {
                 <div className="certificate-info">
                   <div className="certificate-title-row">
                     <h2>E-Certificate</h2>
-
                     <span className={`certificate-status ${isCertificateUnlocked ? "unlocked" : ""}`}>
                       {isCertificateUnlocked ? "Unlocked" : "Locked"}
                     </span>
@@ -230,12 +240,10 @@ function Dashboard({ handleEnroll, studentData, setActivePage, handleLogout }) {
                       <span>{certificateProgress >= 100 ? "✓" : ""}</span>
                       Complete all modules
                     </li>
-
                     <li className={certificateProgress >= 100 ? "done" : ""}>
                       <span>{certificateProgress >= 100 ? "✓" : ""}</span>
                       Complete quiz and practical
                     </li>
-
                     <li className={certificateProgress >= 100 ? "done" : ""}>
                       <span>{certificateProgress >= 100 ? "✓" : ""}</span>
                       Reach 100% progress
@@ -262,7 +270,7 @@ function Dashboard({ handleEnroll, studentData, setActivePage, handleLogout }) {
                   >
                     {isCertificateUnlocked
                       ? "Purchase Certificate - RM40"
-                      : "🔒 Claim Certificate"}
+                      : "🔒Claim Certificate"}
                   </button>
 
                   <small>
@@ -292,15 +300,50 @@ function Dashboard({ handleEnroll, studentData, setActivePage, handleLogout }) {
           {/* QUIZ TAB */}
           {activeTab === "quiz" && (
             <section className="dashboard-content-section">
-              <QuizPage />
+              <QuizPage
+                onSubmitQuiz={setQuizScore}
+                quizScore={performanceData.quizScore}
+                difficultyLevel={performanceData.difficultyLevel}
+                practicalScore={performanceData.practicalScore}
+                leaderboard={leaderboard}
+                updateLeaderboard={updateLeaderboard}
+              />
             </section>
           )}
 
           {/* PERFORMANCE TAB */}
           {activeTab === "performance" && (
             <section className="dashboard-content-section">
-              <PerformancePage studentData={performanceData} />
+              <PerformancePage studentData={performanceData} leaderboard={leaderboard} />
             </section>
+          )}
+
+          {/* LEADERBOARD TAB */}
+          {activeTab === "leaderboard" && (
+            <section className="dashboard-content-section">
+              <LeaderboardPage />
+            </section>
+          )}
+
+          {/* PROGRESS TAB */}
+          {activeTab === "progress" && (
+            <section className="dashboard-content-section">
+              <ProgressPage studentData={performanceData} />
+            </section>
+          )}
+
+          {/* ACHIEVEMENT TAB */}
+          {activeTab === "achievement" && (
+            <section className="dashboard-content-section">
+              <AchievementPage studentData={performanceData} />
+            </section>
+          )}
+
+          {/* FORUM TAB */}
+          {activeTab === "forum" && (
+            <section className="dashboard-content-section">
+            <ForumPage />
+          </section>
           )}
         </main>
       </div>
@@ -327,7 +370,6 @@ function Dashboard({ handleEnroll, studentData, setActivePage, handleLogout }) {
 
                 <div style={navRow}>
                   <span style={back} onClick={() => setStep(0)}>←</span>
-
                   <button
                     className="hero-button"
                     style={{ padding: "10px 25px" }}
@@ -357,7 +399,6 @@ function Dashboard({ handleEnroll, studentData, setActivePage, handleLogout }) {
 
                 <div style={navRow}>
                   <span style={back} onClick={() => setStep(1)}>←</span>
-
                   <button
                     className="hero-button"
                     style={{ padding: "10px 25px" }}
@@ -387,7 +428,6 @@ function Dashboard({ handleEnroll, studentData, setActivePage, handleLogout }) {
 
                 <div style={navRow}>
                   <span style={back} onClick={() => setStep(2)}>←</span>
-
                   <button
                     className="hero-button"
                     style={{ padding: "10px 25px" }}
@@ -402,7 +442,6 @@ function Dashboard({ handleEnroll, studentData, setActivePage, handleLogout }) {
             {step === 4 && (
               <div style={{ textAlign: "center" }}>
                 <h3 className="section-title">Saved. ✅</h3>
-
                 <button
                   className="hero-button"
                   style={{ marginTop: "15px" }}
@@ -438,7 +477,6 @@ function Dashboard({ handleEnroll, studentData, setActivePage, handleLogout }) {
 
                 <div style={navRow}>
                   <span style={back} onClick={() => setGoalStep(0)}>←</span>
-
                   <button
                     className="hero-button"
                     style={{ padding: "10px 25px" }}
@@ -469,7 +507,6 @@ function Dashboard({ handleEnroll, studentData, setActivePage, handleLogout }) {
 
                 <div style={navRow}>
                   <span style={back} onClick={() => setGoalStep(1)}>←</span>
-
                   <button
                     className="hero-button"
                     style={{ padding: "10px 25px" }}
@@ -500,7 +537,6 @@ function Dashboard({ handleEnroll, studentData, setActivePage, handleLogout }) {
 
                 <div style={navRow}>
                   <span style={back} onClick={() => setGoalStep(2)}>←</span>
-
                   <button
                     className="hero-button"
                     style={{ padding: "10px 25px" }}
@@ -515,7 +551,6 @@ function Dashboard({ handleEnroll, studentData, setActivePage, handleLogout }) {
             {goalStep === 4 && (
               <div style={{ textAlign: "center" }}>
                 <h3 className="section-title">Saved. 🎯</h3>
-
                 <button
                   className="hero-button"
                   style={{ marginTop: "15px" }}

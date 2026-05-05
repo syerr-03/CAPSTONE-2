@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./App.css";
+import "./ProgressManagement/ProgressManagement.css";
 
 import Dashboard from "./Pages/Dashboard.jsx";
 import Login from "./Pages/Login.jsx";
@@ -19,10 +20,17 @@ function App() {
   const [practicalScore, setPracticalScore] = useState(null);
   const [adaptiveMessage, setAdaptiveMessage] = useState("");
 
+  const [leaderboard, setLeaderboard] = useState([
+    { name: "Aina", score: 80 },
+    { name: "Amar", score: 88 },
+    { name: "Kevin", score: 70 }
+  ]);
+
+  const totalLearningItems = 8;
+
   const handleEnroll = (subject) => {
     setSelectedSubject(subject);
     setActivePage("learning-content");
-
     setCompletedItems([]);
     setDifficultyLevel("Medium");
     setQuizScore(null);
@@ -64,17 +72,27 @@ function App() {
     setAdaptiveMessage(getAdaptiveMessage(newLevel));
   };
 
-  const totalLearningItems = 8;
+  const updateLeaderboard = (studentName, score) => {
+    const newEntry = {
+      name: studentName || "Student",
+      score
+    };
+
+    setLeaderboard((prev) => [...prev, newEntry].sort((a, b) => b.score - a.score));
+  };
 
   const studentData = {
     completedModules: completedItems.length,
+    totalModules: totalLearningItems,
     progressPercent: selectedSubject
       ? Math.round((completedItems.length / totalLearningItems) * 100)
       : 0,
     quizScore: quizScore || 0,
     practicalScore: practicalScore || 0,
+    averageScore: Math.round(((quizScore || 0) + (practicalScore || 0)) / 2),
     difficultyLevel,
-    adaptiveMessage
+    adaptiveMessage:
+      adaptiveMessage || "Complete quiz and practical task to get adaptive feedback."
   };
 
   return (
@@ -83,6 +101,9 @@ function App() {
         <Dashboard
           handleEnroll={handleEnroll}
           studentData={studentData}
+          leaderboard={leaderboard}
+          updateLeaderboard={updateLeaderboard}
+          setQuizScore={setQuizScore}
           setActivePage={setActivePage}
           handleLogout={handleLogout}
         />
@@ -109,6 +130,8 @@ function App() {
           setCompletedItems={setCompletedItems}
           difficultyLevel={difficultyLevel}
           updateAdaptiveLevel={updateAdaptiveLevel}
+          updateLeaderboard={updateLeaderboard}
+          leaderboard={leaderboard}
         />
       )}
 

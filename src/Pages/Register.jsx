@@ -1,21 +1,16 @@
 import { useState } from "react";
-
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { auth, db } from "../firebase";
-
 import "../App.css";
 
 function Register({ goToLogin }) {
   const [step, setStep] = useState(1);
-
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -46,6 +41,7 @@ function Register({ goToLogin }) {
     /[!@#&]/.test(password);
 
   const canGoNextStep1 = name && isValidEmail;
+
   const canRegister =
     username &&
     isValidPassword &&
@@ -53,33 +49,29 @@ function Register({ goToLogin }) {
     password === confirmPassword;
 
   const handleRegister = async () => {
-  try {
-    // create account dalam Firebase Authentication
-    const userCredential =
-      await createUserWithEmailAndPassword(
+    try {
+      const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
         password
       );
 
-    const user = userCredential.user;
+      const user = userCredential.user;
 
-    // simpan data dalam Firestore
-    await setDoc(doc(db, "users", user.uid), {
-      name: name,
-      email: email,
-      username: username,
-      role: "student",
-      createdAt: new Date()
-    });
+      await setDoc(doc(db, "users", user.uid), {
+        name,
+        email,
+        username,
+        role: "student",
+        createdAt: new Date()
+      });
 
-    alert("Account created successfully!");
-    goToLogin();
-
-  } catch (error) {
-    alert(error.message);
-  }
-};
+      alert("Account created successfully!");
+      goToLogin();
+    } catch (error) {
+      alert(error.message);
+    }
+  };
 
   return (
     <div
@@ -258,7 +250,7 @@ function Register({ goToLogin }) {
         <p style={{ textAlign: "center", fontSize: "14px", marginTop: "20px" }}>
           Already have an account?{" "}
           <span
-            style={{ color: "#7C3AED", cursor: "pointer", fontWeight: "600" }}
+            style={{ color: "#543c7d", cursor: "pointer", fontWeight: "600" }}
             onClick={goToLogin}
           >
             Sign In
@@ -270,4 +262,3 @@ function Register({ goToLogin }) {
 }
 
 export default Register;
-

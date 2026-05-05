@@ -1905,6 +1905,7 @@ body {
     font-size: 24px;
   }
 }
+<<<<<<< HEAD
 
 input {
   background-color: #F9FAFB;
@@ -1922,4 +1923,31 @@ input {
   height: 100%;
   background: linear-gradient(135deg, #f5f3ff, #f1eafe);
   z-index: -1;
+=======
+/* FORCE BACK BUTTON STYLE */
+.page-wrapper {
+  position: relative !important;
+}
+
+.page-wrapper .back-btn {
+  position: absolute !important;
+  top: 30px !important;
+  left: 30px !important;
+
+  background: #f3eaff !important;
+  color: #7c3cff !important;
+
+  border: 1px solid #d9c6ff !important;
+  padding: 10px 18px !important;
+  border-radius: 14px !important;
+
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  z-index: 10 !important;
+}
+
+.page-wrapper .back-btn:hover {
+  background: #eadcff !important;
+>>>>>>> 42bed524208f59f8b5ee3dd1afe7212d2193507e
 }

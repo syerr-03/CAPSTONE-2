@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-function AchievementPage({ studentData = {} }) { // Tambah = {} di sini
+function AchievementPage({ studentData = {}, onBack }) {
   const [selectedBadge, setSelectedBadge] = useState(null);
 
   const achievements = [
@@ -8,7 +8,7 @@ function AchievementPage({ studentData = {} }) { // Tambah = {} di sini
       id: 1,
       title: "Starter Badge",
       description: "Complete at least 1 learning item.",
-      unlocked: studentData.completedModules >= 1,
+      unlocked: (studentData.completedModules || 0) >= 1,
       unlockedBy: ["First completed learning activity"],
       reason:
         "Yayy!! You unlocked this badge by completing your first learning item in the adaptive module.",
@@ -17,8 +17,8 @@ function AchievementPage({ studentData = {} }) { // Tambah = {} di sini
       id: 2,
       title: "Steady Progress",
       description: "Reach at least 50% overall progress.",
-      unlocked: studentData.progressPercent >= 50,
-      unlockedBy: [`Progress reached ${studentData.progressPercent}%`],
+      unlocked: (studentData.progressPercent || 0) >= 50,
+      unlockedBy: [`Progress reached ${studentData.progressPercent || 0}%`],
       reason:
         "Yayy!! You unlocked this badge by reaching the expected minimum progress in the learning journey.",
     },
@@ -26,8 +26,8 @@ function AchievementPage({ studentData = {} }) { // Tambah = {} di sini
       id: 3,
       title: "Quiz Performer",
       description: "Achieve a quiz score of at least 60%.",
-      unlocked: studentData.quizScore >= 60,
-      unlockedBy: [`Quiz score: ${studentData.quizScore}%`],
+      unlocked: (studentData.quizScore || 0) >= 60,
+      unlockedBy: [`Quiz score: ${studentData.quizScore || 0}%`],
       reason:
         "Yayy!! You unlocked this badge by performing well in the quiz assessment.",
     },
@@ -35,8 +35,8 @@ function AchievementPage({ studentData = {} }) { // Tambah = {} di sini
       id: 4,
       title: "Practical Achiever",
       description: "Achieve a practical score of at least 80%.",
-      unlocked: studentData.practicalScore >= 80,
-      unlockedBy: [`Practical score: ${studentData.practicalScore}%`],
+      unlocked: (studentData.practicalScore || 0) >= 80,
+      unlockedBy: [`Practical score: ${studentData.practicalScore || 0}%`],
       reason:
         "Yayy!! You unlocked this badge by showing strong performance in the practical assignment.",
     },
@@ -47,7 +47,7 @@ function AchievementPage({ studentData = {} }) { // Tambah = {} di sini
       unlocked:
         studentData.difficultyLevel === "Medium" ||
         studentData.difficultyLevel === "Hard",
-      unlockedBy: [`Adaptive level: ${studentData.difficultyLevel}`],
+      unlockedBy: [`Adaptive level: ${studentData.difficultyLevel || "N/A"}`],
       reason:
         "Yayy!! You unlocked this badge because the system recognized your progress and placed you at a higher adaptive level.",
     },
@@ -55,6 +55,11 @@ function AchievementPage({ studentData = {} }) { // Tambah = {} di sini
 
   return (
     <div className="page-wrapper">
+      {/* ✅ BACK BUTTON */}
+      <button className="back-btn" onClick={onBack}>
+        ← Back
+      </button>
+
       <div className="hero-section">
         <h2 className="main-title">Earn Achievement</h2>
         <p className="subtitle-text">
