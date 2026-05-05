@@ -270,3 +270,4 @@ function Register({ goToLogin }) {
 }
 
 export default Register;
+

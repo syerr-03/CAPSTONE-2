@@ -174,5 +174,5 @@ function Login({ goToRegister, goToDashboard }) {
     </div>
   );
 }
-
+ 
 export default Login;

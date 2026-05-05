@@ -9,10 +9,10 @@ import CertificatePreview from "./components/CertificatePreview.jsx";
 
 function App() {
   const [activePage, setActivePage] = useState(
-  localStorage.getItem("isLoggedIn") === "true" ? "dashboard" : "login"
-);
-  const [selectedSubject, setSelectedSubject] = useState(null);
+    localStorage.getItem("isLoggedIn") === "true" ? "dashboard" : "login"
+  );
 
+  const [selectedSubject, setSelectedSubject] = useState(null);
   const [completedItems, setCompletedItems] = useState([]);
   const [difficultyLevel, setDifficultyLevel] = useState("Medium");
   const [quizScore, setQuizScore] = useState(null);
@@ -31,10 +31,9 @@ function App() {
   };
 
   const handleLogout = () => {
-  console.log("APP LOGOUT");
-  localStorage.removeItem("isLoggedIn");
-  setActivePage("login");
-};
+    localStorage.removeItem("isLoggedIn");
+    setActivePage("login");
+  };
 
   const getAdaptiveMessage = (level) => {
     if (level === "Easy") {
@@ -74,19 +73,19 @@ function App() {
       : 0,
     quizScore: quizScore || 0,
     practicalScore: practicalScore || 0,
-    difficultyLevel: difficultyLevel,
-    adaptiveMessage: adaptiveMessage
+    difficultyLevel,
+    adaptiveMessage
   };
 
   return (
     <div className="app-container">
       {activePage === "dashboard" && (
         <Dashboard
-  handleEnroll={handleEnroll}
-  studentData={studentData}
-  setActivePage={setActivePage}
-  handleLogout={handleLogout}
-/>
+          handleEnroll={handleEnroll}
+          studentData={studentData}
+          setActivePage={setActivePage}
+          handleLogout={handleLogout}
+        />
       )}
 
       {activePage === "login" && (

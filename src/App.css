@@ -375,10 +375,11 @@ body {
 .dashboard-compact-top {
   width: min(1180px, calc(100% - 80px));
   margin: 0 auto 24px;
-  display: grid;
-  grid-template-columns: 1.45fr 0.85fr;
-  gap: 22px;
-  align-items: stretch;
+  display: block;
+}
+.compact-welcome-card {
+  width: 100%;
+  min-height: 260px;
 }
 
 .compact-welcome-card {
@@ -1477,7 +1478,7 @@ body {
 .quiz-main-title {
   font-size: 34px;
   font-weight: 700;
-  color: #7c3aed;
+  color: #111827;
   margin: 0;
   text-align: center;
 }

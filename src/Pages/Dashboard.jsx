@@ -1,9 +1,9 @@
-import { useState } from "react";
-import SubjectGrid from "../components/SubjectGrid.jsx";
-import QuizPage from "../components/QuizPage.jsx";
-import Drawer from "../components/Drawer.jsx";
-import PerformancePage from "../ProgressManagement/PerformancePage.jsx";
-import "../App.css";
+import { useState } from "react"; 
+import SubjectGrid from "../components/SubjectGrid.jsx"; 
+import QuizPage from "../components/QuizPage.jsx"; 
+import Drawer from "../components/Drawer.jsx"; 
+import PerformancePage from "../ProgressManagement/PerformancePage.jsx"; 
+import "../App.css"; 
 
 function Dashboard({ handleEnroll, studentData, setActivePage, handleLogout }) {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -160,30 +160,6 @@ function Dashboard({ handleEnroll, studentData, setActivePage, handleLogout }) {
                   <h2>Welcome!</h2>
 
                   <p>Keep going. Small progress still counts.</p>
-                </div>
-
-                <div className="compact-action-column">
-                  <button className="compact-action-card" onClick={openSchedule}>
-                    <div className="compact-action-icon">📅</div>
-
-                    <div className="compact-action-text">
-                      <h3>Set Schedule</h3>
-                      <p>Plan your study time</p>
-                    </div>
-
-                    <span className="compact-action-arrow">›</span>
-                  </button>
-
-                  <button className="compact-action-card" onClick={openGoals}>
-                    <div className="compact-action-icon">🎯</div>
-
-                    <div className="compact-action-text">
-                      <h3>Set Goal</h3>
-                      <p>Stay focused and achieve more</p>
-                    </div>
-
-                    <span className="compact-action-arrow">›</span>
-                  </button>
                 </div>
               </section>
 
