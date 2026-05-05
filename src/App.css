@@ -1905,8 +1905,6 @@ body {
     font-size: 24px;
   }
 }
-<<<<<<< HEAD
-
 input {
   background-color: #F9FAFB;
   color: #111827;
@@ -1923,7 +1921,8 @@ input {
   height: 100%;
   background: linear-gradient(135deg, #f5f3ff, #f1eafe);
   z-index: -1;
-=======
+}
+
 /* FORCE BACK BUTTON STYLE */
 .page-wrapper {
   position: relative !important;
@@ -1949,5 +1948,4 @@ input {
 
 .page-wrapper .back-btn:hover {
   background: #eadcff !important;
->>>>>>> 42bed524208f59f8b5ee3dd1afe7212d2193507e
 }
