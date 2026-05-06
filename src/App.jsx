@@ -7,6 +7,8 @@ import Login from "./Pages/Login.jsx";
 import Register from "./Pages/Register.jsx";
 import NewQuizSystem from "./components/NewQuizSystem.jsx";
 import CertificatePreview from "./components/CertificatePreview.jsx";
+import { Routes, Route } from "react-router-dom";
+import Notes from "./components/Notes.jsx";
 
 function App() {
   const [activePage, setActivePage] = useState(
@@ -145,8 +147,8 @@ function App() {
       adaptiveMessage || "Complete quiz and practical task to get adaptive feedback."
   };
 
-  return (
-    <div className="app-container">
+  const mainApp = (
+  <div className="app-container">
       {activePage === "dashboard" && (
         <Dashboard
           handleEnroll={handleEnroll}
@@ -188,10 +190,17 @@ function App() {
         />
       )}
 
-      {activePage === "certificate-preview" && (
+            {activePage === "certificate-preview" && (
         <CertificatePreview onBack={() => setActivePage("dashboard")} />
       )}
     </div>
+  );
+
+  return (
+    <Routes>
+      <Route path="/" element={mainApp} />
+      <Route path="/notes/:id" element={<Notes />} />
+    </Routes>
   );
 }
 

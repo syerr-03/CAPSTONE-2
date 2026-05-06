@@ -7,6 +7,8 @@ import ProgressPage from "../ProgressManagement/ProgressPage.jsx";
 import AchievementPage from "../ProgressManagement/AchievementPage.jsx";
 import ForumPage from "../ProgressManagement/ForumPage.jsx";
 import LeaderboardPage from "../ProgressManagement/LeaderboardPage.jsx";
+import AiChat from "../components/aiChat.jsx";
+import Notes from "../components/Notes.jsx";
 import "../App.css";
 
 function Dashboard({
@@ -135,33 +137,40 @@ function Dashboard({
             <h1 className="simple-menu-logo">BrainyBits</h1>
 
             <nav className="simple-menu-tabs">
-              <button
-                className={`simple-menu-tab ${activeTab === "dashboard" ? "active" : ""}`}
-                onClick={() => goToTab("dashboard")}
-              >
-                Dashboard
-              </button>
+             <button
+  className={`simple-menu-tab ${activeTab === "dashboard" ? "active" : ""}`}
+  onClick={() => goToTab("dashboard")}
+>
+  Dashboard
+</button>
 
-              <button
-                className={`simple-menu-tab ${activeTab === "subjects" ? "active" : ""}`}
-                onClick={() => goToTab("subjects")}
-              >
-                Subjects
-              </button>
+<button
+  className={`simple-menu-tab ${activeTab === "subjects" ? "active" : ""}`}
+  onClick={() => goToTab("subjects")}
+>
+  Subjects
+</button>
 
-              <button
-                className={`simple-menu-tab ${activeTab === "quiz" ? "active" : ""}`}
-                onClick={() => goToTab("quiz")}
-              >
-                Quiz
-              </button>
+<button
+  className={`simple-menu-tab ${activeTab === "content" ? "active" : ""}`}
+  onClick={() => goToTab("content")}
+>
+  Content
+</button>
 
-              <button
-                className={`simple-menu-tab ${activeTab === "performance" ? "active" : ""}`}
-                onClick={() => goToTab("performance")}
-              >
-                Performance
-              </button>
+<button
+  className={`simple-menu-tab ${activeTab === "quiz" ? "active" : ""}`}
+  onClick={() => goToTab("quiz")}
+>
+  Quiz
+</button>
+
+<button
+  className={`simple-menu-tab ${activeTab === "performance" ? "active" : ""}`}
+  onClick={() => goToTab("performance")}
+>
+  Performance
+</button>
             </nav>
           </header>
 
@@ -302,6 +311,17 @@ function Dashboard({
               />
             </section>
           )}
+
+          {/* CONTENT TAB */}
+{activeTab === "content" && (
+  <section className="dashboard-content-section">
+    <h2 className="section-title">AI Learning Assistant & Notes</h2>
+
+    <AiChat />
+    <Notes />
+  </section>
+)}
+
 
           {/* QUIZ TAB */}
           {activeTab === "quiz" && (
