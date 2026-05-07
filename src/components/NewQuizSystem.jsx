@@ -13,9 +13,11 @@ function NewQuizSystem({
   updateLeaderboard,
   leaderboard
 }) {
-  
-  const topic = module?.title || "What is Data Science?";
+  const [showModuleNote, setShowModuleNote] = useState(false);
+  const [selectedModuleItem, setSelectedModuleItem] = useState(null);
+  const [moduleNote, setModuleNote] = useState("");
 
+  const topic = module?.title || "What is Data Science?";
   const safeCompletedItems = Array.isArray(completedItems) ? completedItems : [];
 
   const moduleSections = useMemo(
@@ -76,6 +78,74 @@ function NewQuizSystem({
     [topic]
   );
 
+  const openModuleNote = (item) => {
+    const noteKey = `moduleNote-${module?.title}-${item.id}`;
+    const savedNote = localStorage.getItem(noteKey) || "";
+
+    setSelectedModuleItem(item);
+    setModuleNote(savedNote);
+    setShowModuleNote(true);
+  };
+
+  const saveModuleNote = () => {
+    if (!selectedModuleItem) return;
+
+    const noteKey = `moduleNote-${module?.title}-${selectedModuleItem.id}`;
+    localStorage.setItem(noteKey, moduleNote);
+
+    alert("Note saved!");
+  };
+
+  const ModuleNotePanel = () => {
+    if (!showModuleNote || !selectedModuleItem) return null;
+
+    return (
+      <div className="module-note-panel">
+        <div className="module-note-header">
+          <div>
+            <h3>Quick Notes</h3>
+            <p>{selectedModuleItem.title}</p>
+          </div>
+
+          <button onClick={() => setShowModuleNote(false)}>×</button>
+        </div>
+
+        <textarea
+          value={moduleNote}
+          onChange={(e) => setModuleNote(e.target.value)}
+          placeholder="Write your note for this module item..."
+          className="module-note-textarea"
+        />
+
+        <button className="module-note-save-btn" onClick={saveModuleNote}>
+          Save Note
+        </button>
+      </div>
+    );
+  };
+
+  const ContentNoteActions = ({ item }) => {
+    return (
+      <div className="content-note-actions">
+        <button
+          className="content-note-btn"
+          onClick={() => openModuleNote(item)}
+          title="Write note"
+        >
+          ✏️
+        </button>
+
+        <button
+          className="content-note-btn"
+          onClick={() => openModuleNote(item)}
+          title="View note"
+        >
+          📒
+        </button>
+      </div>
+    );
+  };
+
   const allItems = moduleSections.flatMap((section) => section.items);
 
   const [activeItem, setActiveItem] = useState(null);
@@ -103,6 +173,7 @@ function NewQuizSystem({
     setActiveItem(null);
     setQuizSubmitted(false);
     setSelectedAnswers({});
+    setShowModuleNote(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -230,8 +301,8 @@ function NewQuizSystem({
     }
 
     if (typeof updateLeaderboard === "function") {
-  const studentName = localStorage.getItem("username") || "Student";
-  updateLeaderboard(studentName, percent);
+      const studentName = localStorage.getItem("username") || "Student";
+      updateLeaderboard(studentName, percent);
     }
 
     if (typeof updateAdaptiveLevel === "function") {
@@ -268,7 +339,11 @@ function NewQuizSystem({
             <h3>Introduction</h3>
             <p>{topic} content goes here...</p>
           </div>
+
+          <ContentNoteActions item={activeItem} />
         </div>
+
+        <ModuleNotePanel />
       </div>
     );
   }
@@ -286,7 +361,11 @@ function NewQuizSystem({
           <div className="fake-video-frame">
             <div className="play-button">Play Video</div>
           </div>
+
+          <ContentNoteActions item={activeItem} />
         </div>
+
+        <ModuleNotePanel />
       </div>
     );
   }
@@ -300,8 +379,7 @@ function NewQuizSystem({
     if (quizSubmitted) {
       questions.forEach((question) => {
         if (
-          selectedAnswers[`${quizId}-${question.id}`] ===
-          question.correctAnswer
+          selectedAnswers[`${quizId}-${question.id}`] === question.correctAnswer
         ) {
           correctCount++;
         }
@@ -359,8 +437,7 @@ function NewQuizSystem({
                 {showWrong && (
                   <div className="feedback-box">
                     <p>
-                      <strong>Correct Answer:</strong>{" "}
-                      {question.correctAnswer}
+                      <strong>Correct Answer:</strong> {question.correctAnswer}
                     </p>
                     <p>
                       <strong>Explanation:</strong> {question.explanation}
@@ -372,31 +449,35 @@ function NewQuizSystem({
           })}
 
           {!quizSubmitted ? (
-  <button
-    className="hero-button"
-    style={{ marginTop: "20px", width: "100%" }}
-    onClick={handleQuizSubmit}
-  >
-    Submit Quiz
-  </button>
-) : (
-  <>
-    <div
-      className="quiz-result-box"
-      style={{ marginTop: "20px", textAlign: "center" }}
-    >
-      <p style={{ fontSize: "24px", fontWeight: "bold" }}>
-        Score: {correctCount} / {questions.length} (
-        {Math.round((correctCount / questions.length) * 100)}%)
-      </p>
-    </div>
+            <button
+              className="hero-button"
+              style={{ marginTop: "20px", width: "100%" }}
+              onClick={handleQuizSubmit}
+            >
+              Submit Quiz
+            </button>
+          ) : (
+            <>
+              <div
+                className="quiz-result-box"
+                style={{ marginTop: "20px", textAlign: "center" }}
+              >
+                <p style={{ fontSize: "24px", fontWeight: "bold" }}>
+                  Score: {correctCount} / {questions.length} (
+                  {Math.round((correctCount / questions.length) * 100)}%)
+                </p>
+              </div>
 
-    <div style={{ marginTop: "30px" }}>
-      <LeaderboardPage leaderboard={leaderboard} />
-    </div>
-  </>
-)}
+              <div style={{ marginTop: "30px" }}>
+                <LeaderboardPage leaderboard={leaderboard} />
+              </div>
+            </>
+          )}
+
+          <ContentNoteActions item={activeItem} />
         </div>
+
+        <ModuleNotePanel />
       </div>
     );
   }
@@ -451,7 +532,11 @@ function NewQuizSystem({
               </p>
             </div>
           )}
+
+          <ContentNoteActions item={activeItem} />
         </div>
+
+        <ModuleNotePanel />
       </div>
     );
   }

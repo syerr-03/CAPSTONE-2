@@ -171,6 +171,13 @@ function Dashboard({
 >
   Performance
 </button>
+
+<button
+  className={`simple-menu-tab ${activeTab === "notes" ? "active" : ""}`}
+  onClick={() => setActivePage("notes")}
+>
+  Notes
+</button>
             </nav>
           </header>
 
@@ -359,13 +366,14 @@ function Dashboard({
           {/* PROGRESS TAB */}
           {activeTab === "progress" && (
             <section className="dashboard-content-section">
-
               <button className="back-btn" onClick={() => goToTab("dashboard")}>
                 ← Back
               </button>
 
-              <ProgressPage studentData={performanceData} />
-
+              <ProgressPage
+                studentData={performanceData}
+                onBack={() => goToTab("dashboard")}
+              />
             </section>
           )}
 

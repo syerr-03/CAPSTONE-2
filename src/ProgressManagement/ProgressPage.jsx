@@ -8,9 +8,6 @@ function ProgressPage({ studentData = {}, onBack }) {
   if (!hasProgress) {
     return (
       <div className="page-wrapper">
-        <button className="back-btn" onClick={onBack}>
-          ← Back
-        </button>
 
         <div className="hero-section">
           <h2 className="main-title">Track Progress</h2>

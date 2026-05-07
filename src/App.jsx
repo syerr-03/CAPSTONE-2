@@ -7,7 +7,6 @@ import Login from "./Pages/Login.jsx";
 import Register from "./Pages/Register.jsx";
 import NewQuizSystem from "./components/NewQuizSystem.jsx";
 import CertificatePreview from "./components/CertificatePreview.jsx";
-import { Routes, Route } from "react-router-dom";
 import Notes from "./components/Notes.jsx";
 
 function App() {
@@ -44,14 +43,13 @@ function App() {
     localStorage.getItem("learningLevel") || ""
   );
 
+  const totalLearningItems = 8;
+
   const handleSelectLevel = (level) => {
     localStorage.setItem("learningLevel", level);
     setLearningLevel(level);
     setShowLevelPopup(false);
   };
-
-
-  const totalLearningItems = 8;
 
   const handleEnroll = (subject) => {
     setSelectedSubject(subject);
@@ -144,11 +142,12 @@ function App() {
         ? "Advanced"
         : "Beginner",
     adaptiveMessage:
-      adaptiveMessage || "Complete quiz and practical task to get adaptive feedback."
+      adaptiveMessage ||
+      "Complete quiz and practical task to get adaptive feedback."
   };
 
-  const mainApp = (
-  <div className="app-container">
+  return (
+    <div className="app-container">
       {activePage === "dashboard" && (
         <Dashboard
           handleEnroll={handleEnroll}
@@ -190,17 +189,14 @@ function App() {
         />
       )}
 
-            {activePage === "certificate-preview" && (
+      {activePage === "certificate-preview" && (
         <CertificatePreview onBack={() => setActivePage("dashboard")} />
       )}
-    </div>
-  );
 
-  return (
-    <Routes>
-      <Route path="/" element={mainApp} />
-      <Route path="/notes/:id" element={<Notes />} />
-    </Routes>
+      {activePage === "notes" && (
+        <Notes onBack={() => setActivePage("dashboard")} />
+      )}
+    </div>
   );
 }
 
