@@ -23,37 +23,43 @@ const Notes = ({ onBack }) => {
   const colors = ["#7C3AED", "#3B82F6", "#10B981", "#F59E0B", "#EF4444"];
 
   const [notes, setNotes] = useState(() => {
-  const savedNotes = localStorage.getItem("notes");
+    const savedNotes = localStorage.getItem("notes");
 
-  return savedNotes
-    ? JSON.parse(savedNotes)
-    : [
-        {
-          title: "Python List Comprehensions",
-          subject: "Python for Data Analysis",
-          content:
-            "• List comprehensions provide a concise way to create lists.\n• Syntax: [expression for item in iterable if condition].",
-          color: "#3B82F6",
-          dateTime: "Jan 14, 2026, 10:30 AM"
-        },
-        {
-          title: "Supervised vs Unsupervised Learning",
-          subject: "Machine Learning Fundamentals",
-          content:
-            "• Supervised learning uses labelled data.\n• Unsupervised learning finds patterns in unlabelled data.",
-          color: "#A855F7",
-          dateTime: "Jan 13, 2026, 9:15 PM"
-        },
-        {
-          title: "Normal Distribution",
-          subject: "Statistics for Data Science",
-          content:
-            "• Bell-shaped curve.\n• Symmetric around the mean.\n• Mean = Median = Mode.",
-          color: "#10B981",
-          dateTime: "Jan 12, 2026, 2:45 PM"
-        }
-      ];
-});
+    return savedNotes
+      ? JSON.parse(savedNotes)
+      : [
+          {
+            id: "sample-1",
+            level: "beginner",
+            title: "Python List Comprehensions",
+            subject: "Python for Data Analysis",
+            content:
+              "• List comprehensions provide a concise way to create lists.\n• Syntax: [expression for item in iterable if condition].",
+            color: "#3B82F6",
+            dateTime: "Jan 14, 2026, 10:30 AM"
+          },
+          {
+            id: "sample-2",
+            level: "intermediate",
+            title: "Supervised vs Unsupervised Learning",
+            subject: "Machine Learning Fundamentals",
+            content:
+              "• Supervised learning uses labelled data.\n• Unsupervised learning finds patterns in unlabelled data.",
+            color: "#A855F7",
+            dateTime: "Jan 13, 2026, 9:15 PM"
+          },
+          {
+            id: "sample-3",
+            level: "advanced",
+            title: "Normal Distribution",
+            subject: "Statistics for Data Science",
+            content:
+              "• Bell-shaped curve.\n• Symmetric around the mean.\n• Mean = Median = Mode.",
+            color: "#10B981",
+            dateTime: "Jan 12, 2026, 2:45 PM"
+          }
+        ];
+  });
 
   useEffect(() => {
     localStorage.setItem("notes", JSON.stringify(notes));
@@ -81,13 +87,15 @@ const Notes = ({ onBack }) => {
   const addNote = () => {
     if (noteTitle.trim() === "" || noteContent.trim() === "") return;
 
-    const newNote = {
-      title: noteTitle,
-      subject: "Personal Note",
-      content: noteContent,
-      color: noteColor,
-      dateTime: getDateTime()
-    };
+const newNote = {
+  id: `personal-${Date.now()}`,
+  level: "self",
+  title: noteTitle,
+  subject: "Personal Note",
+  content: noteContent,
+  color: noteColor,
+  dateTime: getDateTime()
+};
 
     setNotes([newNote, ...notes]);
     setNoteTitle("");
@@ -104,9 +112,9 @@ const Notes = ({ onBack }) => {
     }
 
     setSelectedNote({ ...item, index });
-    setEditTitle(item.title);
-    setEditContent(item.content);
-    setEditColor(item.color);
+    setEditTitle(item.title || "");
+    setEditContent(item.content || "");
+    setEditColor(item.color || "#7C3AED");
   };
 
   const saveEditNote = () => {
@@ -195,18 +203,183 @@ const Notes = ({ onBack }) => {
         "Machine learning allows systems to learn patterns from data."
       );
     } else {
-      setAiExplanation("This note relates to your learning. Try reviewing it again.");
+      setAiExplanation(
+        "This note relates to your learning. Try reviewing it again."
+      );
     }
   };
 
-  const filteredNotes = notes
+  const searchedNotes = notes
     .map((item, originalIndex) => ({ ...item, originalIndex }))
-    .filter(
-      (item) =>
-        item.title.toLowerCase().includes(search.toLowerCase()) ||
-        item.subject.toLowerCase().includes(search.toLowerCase()) ||
-        item.content.toLowerCase().includes(search.toLowerCase())
+    .filter((item) => {
+      const keyword = search.toLowerCase();
+
+      return (
+        (item.title || "").toLowerCase().includes(keyword) ||
+        (item.subject || "").toLowerCase().includes(keyword) ||
+        (item.content || "").toLowerCase().includes(keyword)
+      );
+    });
+
+  const beginnerNotes = searchedNotes.filter(
+    (note) => (note.level || "beginner") === "beginner"
+  );
+
+  const intermediateNotes = searchedNotes.filter(
+    (note) => note.level === "intermediate"
+  );
+
+  const advancedNotes = searchedNotes.filter(
+    (note) => note.level === "advanced"
+  );
+  const selfNotes = searchedNotes.filter(
+  (note) => note.level === "self"
+);
+
+  const getShortContent = (content) => {
+    const cleanContent = (content || "").replace(/\n/g, " ");
+
+    return cleanContent.length > 95
+      ? `${cleanContent.slice(0, 95)}...`
+      : cleanContent;
+  };
+
+const getLevelName = (level) => {
+  if (level === "self") return "Self Note";
+
+  const noteLevel = level || "beginner";
+  return noteLevel.charAt(0).toUpperCase() + noteLevel.slice(1);
+};
+
+const getSectionInfo = (title) => {
+  if (title === "All Notes") {
+    return {
+      icon: "▦",
+      color: "#7C3AED",
+      bg: "#F3E8FF",
+      badgeBg: "#F3E8FF"
+    };
+  }
+
+  if (title === "Self Notes") {
+    return {
+      icon: "✍️",
+      color: "#7C3AED",
+      bg: "#F3E8FF",
+      badgeBg: "#F3E8FF"
+    };
+  }
+
+  if (title === "Beginner") {
+    return {
+      icon: "🌱",
+      color: "#7C3AED",
+      bg: "#F3E8FF",
+      badgeBg: "#F3E8FF"
+    };
+  }
+
+  if (title === "Intermediate") {
+    return {
+      icon: "🎓",
+      color: "#7C3AED",
+      bg: "#F3E8FF",
+      badgeBg: "#F3E8FF"
+    };
+  }
+
+  return {
+    icon: "★",
+    color: "#7C3AED",
+    bg: "#F3E8FF",
+    badgeBg: "#F3E8FF"
+  };
+};
+
+  const renderNoteRow = (item) => (
+    <div
+      key={item.id || item.originalIndex}
+      style={{
+        ...styles.noteRow,
+        ...(selectedIndexes.includes(item.originalIndex)
+          ? styles.selectedRow
+          : {})
+      }}
+      onClick={() => openNote(item, item.originalIndex)}
+    >
+      {isSelectMode && (
+        <div style={styles.checkBox}>
+          {selectedIndexes.includes(item.originalIndex) ? "✓" : ""}
+        </div>
+      )}
+
+      <div style={styles.rowIconBox}>📄</div>
+
+      <div style={styles.rowTitleBox}>
+        <p style={styles.rowTitle}>{item.title}</p>
+      </div>
+
+      <div style={styles.rowSubjectBox}>
+        <span style={styles.bookIcon}>📖</span>
+        <span style={styles.rowSubject}>{item.subject}</span>
+      </div>
+
+      <div style={styles.rowLevelBox}>
+        <span style={styles.levelBadge(item.level || "beginner")}>
+          {getLevelName(item.level)}
+        </span>
+      </div>
+
+      <div style={styles.rowPreviewBox}>
+        <p style={styles.rowPreview}>• {getShortContent(item.content)}</p>
+      </div>
+
+      <div style={styles.rowDateBox}>
+        <p style={styles.rowDate}>🕒 {item.dateTime}</p>
+      </div>
+    </div>
+  );
+
+  const renderNoteSection = (title, sectionNotes) => {
+    const info = getSectionInfo(title);
+
+    return (
+      <section style={styles.listSection}>
+        <div style={styles.sectionTopRow}>
+          <div style={styles.sectionTitleGroup}>
+            <div style={styles.sectionIcon(info.bg, info.color)}>
+              {info.icon}
+            </div>
+
+            <div>
+              <div style={styles.sectionTitlePill(info.bg, info.color)}>
+                {title}
+              </div>
+              <div style={styles.sectionLine(info.color)}></div>
+            </div>
+          </div>
+
+          <span style={styles.sectionCount(info.badgeBg, info.color)}>
+            {sectionNotes.length} notes
+          </span>
+        </div>
+
+        {sectionNotes.length === 0 ? (
+          <div style={styles.emptyState}>
+            <div style={styles.emptyIcon}>✦</div>
+            <p style={styles.emptyText}>No notes in this level yet.</p>
+            <small style={styles.emptySmall}>
+              Write your own notes!
+            </small>
+          </div>
+        ) : (
+          <div style={styles.listContainer}>
+            {sectionNotes.map((item) => renderNoteRow(item))}
+          </div>
+        )}
+      </section>
     );
+  };
 
   return (
     <div style={styles.page}>
@@ -218,6 +391,7 @@ const Notes = ({ onBack }) => {
         <section style={styles.heroCard}>
           <div style={styles.heroLeft}>
             <div style={styles.iconBox}>📄</div>
+
             <div>
               <h1 style={styles.title}>My Notes</h1>
               <p style={styles.subtitle}>
@@ -287,7 +461,8 @@ const Notes = ({ onBack }) => {
         )}
 
         <div style={styles.searchBox}>
-          <span style={styles.searchIcon}>🔍</span>
+          <span>🔍</span>
+
           <input
             type="text"
             placeholder="Search notes..."
@@ -297,63 +472,35 @@ const Notes = ({ onBack }) => {
           />
         </div>
 
-        <div style={styles.noteActionRow}>
-          <h2 style={styles.noteCount}>{filteredNotes.length} Notes</h2>
+<div style={styles.noteActionRow}>
+  <div></div>
 
-          {!isSelectMode ? (
-            <button style={styles.selectBtn} onClick={() => setIsSelectMode(true)}>
-              Select
-            </button>
-          ) : (
-            <div style={styles.selectActionBox}>
-              <button style={styles.cancelBtn} onClick={cancelSelect}>
-                Cancel
-              </button>
+  {!isSelectMode ? (
+    <button style={styles.selectBtn} onClick={() => setIsSelectMode(true)}>
+      Select
+    </button>
+  ) : (
+    <div style={styles.selectActionBox}>
+      <button style={styles.cancelBtn} onClick={cancelSelect}>
+        Cancel
+      </button>
 
-              <button style={styles.deleteBtn} onClick={askDeleteMany}>
-                Delete
-              </button>
-            </div>
-          )}
-        </div>
+      <button style={styles.deleteBtn} onClick={askDeleteMany}>
+        Delete
+      </button>
+    </div>
+  )}
+</div>
 
-        <div style={styles.grid}>
-          {filteredNotes.map((item) => (
-            <div
-              key={item.originalIndex}
-              style={{
-                ...styles.noteCard,
-                ...(selectedIndexes.includes(item.originalIndex)
-                  ? styles.selectedCard
-                  : {})
-              }}
-              onClick={() => openNote(item, item.originalIndex)}
-            >
-              <div style={styles.cardLine(item.color)}></div>
+        {renderNoteSection("All Notes", searchedNotes)}
 
-              {isSelectMode && (
-                <div style={styles.checkBox}>
-                  {selectedIndexes.includes(item.originalIndex) ? "✓" : ""}
-                </div>
-              )}
+        {renderNoteSection("Self Notes", selfNotes)}
 
-              <h3 style={styles.cardTitle}>{item.title}</h3>
+        {renderNoteSection("Beginner", beginnerNotes)}
 
-              <p style={styles.subject}>📖 {item.subject}</p>
+        {renderNoteSection("Intermediate", intermediateNotes)}
 
-              <p style={styles.content}>
-                {item.content.split("\n").map((line, i) => (
-                  <React.Fragment key={i}>
-                    {line}
-                    <br />
-                  </React.Fragment>
-                ))}
-              </p>
-
-              <p style={styles.date}>🗓 {item.dateTime}</p>
-            </div>
-          ))}
-        </div>
+        {renderNoteSection("Advanced", advancedNotes)}
       </div>
 
       {selectedNote && (
@@ -413,6 +560,7 @@ const Notes = ({ onBack }) => {
         <div style={styles.confirmOverlay}>
           <div style={styles.confirmBox}>
             <h3 style={styles.confirmTitle}>Delete note?</h3>
+
             <p style={styles.confirmText}>
               Are you sure you want to delete this note?
             </p>
@@ -460,7 +608,7 @@ const styles = {
   },
 
   container: {
-    width: "80%",
+    width: "84%",
     margin: "35px auto"
   },
 
@@ -660,14 +808,24 @@ const styles = {
     fontWeight: "800"
   },
 
+  smallPurpleLine: {
+    width: "38px",
+    height: "4px",
+    borderRadius: "999px",
+    background: "#7C3AED",
+    marginTop: "6px",
+    opacity: 0.75
+  },
+
   selectBtn: {
-    background: "#DDD6FE",
-    color: "#5B21B6",
+    background: "#7C3AED",
+    color: "white",
     border: "none",
     borderRadius: "12px",
     padding: "10px 18px",
     fontWeight: "800",
-    cursor: "pointer"
+    cursor: "pointer",
+    boxShadow: "0 10px 20px rgba(124, 58, 237, 0.2)"
   },
 
   selectActionBox: {
@@ -695,33 +853,180 @@ const styles = {
     cursor: "pointer"
   },
 
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-    gap: "20px"
-  },
-
-  noteCard: {
-    background: "white",
+  listSection: {
+    marginTop: "24px",
+    background: "#FFFFFF",
+    border: "1px solid #E9D5FF",
     borderRadius: "18px",
-    padding: "22px",
-    position: "relative",
-    overflow: "hidden",
-    boxShadow: "0 12px 30px rgba(17, 24, 39, 0.08)",
-    border: "1px solid #E5E7EB",
-    minHeight: "220px",
-    cursor: "pointer"
+    padding: "18px 20px",
+    boxShadow: "0 8px 24px rgba(17, 24, 39, 0.05)"
   },
 
-  selectedCard: {
+  sectionTopRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "16px"
+  },
+
+  sectionTitleGroup: {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px"
+  },
+
+  sectionIcon: (bg, color) => ({
+    width: "42px",
+    height: "42px",
+    borderRadius: "14px",
+    background: bg,
+    color,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "20px",
+    fontWeight: "900"
+  }),
+
+  sectionTitlePill: (bg, color) => ({
+    display: "inline-block",
+    background: bg,
+    color,
+    fontWeight: "900",
+    fontSize: "18px",
+    padding: "8px 16px",
+    borderRadius: "10px"
+  }),
+
+  sectionLine: (color) => ({
+    width: "100%",
+    height: "4px",
+    background: color,
+    borderRadius: "999px",
+    marginTop: "6px"
+  }),
+
+  sectionCount: (bg, color) => ({
+    background: bg,
+    color,
+    borderRadius: "999px",
+    padding: "7px 14px",
+    fontSize: "13px",
+    fontWeight: "900"
+  }),
+
+  listContainer: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px"
+  },
+
+  noteRow: {
+    display: "grid",
+    gridTemplateColumns: "36px 210px 180px 110px 1fr 190px",
+    alignItems: "center",
+    gap: "14px",
+    minHeight: "58px",
+    padding: "12px 14px",
+    border: "1px solid #E5E7EB",
+    borderRadius: "12px",
+    background: "#FFFFFF",
+    cursor: "pointer",
+    boxShadow: "0 3px 10px rgba(17, 24, 39, 0.03)"
+  },
+
+  selectedRow: {
     border: "2px solid #7C3AED",
-    boxShadow: "0 16px 35px rgba(124, 58, 237, 0.2)"
+    background: "#FAF5FF"
+  },
+
+  rowIconBox: {
+    width: "34px",
+    height: "34px",
+    borderRadius: "10px",
+    background: "#F3E8FF",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "15px"
+  },
+
+  rowTitleBox: {
+    minWidth: 0
+  },
+
+  rowTitle: {
+    margin: 0,
+    fontWeight: "800",
+    fontSize: "14px",
+    color: "#111827",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis"
+  },
+
+  rowSubjectBox: {
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+    minWidth: 0,
+    color: "#6B7280",
+    fontSize: "13px"
+  },
+
+  bookIcon: {
+    flexShrink: 0,
+    fontSize: "13px"
+  },
+
+  rowSubject: {
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis"
+  },
+
+  rowLevelBox: {
+    display: "flex",
+    alignItems: "center"
+  },
+
+levelBadge: (level) => ({
+  display: "inline-block",
+  padding: "6px 12px",
+  borderRadius: "999px",
+  fontSize: "12px",
+  fontWeight: "800",
+  background: "#F3E8FF",
+  color: "#7C3AED"
+}),
+
+  rowPreviewBox: {
+    minWidth: 0
+  },
+
+  rowPreview: {
+    margin: 0,
+    color: "#6B7280",
+    fontSize: "13px",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis"
+  },
+
+  rowDateBox: {
+    minWidth: 0
+  },
+
+  rowDate: {
+    margin: 0,
+    color: "#6B7280",
+    fontSize: "12px",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis"
   },
 
   checkBox: {
-    position: "absolute",
-    top: "14px",
-    right: "14px",
     width: "26px",
     height: "26px",
     borderRadius: "8px",
@@ -733,40 +1038,33 @@ const styles = {
     fontWeight: "800"
   },
 
-  cardLine: (color) => ({
-    position: "absolute",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "6px",
-    background: color
-  }),
-
-  cardTitle: {
-    marginTop: "12px",
-    marginBottom: "12px",
-    fontSize: "19px",
-    fontWeight: "800",
-    color: "#111827"
-  },
-
-  subject: {
-    fontSize: "13px",
+  emptyState: {
+    minHeight: "80px",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
     color: "#6B7280",
-    marginBottom: "14px",
-    fontWeight: "600"
+    textAlign: "center"
   },
 
-  content: {
+  emptyIcon: {
+    fontSize: "22px",
+    color: "#2563EB",
+    marginBottom: "4px"
+  },
+
+  emptyText: {
+    margin: 0,
+    color: "#111827",
     fontSize: "14px",
-    color: "#374151",
-    lineHeight: "1.6"
+    fontWeight: "700"
   },
 
-  date: {
-    fontSize: "13px",
+  emptySmall: {
+    marginTop: "4px",
     color: "#6B7280",
-    marginTop: "20px"
+    fontSize: "12px"
   },
 
   modalOverlay: {

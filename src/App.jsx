@@ -46,8 +46,8 @@ function App() {
   const totalLearningItems = 8;
 
   const handleSelectLevel = (level) => {
-    localStorage.setItem("learningLevel", level);
     setLearningLevel(level);
+    localStorage.setItem("learningLevel", level);
     setShowLevelPopup(false);
   };
 
@@ -100,7 +100,11 @@ function App() {
     setAdaptiveMessage(getAdaptiveMessage(newLevel));
   };
 
-  const updateLeaderboard = (studentName, score, level = "beginner") => {
+  const updateLeaderboard = (
+    studentName,
+    score,
+    level = localStorage.getItem("learningLevel") || "beginner"
+  ) => {
     const name = studentName || "Student";
 
     setLeaderboard((prev) => {

@@ -1,0 +1,230 @@
+import { useState } from "react";
+
+function FloatingAiChat() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [question, setQuestion] = useState("");
+  const [messages, setMessages] = useState (() => {
+    const savedMessages = localStorage.getItem("aiChatMessanges");
+    return savedMessages
+    ? JSON.parse(savedMessages)
+    : [
+
+    {
+      sender: "ai",
+      text: "Hi! Ask me anything about this module.",
+    },
+  ];
+});
+
+  const generateAnswer = (question) => {
+    const q = question.toLowerCase();
+
+    if (q.includes("data science")) {
+      return "Data Science is the process of collecting, analysing, and interpreting data to find useful insights.";
+    }
+
+    if (q.includes("python")) {
+      return "Python is commonly used in data science for analysis, automation, machine learning, and visualization.";
+    }
+
+    if (q.includes("statistics") || q.includes("probability")) {
+      return "Statistics helps us understand data using concepts such as mean, median, probability, and data distribution.";
+    }
+
+    if (q.includes("visualization") || q.includes("chart") || q.includes("graph")) {
+      return "Data Visualization presents data using charts and graphs so information becomes easier to understand.";
+    }
+
+    if (q.includes("machine learning") || q.includes("ml")) {
+      return "Machine Learning is a field of AI where computers learn patterns from data to make predictions or decisions.";
+    }
+
+    if (q.includes("eda") || q.includes("exploratory data analysis")) {
+      return "EDA is the process of exploring data to understand patterns, missing values, and relationships before modelling.";
+    }
+
+    return `I am not sure yet, but "${question}" seems related to your learning. Try asking about Data Science, Python, Statistics, Visualization, ML, or EDA.`;
+  };
+
+  const askAI = () => {
+    if (!question.trim()) return;
+
+    const userQuestion = question.trim();
+    const aiAnswer = generateAnswer(userQuestion);
+
+    const newMessages = [
+      ...messages,
+      { sender: "user", text: userQuestion },
+      { sender: "ai", text: aiAnswer },
+    ];
+
+    setMessages(newMessages);
+    localStorage.setItem("aiChatMessanges", JSON.stringify(newMessages));
+
+    setQuestion("");
+  };
+
+  return (
+    <>
+      {!isOpen && (
+        <button
+          onClick={() => setIsOpen(true)}
+          style={{
+            position: "fixed",
+            bottom: "24px",
+            right: "24px",
+            background: "#7C3AED",
+            color: "white",
+            border: "none",
+            borderRadius: "999px",
+            padding: "14px 20px",
+            cursor: "pointer",
+            fontWeight: "700",
+            boxShadow: "0 10px 25px rgba(124,58,237,0.35)",
+            zIndex: 9999,
+          }}
+        >
+          💬 Chat with AI
+        </button>
+      )}
+
+      {isOpen && (
+        <div
+          style={{
+            position: "fixed",
+            bottom: "24px",
+            right: "24px",
+            width: "360px",
+            height: "520px",
+            background: "white",
+            borderRadius: "22px",
+            boxShadow: "0 18px 45px rgba(17,24,39,0.18)",
+            zIndex: 9999,
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden",
+          }}
+        >
+          <div
+            style={{
+              padding: "18px 20px",
+              background: "linear-gradient(135deg, #7C3AED, #9F67FF)",
+              color: "white",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <div>
+              <h3 style={{ margin: 0, fontSize: "18px" }}> 🤖AI Assistant</h3>
+              <p style={{ margin: "4px 0 0", fontSize: "13px", opacity: 0.9 }}>
+                Ask me anything, I'll help you understand better!
+              </p>
+            </div>
+
+            <button
+              onClick={() => setIsOpen(false)}
+              style={{
+                border: "none",
+                background: "rgba(255,255,255,0.2)",
+                color: "white",
+                width: "32px",
+                height: "32px",
+                borderRadius: "50%",
+                cursor: "pointer",
+                fontSize: "16px",
+              }}
+            >
+              ✕
+            </button>
+          </div>
+
+          <div
+            style={{
+              flex: 1,
+              padding: "18px",
+              overflowY: "auto",
+              background: "#FAFAFA",
+            }}
+          >
+            {messages.map((msg, index) => (
+              <div
+                key={index}
+                style={{
+                  display: "flex",
+                  justifyContent:
+                    msg.sender === "user" ? "flex-end" : "flex-start",
+                  marginBottom: "12px",
+                }}
+              >
+                <div
+                  style={{
+                    maxWidth: "78%",
+                    padding: "12px 14px",
+                    borderRadius:
+                      msg.sender === "user"
+                        ? "16px 16px 4px 16px"
+                        : "16px 16px 16px 4px",
+                    background:
+                      msg.sender === "user" ? "#7C3AED" : "#F0E9FF",
+                    color: msg.sender === "user" ? "white" : "#111827",
+                    fontSize: "14px",
+                    lineHeight: "1.5",
+                  }}
+                >
+                  {msg.text}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div
+            style={{
+              padding: "14px",
+              borderTop: "1px solid #EEE8FF",
+              background: "white",
+              display: "flex",
+              gap: "10px",
+            }}
+          >
+            <input
+              type="text"
+              placeholder="Type your question..."
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") askAI();
+              }}
+              style={{
+                flex: 1,
+                padding: "12px 14px",
+                borderRadius: "999px",
+                border: "1px solid #DDD6FE",
+                outline: "none",
+                fontFamily: "Poppins, sans-serif",
+              }}
+            />
+
+            <button
+              onClick={askAI}
+              style={{
+                width: "46px",
+                height: "46px",
+                borderRadius: "50%",
+                border: "none",
+                background: "#7C3AED",
+                color: "white",
+                cursor: "pointer",
+                fontSize: "18px",
+              }}
+            >
+              ➤
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+export default FloatingAiChat;

@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import "../App.css";
 import LeaderboardPage from "../ProgressManagement/LeaderboardPage.jsx";
+import FloatingAiChat from "./FloatingAiChat.jsx";
 
 function NewQuizSystem({
   module,
@@ -13,17 +14,31 @@ function NewQuizSystem({
   updateLeaderboard,
   leaderboard
 }) {
-  const [showModuleNote, setShowModuleNote] = useState(false);
-  const [selectedModuleItem, setSelectedModuleItem] = useState(null);
-  const [moduleNote, setModuleNote] = useState("");
-
   const topic = module?.title || "What is Data Science?";
+  const currentLevel = localStorage.getItem("learningLevel") || "beginner";
   const safeCompletedItems = Array.isArray(completedItems) ? completedItems : [];
+
+  const [activeItem, setActiveItem] = useState(null);
+  const [activeSection, setActiveSection] = useState(null);
+  const [activeModuleNumber, setActiveModuleNumber] = useState(null);
+
+  const [showModuleNote, setShowModuleNote] = useState(false);
+  const [noteMode, setNoteMode] = useState("write");
+  const [selectedModuleItem, setSelectedModuleItem] = useState(null);
+  const [selectedBookModuleId, setSelectedBookModuleId] = useState(null);
+  const [moduleNote, setModuleNote] = useState("");
+  const [, setNotesVersion] = useState(0);
+
+  const [selectedAnswers, setSelectedAnswers] = useState({});
+  const [quizSubmitted, setQuizSubmitted] = useState(false);
+  const [practicalText, setPracticalText] = useState("");
+  const [practicalSubmitted, setPracticalSubmitted] = useState(false);
 
   const moduleSections = useMemo(
     () => [
       {
         id: "module1",
+        moduleNumber: 1,
         heading: "Fundamentals",
         items: [
           {
@@ -50,6 +65,7 @@ function NewQuizSystem({
       },
       {
         id: "module2",
+        moduleNumber: 2,
         heading: "Programming Basics",
         items: [
           {
@@ -78,81 +94,586 @@ function NewQuizSystem({
     [topic]
   );
 
-  const openModuleNote = (item) => {
-    const noteKey = `moduleNote-${module?.title}-${item.id}`;
-    const savedNote = localStorage.getItem(noteKey) || "";
+  const getDraftNotes = () => {
+    try {
+      return JSON.parse(localStorage.getItem("moduleDraftNotes")) || [];
+    } catch {
+      return [];
+    }
+  };
 
-    setSelectedModuleItem(item);
-    setModuleNote(savedNote);
+  const getMyNotes = () => {
+    try {
+      return JSON.parse(localStorage.getItem("notes")) || [];
+    } catch {
+      return [];
+    }
+  };
+
+  const getDateTime = () => {
+    return new Date().toLocaleString("en-MY", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true
+    });
+  };
+
+  const findDraftNote = (section) => {
+    const draftNotes = getDraftNotes();
+
+    return draftNotes.find(
+      (note) =>
+        note.level === currentLevel &&
+        note.subject === topic &&
+        note.moduleId === section.id
+    );
+  };
+
+  const getSubjectDraftNotes = () => {
+    const draftNotes = getDraftNotes();
+
+    return draftNotes.filter(
+      (note) => note.level === currentLevel && note.subject === topic
+    );
+  };
+
+  const getGroupedBookNotes = () => {
+    const subjectDraftNotes = getSubjectDraftNotes();
+
+    return moduleSections
+      .map((section) => {
+        const note = subjectDraftNotes.find(
+          (draftNote) => draftNote.moduleId === section.id
+        );
+
+        return {
+          moduleId: section.id,
+          moduleNumber: section.moduleNumber,
+          moduleName: section.heading,
+          note: note || null
+        };
+      })
+      .filter((moduleGroup) => moduleGroup.note);
+  };
+
+  const getSelectedBookModule = () => {
+    const groupedNotes = getGroupedBookNotes();
+
+    if (selectedBookModuleId) {
+      const selected = groupedNotes.find(
+        (moduleGroup) => moduleGroup.moduleId === selectedBookModuleId
+      );
+
+      if (selected) return selected;
+    }
+
+    return groupedNotes[0] || null;
+  };
+
+  const openWriteNote = (item, section) => {
+    const savedNote = findDraftNote(section);
+
+    setSelectedModuleItem({ ...item, section });
+    setSelectedBookModuleId(null);
+    setModuleNote(savedNote ? savedNote.content : "");
+    setNoteMode("write");
+    setShowModuleNote(true);
+  };
+
+  const openViewNote = (item, section) => {
+    const groupedNotes = getGroupedBookNotes();
+
+    setSelectedModuleItem({ ...item, section });
+
+    if (groupedNotes.length > 0) {
+      const currentModuleHasNote = groupedNotes.find(
+        (moduleGroup) => moduleGroup.moduleId === section.id
+      );
+
+      setSelectedBookModuleId(
+        currentModuleHasNote
+          ? currentModuleHasNote.moduleId
+          : groupedNotes[0].moduleId
+      );
+    } else {
+      setSelectedBookModuleId(null);
+    }
+
+    setModuleNote("");
+    setNoteMode("view");
     setShowModuleNote(true);
   };
 
   const saveModuleNote = () => {
-    if (!selectedModuleItem) return;
+    if (!selectedModuleItem || !moduleNote.trim()) return;
 
-    const noteKey = `moduleNote-${module?.title}-${selectedModuleItem.id}`;
-    localStorage.setItem(noteKey, moduleNote);
+    const existingDraftNotes = getDraftNotes();
+    const section = selectedModuleItem.section;
+    const currentDateTime = getDateTime();
 
-    alert("Note saved!");
+    const newDraftNote = {
+      id: `${currentLevel}-${topic}-${section.id}`,
+      level: currentLevel,
+      subject: topic,
+      moduleId: section.id,
+      moduleNumber: section.moduleNumber,
+      moduleName: section.heading,
+      title: `Module ${section.moduleNumber}`,
+      content: moduleNote.trim(),
+      color: "#7C3AED",
+      dateTime: currentDateTime
+    };
+
+    const noteExists = existingDraftNotes.some(
+      (note) =>
+        note.level === currentLevel &&
+        note.subject === topic &&
+        note.moduleId === section.id
+    );
+
+    const updatedDraftNotes = noteExists
+      ? existingDraftNotes.map((note) =>
+          note.level === currentLevel &&
+          note.subject === topic &&
+          note.moduleId === section.id
+            ? newDraftNote
+            : note
+        )
+      : [newDraftNote, ...existingDraftNotes];
+
+    localStorage.setItem("moduleDraftNotes", JSON.stringify(updatedDraftNotes));
+
+    const existingMyNotes = getMyNotes();
+
+    const myNoteExists = existingMyNotes.some(
+      (note) =>
+        note.level === currentLevel &&
+        note.subject === topic &&
+        note.moduleId === section.id
+    );
+
+    if (myNoteExists) {
+      const updatedMyNotes = existingMyNotes.map((note) =>
+        note.level === currentLevel &&
+        note.subject === topic &&
+        note.moduleId === section.id
+          ? {
+              ...note,
+              title: topic,
+              subject: topic,
+              moduleId: section.id,
+              moduleNumber: section.moduleNumber,
+              moduleName: section.heading,
+              content: moduleNote.trim(),
+              color: "#7C3AED",
+              dateTime: currentDateTime
+            }
+          : note
+      );
+
+      localStorage.setItem("notes", JSON.stringify(updatedMyNotes));
+      alert("Note saved to Book and updated in My Notes!");
+    } else {
+      alert("Note saved to Book!");
+    }
+
+    setNotesVersion((prev) => prev + 1);
+    setShowModuleNote(false);
   };
 
-  const ModuleNotePanel = () => {
+  const saveModuleGroupToMyNotes = (moduleGroup) => {
+    if (!moduleGroup || !moduleGroup.note) return;
+
+    const existingNotes = getMyNotes();
+    const draftNote = moduleGroup.note;
+
+    const newMyNote = {
+      id: `${currentLevel}-${draftNote.subject}-${draftNote.moduleId}`,
+      level: currentLevel,
+      title: draftNote.subject,
+      subject: draftNote.subject,
+      moduleId: draftNote.moduleId,
+      moduleNumber: draftNote.moduleNumber,
+      moduleName: draftNote.moduleName,
+      content: draftNote.content,
+      color: draftNote.color || "#7C3AED",
+      dateTime: getDateTime()
+    };
+
+    const noteExists = existingNotes.some(
+      (note) =>
+        note.level === currentLevel &&
+        note.subject === draftNote.subject &&
+        note.moduleId === draftNote.moduleId
+    );
+
+    const updatedNotes = noteExists
+      ? existingNotes.map((note) =>
+          note.level === currentLevel &&
+          note.subject === draftNote.subject &&
+          note.moduleId === draftNote.moduleId
+            ? { ...note, ...newMyNote }
+            : note
+        )
+      : [newMyNote, ...existingNotes];
+
+    localStorage.setItem("notes", JSON.stringify(updatedNotes));
+    alert("Note saved to My Notes!");
+  };
+
+const deleteModuleBookNote = (moduleGroup) => {
+  if (!moduleGroup || !moduleGroup.note) return;
+
+  const confirmDelete = window.confirm(
+    `Delete Module ${moduleGroup.moduleNumber} note from Book?`
+  );
+
+  if (!confirmDelete) return;
+
+  const existingDraftNotes = getDraftNotes();
+
+  const updatedDraftNotes = existingDraftNotes.filter(
+    (note) =>
+      !(
+        note.level === currentLevel &&
+        note.subject === topic &&
+        note.moduleId === moduleGroup.moduleId
+      )
+  );
+
+  localStorage.setItem("moduleDraftNotes", JSON.stringify(updatedDraftNotes));
+
+  setSelectedBookModuleId(null);
+  setNotesVersion((prev) => prev + 1);
+
+  alert("Note deleted from Book only.");
+};
+
+  const renderModuleNotePanel = () => {
     if (!showModuleNote || !selectedModuleItem) return null;
 
+    const section = selectedModuleItem.section;
+    const shortTitle = `Module ${section.moduleNumber}`;
+    const groupedBookNotes = getGroupedBookNotes();
+    const selectedBookModule = getSelectedBookModule();
+
     return (
-      <div className="module-note-panel">
+      <div
+        className="module-note-panel"
+style={{
+  width: noteMode === "view" ? "430px" : "320px",
+  maxHeight: "470px",
+  overflowY: "auto",
+  overflowX: "hidden",
+  padding: "18px"
+}}
+      >
         <div className="module-note-header">
           <div>
-            <h3>Quick Notes</h3>
-            <p>{selectedModuleItem.title}</p>
+            <h3 style={{ margin: 0 }}>
+              {noteMode === "write" ? shortTitle : "Saved Notes"}
+            </h3>
+
+            <p
+              style={{
+                margin: "6px 0 0",
+                fontSize: "13px",
+                color: "#6B7280"
+              }}
+            >
+              {noteMode === "write"
+                ? "Write / edit module note"
+                : `Book notes for ${topic}`}
+            </p>
           </div>
 
           <button onClick={() => setShowModuleNote(false)}>×</button>
         </div>
 
-        <textarea
-          value={moduleNote}
-          onChange={(e) => setModuleNote(e.target.value)}
-          placeholder="Write your note for this module item..."
-          className="module-note-textarea"
-        />
+        {noteMode === "write" && (
+          <>
+            <textarea
+              value={moduleNote}
+              onChange={(e) => setModuleNote(e.target.value)}
+              placeholder="Write your module note here..."
+              className="module-note-textarea"
+              style={{
+                minHeight: "160px",
+                fontSize: "14px"
+              }}
+            />
 
-        <button className="module-note-save-btn" onClick={saveModuleNote}>
-          Save Note
-        </button>
+            <button className="module-note-save-btn" onClick={saveModuleNote}>
+              Save Note
+            </button>
+
+            <p
+              style={{
+                margin: "12px 0 0",
+                color: "#6B7280",
+                fontSize: "12px",
+                textAlign: "center"
+              }}
+            >
+              This note will be saved in Book only.
+            </p>
+          </>
+        )}
+
+        {noteMode === "view" && (
+          <>
+            {groupedBookNotes.length === 0 ? (
+              <div
+                style={{
+                  background: "#F5F3FF",
+                  border: "1px solid #DDD6FE",
+                  borderRadius: "14px",
+                  padding: "14px",
+                  marginTop: "14px",
+                  color: "#6B7280",
+                  fontSize: "14px"
+                }}
+              >
+                No notes saved in this subject yet.
+              </div>
+            ) : (
+              <>
+                <div
+                  style={{
+                    display: "grid",
+                    gap: "10px",
+                    marginTop: "14px"
+                  }}
+                >
+                  {groupedBookNotes.map((moduleGroup) => (
+                    <button
+                      key={moduleGroup.moduleId}
+                      onClick={() =>
+                        setSelectedBookModuleId(moduleGroup.moduleId)
+                      }
+                      style={{
+                        width: "100%",
+                        border:
+                          selectedBookModule?.moduleId === moduleGroup.moduleId
+                            ? "2px solid #7C3AED"
+                            : "1px solid #DDD6FE",
+                        background:
+                          selectedBookModule?.moduleId === moduleGroup.moduleId
+                            ? "#F3E8FF"
+                            : "white",
+                        color: "#111827",
+                        borderRadius: "14px",
+                        padding: "12px 14px",
+                        cursor: "pointer",
+                        textAlign: "left",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        gap: "10px"
+                      }}
+                    >
+                      <span>
+                        <strong style={{ color: "#7C3AED" }}>
+                          Module {moduleGroup.moduleNumber}
+                        </strong>
+                        <br />
+                        <span style={{ fontSize: "12px", color: "#6B7280" }}>
+                          1 saved note
+                        </span>
+                      </span>
+
+                      <span style={{ color: "#7C3AED", fontWeight: "700" }}>
+                        ›
+                      </span>
+                    </button>
+                  ))}
+                </div>
+
+                {selectedBookModule && selectedBookModule.note && (
+                  <div
+                    style={{
+                      background: "#F5F3FF",
+                      border: "1px solid #DDD6FE",
+                      borderRadius: "14px",
+                      padding: "14px",
+                      marginTop: "14px"
+                    }}
+                  >
+                    <h4
+                      style={{
+                        margin: "0 0 10px",
+                        color: "#111827",
+                        fontSize: "15px",
+                        textAlign: "center"
+                      }}
+                    >
+                      Module {selectedBookModule.moduleNumber} Notes
+                    </h4>
+
+                    <div
+                      style={{
+                        background: "white",
+                        border: "1px solid #E9D5FF",
+                        borderRadius: "12px",
+                        padding: "12px"
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          gap: "10px",
+                          alignItems: "flex-start"
+                        }}
+                      >
+           <div style={{ flex: 1, minWidth: 0 }}>
+  <p
+    style={{
+      margin: 0,
+      whiteSpace: "pre-line",
+      fontSize: "14px",
+      lineHeight: "1.6",
+      color: "#374151",
+      textAlign: "center",
+      wordBreak: "break-word",
+      overflowWrap: "anywhere"
+    }}
+  >
+    {selectedBookModule.note.content}
+  </p>
+                        <p
+  style={{
+    margin: "10px 0 0",
+    color: "#6B7280",
+    fontSize: "12px",
+    textAlign: "center",
+    wordBreak: "break-word"
+  }}
+>
+  {selectedBookModule.note.dateTime}
+</p>
+                        </div>
+
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "8px"
+                          }}
+                        >
+                          <button
+                            style={{
+                              border: "1px solid #DDD6FE",
+                              background: "white",
+                              color: "#7C3AED",
+                              borderRadius: "10px",
+                              padding: "8px 10px",
+                              fontWeight: "700",
+                              cursor: "pointer",
+                              fontSize: "12px"
+                            }}
+                            onClick={() => {
+                              const editSection = moduleSections.find(
+                                (moduleSection) =>
+                                  moduleSection.id ===
+                                  selectedBookModule.moduleId
+                              );
+
+                              if (!editSection) return;
+
+                              setSelectedModuleItem({
+                                id: `module-${selectedBookModule.moduleId}`,
+                                type: "Module Note",
+                                title: `Module ${selectedBookModule.moduleNumber}`,
+                                section: editSection
+                              });
+
+                              setModuleNote(selectedBookModule.note.content);
+                              setNoteMode("write");
+                            }}
+                          >
+                            Edit
+                          </button>
+
+                          <button
+                            style={{
+                              border: "1px solid #FCA5A5",
+                              background: "#FEE2E2",
+                              color: "#DC2626",
+                              borderRadius: "10px",
+                              padding: "8px 10px",
+                              fontWeight: "700",
+                              cursor: "pointer",
+                              fontSize: "12px"
+                            }}
+                            onClick={() =>
+                              deleteModuleBookNote(selectedBookModule)
+                            }
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      className="module-note-save-btn"
+                      style={{ marginTop: "14px" }}
+                      onClick={() => saveModuleGroupToMyNotes(selectedBookModule)}
+                    >
+                      Save My Notes
+                    </button>
+
+                    <p
+                      style={{
+                        margin: "10px 0 0",
+                        color: "#6B7280",
+                        fontSize: "12px",
+                        textAlign: "center"
+                      }}
+                    >
+                      My Notes will only update after this button is clicked.
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
+          </>
+        )}
       </div>
     );
   };
 
-  const ContentNoteActions = ({ item }) => {
+  const ContentNoteActions = ({ item, section }) => {
     return (
-      <div className="content-note-actions">
-        <button
-          className="content-note-btn"
-          onClick={() => openModuleNote(item)}
-          title="Write note"
-        >
-          ✏️
-        </button>
+      <>
+        <div className="content-note-actions">
+          <button
+            className="content-note-btn"
+            onClick={() => openWriteNote(item, section)}
+            title="Write note"
+          >
+            ✏️
+          </button>
 
-        <button
-          className="content-note-btn"
-          onClick={() => openModuleNote(item)}
-          title="View note"
-        >
-          📒
-        </button>
-      </div>
+          <button
+            className="content-note-btn"
+            onClick={() => openViewNote(item, section)}
+            title="View saved notes"
+          >
+            📒
+          </button>
+        </div>
+
+        <FloatingAiChat />
+      </>
     );
   };
 
   const allItems = moduleSections.flatMap((section) => section.items);
-
-  const [activeItem, setActiveItem] = useState(null);
-  const [selectedAnswers, setSelectedAnswers] = useState({});
-  const [quizSubmitted, setQuizSubmitted] = useState(false);
-  const [practicalText, setPracticalText] = useState("");
-  const [practicalSubmitted, setPracticalSubmitted] = useState(false);
 
   const markItemCompleted = (itemId) => {
     if (typeof setCompletedItems !== "function") return;
@@ -163,21 +684,29 @@ function NewQuizSystem({
     });
   };
 
-  const openContent = (item) => {
+  const openContent = (item, section) => {
     setActiveItem(item);
+    setActiveSection(section);
+    setActiveModuleNumber(section.moduleNumber);
     markItemCompleted(item.id);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const goBackToModuleList = () => {
     setActiveItem(null);
+    setActiveSection(null);
+    setActiveModuleNumber(null);
     setQuizSubmitted(false);
     setSelectedAnswers({});
     setShowModuleNote(false);
+    setSelectedBookModuleId(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const progress = Math.round((safeCompletedItems.length / allItems.length) * 100);
+  const progress =
+    allItems.length > 0
+      ? Math.round((safeCompletedItems.length / allItems.length) * 100)
+      : 0;
 
   const quizSets = {
     "quiz-1": [
@@ -296,13 +825,11 @@ function NewQuizSystem({
     setQuizSubmitted(true);
     markItemCompleted(activeItem.id);
 
-    if (typeof setQuizScore === "function") {
-      setQuizScore(percent);
-    }
+    if (typeof setQuizScore === "function") setQuizScore(percent);
 
     if (typeof updateLeaderboard === "function") {
       const studentName = localStorage.getItem("username") || "Student";
-      updateLeaderboard(studentName, percent);
+      updateLeaderboard(studentName, percent, currentLevel);
     }
 
     if (typeof updateAdaptiveLevel === "function") {
@@ -316,9 +843,7 @@ function NewQuizSystem({
 
     const percent = practicalText.trim().length > 10 ? 80 : 40;
 
-    if (typeof setPracticalScore === "function") {
-      setPracticalScore(percent);
-    }
+    if (typeof setPracticalScore === "function") setPracticalScore(percent);
 
     if (typeof updateAdaptiveLevel === "function") {
       updateAdaptiveLevel(null, percent);
@@ -340,10 +865,10 @@ function NewQuizSystem({
             <p>{topic} content goes here...</p>
           </div>
 
-          <ContentNoteActions item={activeItem} />
+          <ContentNoteActions item={activeItem} section={activeSection} />
         </div>
 
-        <ModuleNotePanel />
+        {renderModuleNotePanel()}
       </div>
     );
   }
@@ -362,10 +887,10 @@ function NewQuizSystem({
             <div className="play-button">Play Video</div>
           </div>
 
-          <ContentNoteActions item={activeItem} />
+          <ContentNoteActions item={activeItem} section={activeSection} />
         </div>
 
-        <ModuleNotePanel />
+        {renderModuleNotePanel()}
       </div>
     );
   }
@@ -464,7 +989,10 @@ function NewQuizSystem({
               >
                 <p style={{ fontSize: "24px", fontWeight: "bold" }}>
                   Score: {correctCount} / {questions.length} (
-                  {Math.round((correctCount / questions.length) * 100)}%)
+                  {questions.length
+                    ? Math.round((correctCount / questions.length) * 100)
+                    : 0}
+                  %)
                 </p>
               </div>
 
@@ -474,10 +1002,10 @@ function NewQuizSystem({
             </>
           )}
 
-          <ContentNoteActions item={activeItem} />
+          <ContentNoteActions item={activeItem} section={activeSection} />
         </div>
 
-        <ModuleNotePanel />
+        {renderModuleNotePanel()}
       </div>
     );
   }
@@ -533,10 +1061,10 @@ function NewQuizSystem({
             </div>
           )}
 
-          <ContentNoteActions item={activeItem} />
+          <ContentNoteActions item={activeItem} section={activeSection} />
         </div>
 
-        <ModuleNotePanel />
+        {renderModuleNotePanel()}
       </div>
     );
   }
@@ -599,7 +1127,7 @@ function NewQuizSystem({
                   <div
                     key={item.id}
                     className="learning-row-item"
-                    onClick={() => openContent(item)}
+                    onClick={() => openContent(item, section)}
                   >
                     <div className="learning-info-left">
                       <h3 className="learning-item-title">{item.title}</h3>

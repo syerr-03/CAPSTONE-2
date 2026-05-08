@@ -66,7 +66,9 @@ function Dashboard({
   };
 
   const toggleDuration = (d) => {
-    setDuration(duration.includes(d) ? duration.filter((x) => x !== d) : [...duration, d]);
+    setDuration(
+      duration.includes(d) ? duration.filter((x) => x !== d) : [...duration, d]
+    );
   };
 
   const goToTab = (tab) => {
@@ -92,6 +94,15 @@ function Dashboard({
       handleEnroll(subject);
     } else {
       console.log("No handleEnroll function received:", subject);
+    }
+  };
+
+  
+  const saveSelectedLevel = (level) => {
+    localStorage.setItem("learningLevel", level);
+
+    if (typeof handleSelectLevel === "function") {
+      handleSelectLevel(level);
     }
   };
 
@@ -137,54 +148,65 @@ function Dashboard({
             <h1 className="simple-menu-logo">BrainyBits</h1>
 
             <nav className="simple-menu-tabs">
-             <button
-  className={`simple-menu-tab ${activeTab === "dashboard" ? "active" : ""}`}
-  onClick={() => goToTab("dashboard")}
->
-  Dashboard
-</button>
+              <button
+                className={`simple-menu-tab ${
+                  activeTab === "dashboard" ? "active" : ""
+                }`}
+                onClick={() => goToTab("dashboard")}
+              >
+                Dashboard
+              </button>
 
-<button
-  className={`simple-menu-tab ${activeTab === "subjects" ? "active" : ""}`}
-  onClick={() => goToTab("subjects")}
->
-  Subjects
-</button>
+              <button
+                className={`simple-menu-tab ${
+                  activeTab === "subjects" ? "active" : ""
+                }`}
+                onClick={() => goToTab("subjects")}
+              >
+                Subjects
+              </button>
 
-<button
-  className={`simple-menu-tab ${activeTab === "content" ? "active" : ""}`}
-  onClick={() => goToTab("content")}
->
-  Content
-</button>
+              <button
+                className={`simple-menu-tab ${
+                  activeTab === "content" ? "active" : ""
+                }`}
+                onClick={() => goToTab("content")}
+              >
+                Content
+              </button>
 
-<button
-  className={`simple-menu-tab ${activeTab === "quiz" ? "active" : ""}`}
-  onClick={() => goToTab("quiz")}
->
-  Quiz
-</button>
+              <button
+                className={`simple-menu-tab ${
+                  activeTab === "quiz" ? "active" : ""
+                }`}
+                onClick={() => goToTab("quiz")}
+              >
+                Quiz
+              </button>
 
-<button
-  className={`simple-menu-tab ${activeTab === "performance" ? "active" : ""}`}
-  onClick={() => goToTab("performance")}
->
-  Performance
-</button>
+              <button
+                className={`simple-menu-tab ${
+                  activeTab === "performance" ? "active" : ""
+                }`}
+                onClick={() => goToTab("performance")}
+              >
+                Performance
+              </button>
 
-<button
-  className={`simple-menu-tab ${activeTab === "notes" ? "active" : ""}`}
-  onClick={() => setActivePage("notes")}
->
-  Notes
-</button>
+              <button
+                className={`simple-menu-tab ${
+                  activeTab === "notes" ? "active" : ""
+                }`}
+                onClick={() => setActivePage("notes")}
+              >
+                Notes
+              </button>
             </nav>
           </header>
 
           {/* DASHBOARD TAB */}
           {activeTab === "dashboard" && (
             <>
-              {/* WELCOME + ACTIONS */}
               <section className="dashboard-compact-top">
                 <div className="compact-welcome-card">
                   <h2>
@@ -196,7 +218,6 @@ function Dashboard({
                 </div>
               </section>
 
-              {/* STREAK */}
               <section className="compact-streak-card">
                 <div className="compact-streak-info">
                   <div className="main-fire-circle">
@@ -219,7 +240,11 @@ function Dashboard({
                   {streakDays.map((item) => (
                     <div className="compact-streak-day" key={item.day}>
                       <span>{item.day}</span>
-                      <div className={item.active ? "compact-fire active" : "compact-fire"}>
+                      <div
+                        className={
+                          item.active ? "compact-fire active" : "compact-fire"
+                        }
+                      >
                         <span className="streak-fire-emoji small">🔥</span>
                       </div>
                     </div>
@@ -227,7 +252,6 @@ function Dashboard({
                 </div>
               </section>
 
-              {/* CERTIFICATE SECTION */}
               <section className="certificate-dashboard-card">
                 <div className="certificate-visual">
                   <div className="certificate-paper">
@@ -237,7 +261,11 @@ function Dashboard({
                     <div className="paper-medal">🏅</div>
                   </div>
 
-                  <div className={`certificate-lock ${isCertificateUnlocked ? "unlocked" : ""}`}>
+                  <div
+                    className={`certificate-lock ${
+                      isCertificateUnlocked ? "unlocked" : ""
+                    }`}
+                  >
                     {isCertificateUnlocked ? "✓" : "🔒"}
                   </div>
                 </div>
@@ -245,13 +273,18 @@ function Dashboard({
                 <div className="certificate-info">
                   <div className="certificate-title-row">
                     <h2>E-Certificate</h2>
-                    <span className={`certificate-status ${isCertificateUnlocked ? "unlocked" : ""}`}>
+                    <span
+                      className={`certificate-status ${
+                        isCertificateUnlocked ? "unlocked" : ""
+                      }`}
+                    >
                       {isCertificateUnlocked ? "Unlocked" : "Locked"}
                     </span>
                   </div>
 
                   <p>
-                    Complete the requirements below to unlock your professional certificate.
+                    Complete the requirements below to unlock your professional
+                    certificate.
                   </p>
 
                   <ul className="certificate-requirements">
@@ -283,7 +316,9 @@ function Dashboard({
                   </div>
 
                   <button
-                    className={`certificate-claim-btn ${isCertificateUnlocked ? "active" : ""}`}
+                    className={`certificate-claim-btn ${
+                      isCertificateUnlocked ? "active" : ""
+                    }`}
                     disabled={!isCertificateUnlocked}
                     onClick={handleCertificateClick}
                   >
@@ -300,10 +335,12 @@ function Dashboard({
                 </div>
               </section>
 
-              {/* MY COURSES */}
               <section className="dashboard-content-section">
                 <h2 className="section-title">My Courses</h2>
-                <SubjectGrid onEnroll={enrollSubject} learningLevel={learningLevel} />
+                <SubjectGrid
+                  onEnroll={enrollSubject}
+                  learningLevel={learningLevel}
+                />
               </section>
             </>
           )}
@@ -320,15 +357,13 @@ function Dashboard({
           )}
 
           {/* CONTENT TAB */}
-{activeTab === "content" && (
-  <section className="dashboard-content-section">
-    <h2 className="section-title">AI Learning Assistant & Notes</h2>
-
-    <AiChat />
-    <Notes />
-  </section>
-)}
-
+          {activeTab === "content" && (
+            <section className="dashboard-content-section">
+              <h2 className="section-title">AI Learning Assistant & Notes</h2>
+              <AiChat />
+              <Notes />
+            </section>
+          )}
 
           {/* QUIZ TAB */}
           {activeTab === "quiz" && (
@@ -348,8 +383,8 @@ function Dashboard({
           {/* PERFORMANCE TAB */}
           {activeTab === "performance" && (
             <section className="dashboard-content-section">
-              <PerformancePage 
-                studentData={performanceData} 
+              <PerformancePage
+                studentData={performanceData}
                 leaderboard={leaderboard}
                 learningLevel={learningLevel}
               />
@@ -380,28 +415,25 @@ function Dashboard({
           {/* ACHIEVEMENT TAB */}
           {activeTab === "achievement" && (
             <section className="dashboard-content-section">
-
               <button className="back-btn" onClick={() => goToTab("dashboard")}>
                 ← Back
               </button>
 
               <AchievementPage studentData={performanceData} />
-
             </section>
           )}
 
           {/* FORUM TAB */}
           {activeTab === "forum" && (
             <section className="dashboard-content-section">
-
               <button className="back-btn" onClick={() => goToTab("dashboard")}>
                 ← Back
               </button>
 
               <ForumPage />
-
             </section>
           )}
+
           {/* SETTINGS TAB */}
           {activeTab === "settings" && (
             <section className="dashboard-content-section">
@@ -413,25 +445,40 @@ function Dashboard({
                 <h2 className="section-title">Learning Level Settings</h2>
 
                 <p style={{ marginBottom: "20px" }}>
-                  Current level: <strong>{learningLevel || "Not selected"}</strong>
+                  Current level:{" "}
+                  <strong>{learningLevel || "Not selected"}</strong>
                 </p>
 
-                <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
-                  <button className="hero-button" onClick={() => handleSelectLevel("beginner")}>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "12px",
+                    justifyContent: "center"
+                  }}
+                >
+                  <button
+                    className="hero-button"
+                    onClick={() => saveSelectedLevel("beginner")}
+                  >
                     Beginner
                   </button>
 
-                  <button className="hero-button" onClick={() => handleSelectLevel("intermediate")}>
+                  <button
+                    className="hero-button"
+                    onClick={() => saveSelectedLevel("intermediate")}
+                  >
                     Intermediate
                   </button>
 
-                  <button className="hero-button" onClick={() => handleSelectLevel("advanced")}>
+                  <button
+                    className="hero-button"
+                    onClick={() => saveSelectedLevel("advanced")}
+                  >
                     Advanced
                   </button>
                 </div>
               </div>
             </section>
-
           )}
         </main>
       </div>
@@ -445,19 +492,23 @@ function Dashboard({
                 <h3 className="section-title">Learning Days</h3>
 
                 <div style={optionWrap}>
-                  {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
-                    <button
-                      key={day}
-                      onClick={() => toggleDay(day)}
-                      style={option(days.includes(day))}
-                    >
-                      {day}
-                    </button>
-                  ))}
+                  {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
+                    (day) => (
+                      <button
+                        key={day}
+                        onClick={() => toggleDay(day)}
+                        style={option(days.includes(day))}
+                      >
+                        {day}
+                      </button>
+                    )
+                  )}
                 </div>
 
                 <div style={navRow}>
-                  <span style={back} onClick={() => setStep(0)}>←</span>
+                  <span style={back} onClick={() => setStep(0)}>
+                    ←
+                  </span>
                   <button
                     className="hero-button"
                     style={{ padding: "10px 25px" }}
@@ -486,7 +537,9 @@ function Dashboard({
                 </div>
 
                 <div style={navRow}>
-                  <span style={back} onClick={() => setStep(1)}>←</span>
+                  <span style={back} onClick={() => setStep(1)}>
+                    ←
+                  </span>
                   <button
                     className="hero-button"
                     style={{ padding: "10px 25px" }}
@@ -515,7 +568,9 @@ function Dashboard({
                 </div>
 
                 <div style={navRow}>
-                  <span style={back} onClick={() => setStep(2)}>←</span>
+                  <span style={back} onClick={() => setStep(2)}>
+                    ←
+                  </span>
                   <button
                     className="hero-button"
                     style={{ padding: "10px 25px" }}
@@ -552,7 +607,13 @@ function Dashboard({
                 <h3 className="section-title">Goal Type</h3>
 
                 <div style={optionWrap}>
-                  {["Skill 🧠", "Exam 📚", "Coding 💻", "Language 🌍", "Consistency 🔥"].map((g) => (
+                  {[
+                    "Skill 🧠",
+                    "Exam 📚",
+                    "Coding 💻",
+                    "Language 🌍",
+                    "Consistency 🔥"
+                  ].map((g) => (
                     <button
                       key={g}
                       onClick={() => setGoalType(g)}
@@ -564,7 +625,9 @@ function Dashboard({
                 </div>
 
                 <div style={navRow}>
-                  <span style={back} onClick={() => setGoalStep(0)}>←</span>
+                  <span style={back} onClick={() => setGoalStep(0)}>
+                    ←
+                  </span>
                   <button
                     className="hero-button"
                     style={{ padding: "10px 25px" }}
@@ -582,19 +645,23 @@ function Dashboard({
                 <h3 className="section-title">Target Progress</h3>
 
                 <div style={optionWrap}>
-                  {["1 topic/week", "5 lessons", "Improve level", "Maintain"].map((t) => (
-                    <button
-                      key={t}
-                      onClick={() => setTarget(t)}
-                      style={option(target === t)}
-                    >
-                      {t}
-                    </button>
-                  ))}
+                  {["1 topic/week", "5 lessons", "Improve level", "Maintain"].map(
+                    (t) => (
+                      <button
+                        key={t}
+                        onClick={() => setTarget(t)}
+                        style={option(target === t)}
+                      >
+                        {t}
+                      </button>
+                    )
+                  )}
                 </div>
 
                 <div style={navRow}>
-                  <span style={back} onClick={() => setGoalStep(1)}>←</span>
+                  <span style={back} onClick={() => setGoalStep(1)}>
+                    ←
+                  </span>
                   <button
                     className="hero-button"
                     style={{ padding: "10px 25px" }}
@@ -624,7 +691,9 @@ function Dashboard({
                 </div>
 
                 <div style={navRow}>
-                  <span style={back} onClick={() => setGoalStep(2)}>←</span>
+                  <span style={back} onClick={() => setGoalStep(2)}>
+                    ←
+                  </span>
                   <button
                     className="hero-button"
                     style={{ padding: "10px 25px" }}
@@ -652,24 +721,39 @@ function Dashboard({
         </div>
       )}
 
+      {/* LEVEL POPUP */}
       {showLevelPopup && (
         <div style={overlay}>
-          <div className="module-card popup-card" style={{ textAlign: "center" }}>
+          <div
+            className="module-card popup-card"
+            style={{ textAlign: "center" }}
+          >
             <h2 className="section-title">Choose Your Learning Level</h2>
+
             <p style={{ marginBottom: "20px", color: "#6b7280" }}>
-              Select your current learning level to personalize your modules and quizzes.
+              Select your current learning level to personalize your modules and
+              quizzes.
             </p>
 
             <div style={{ display: "grid", gap: "12px" }}>
-              <button className="hero-button" onClick={() => handleSelectLevel("beginner")}>
+              <button
+                className="hero-button"
+                onClick={() => saveSelectedLevel("beginner")}
+              >
                 Beginner
               </button>
 
-              <button className="hero-button" onClick={() => handleSelectLevel("intermediate")}>
+              <button
+                className="hero-button"
+                onClick={() => saveSelectedLevel("intermediate")}
+              >
                 Intermediate
               </button>
 
-              <button className="hero-button" onClick={() => handleSelectLevel("advanced")}>
+              <button
+                className="hero-button"
+                onClick={() => saveSelectedLevel("advanced")}
+              >
                 Advanced
               </button>
             </div>
