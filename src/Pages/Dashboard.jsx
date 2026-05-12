@@ -116,6 +116,67 @@ function Dashboard({
     { day: "Sun", active: false }
   ];
 
+  const allCourses = [
+    {
+      id: 1,
+      title: "What is Data Science?",
+      description: "Start with the basic meaning, purpose, and use of data science.",
+      icon: "📊",
+      level: "Beginner",
+      topic: "Data Science Basics"
+    },
+    {
+      id: 2,
+      title: "Python for Data Science",
+      description: "Learn basic Python syntax, variables, and simple coding skills.",
+      icon: "🐍",
+      level: "Beginner",
+      topic: "Python Basics"
+    },
+    {
+      id: 3,
+      title: "Statistics Fundamentals",
+      description: "Improve your understanding of probability, mean, and data analysis.",
+      icon: "📈",
+      level: "Intermediate",
+      topic: "Statistics"
+    },
+    {
+      id: 4,
+      title: "Exploratory Data Analysis",
+      description: "Learn how to inspect, clean, and understand datasets.",
+      icon: "🔍",
+      level: "Intermediate",
+      topic: "EDA"
+    },
+    {
+      id: 5,
+      title: "Machine Learning Basics",
+      description: "Understand model training, prediction, and evaluation.",
+      icon: "🤖",
+      level: "Advanced",
+      topic: "Machine Learning"
+    },
+    {
+      id: 6,
+      title: "Data Visualization",
+      description: "Learn advanced ways to present insights using charts and dashboards.",
+      icon: "🎨",
+      level: "Advanced",
+      topic: "Data Visualization"
+    }
+  ];
+
+  const weakTopics = performanceData.weakTopics || [];
+
+  const recommendedCourses =
+    weakTopics.length > 0
+      ? allCourses.filter((course) => weakTopics.includes(course.topic))
+      : allCourses.filter(
+          (course) =>
+            course.level.toLowerCase() === learningLevel.toLowerCase()
+        );
+
   return (
     <div className="dashboard-page">
       <div className={`dashboard-layout-single ${drawerOpen ? "drawer-open" : ""}`}>
@@ -335,12 +396,10 @@ function Dashboard({
                 </div>
               </section>
 
+              {/* RECOMMENDED COURSE */}
               <section className="dashboard-content-section">
-                <h2 className="section-title">My Courses</h2>
-                <SubjectGrid
-                  onEnroll={enrollSubject}
-                  learningLevel={learningLevel}
-                />
+                <h2 className="section-title">Recommended Course</h2>
+                <SubjectGrid onEnroll={enrollSubject} subjects={recommendedCourses} />
               </section>
             </>
           )}

@@ -2066,3 +2066,25 @@ input {
   font-weight: 800;
   cursor: pointer;
 }
+
+.course-level-badge {
+  display: inline-block;
+  font-size: 11px;
+  background: #ede9fe;
+  color: #7c3aed;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.course-level-badge {
+  display: inline-block;
+  margin-bottom: 12px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: #eee8ff;
+  color: #7c3aed;
+  font-size: 12px;
+  font-weight: 700;
+}

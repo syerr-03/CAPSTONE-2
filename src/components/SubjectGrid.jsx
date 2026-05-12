@@ -1,8 +1,8 @@
 import React from "react";
 import "../App.css";
 
-const SubjectGrid = ({ onEnroll, learningLevel = "beginner" }) => {
-  const subjects = [
+const SubjectGrid = ({ onEnroll, subjects, learningLevel = "beginner" }) => {
+  const defaultSubjects = [
     {
       id: 1,
       title: "What is Data Science?",
@@ -59,9 +59,13 @@ const SubjectGrid = ({ onEnroll, learningLevel = "beginner" }) => {
     advanced: ["beginner", "intermediate", "advanced"]
   };
 
-  const filteredSubjects = subjects.filter((subject) =>
-    allowedLevels[learningLevel || "beginner"]?.includes(subject.level)
-  );
+  const normalizedLevel = (learningLevel || "beginner").toLowerCase();
+
+  const courseList =
+    subjects ||
+    defaultSubjects.filter((subject) =>
+      allowedLevels[normalizedLevel]?.includes(subject.level)
+    );
 
   return (
     <div
@@ -72,7 +76,7 @@ const SubjectGrid = ({ onEnroll, learningLevel = "beginner" }) => {
         padding: "20px"
       }}
     >
-      {filteredSubjects.map((subject) => (
+      {courseList.map((subject) => (
         <div
           className="module-card"
           key={subject.id}
@@ -93,20 +97,11 @@ const SubjectGrid = ({ onEnroll, learningLevel = "beginner" }) => {
               {subject.title}
             </h3>
 
-            <p
-              style={{
-                fontSize: "11px",
-                background: "#EDE9FE",
-                color: "#7C3AED",
-                display: "inline-block",
-                padding: "4px 10px",
-                borderRadius: "999px",
-                fontWeight: "600",
-                marginBottom: "8px"
-              }}
-            >
-              {subject.level.toUpperCase()}
-            </p>
+            {subject.level && (
+              <span className="course-level-badge">
+                {subject.level.toUpperCase()}
+              </span>
+            )}
 
             <p
               className="hero-subtitle"
