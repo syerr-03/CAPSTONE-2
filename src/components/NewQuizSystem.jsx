@@ -707,7 +707,280 @@ style={{
     allItems.length > 0
       ? Math.round((safeCompletedItems.length / allItems.length) * 100)
       : 0;
+  const isStatisticsSubject = topic === "Statistics Fundamentals";
+  const statisticsContent = {
+ reading: {
+  "reading-1": {
+    title: "Statistics Fundamentals Overview",
+    paragraphs: [
+      "Statistics is the process of collecting, organizing, analyzing, interpreting, and presenting data to gain useful information and support decision-making.",
+      "In data science, statistics is important because it helps identify patterns, trends, and relationships within data.",
+      "It allows data scientists to understand datasets, make predictions, and draw accurate conclusions based on evidence.",
+      "Basic statistical concepts include mean (average value), median (middle value), mode (most frequent value), probability (chance of an event occurring), distribution (spread of data), and standard deviation (measure of data variability).",
+      "These concepts provide the foundation for data analysis and machine learning in data science."
+    ],
+    articleText: "Read this book for better understanding",
+    articleLink:
+      "https://books.google.com/books?hl=en&lr=&id=dZxSmsvdzIQC&oi=fnd&pg=PA3&dq=statistic+fundamental&ots=HbdwciIiCU&sig=eOag2t1jRWiP--iqaS_YIFqzg1Y"
+  },
 
+  "reading-2": {
+    title: "Intermediate Statistics Techniques",
+    paragraphs: [
+     "Intermediate statistics includes concepts such as sampling, hypothesis testing, correlation, regression, and outlier detection, which are commonly used in data analysis and decision-making.",
+     "Sampling is the process of selecting a smaller group from a larger population to collect representative data efficiently and accurately.",
+     "Hypothesis testing is a statistical method used to determine whether an assumption or claim is supported by the collected data.",
+     "Correlation measures the strength and direction of the relationship between two variables, helping identify whether variables are related.",
+     "Regression analysis is used to explain relationships between variables and predict future values based on existing data patterns.",
+     "Outlier detection helps identify unusual or extreme values in a dataset that may affect the accuracy of analysis and predictions."
+    
+    ],
+    articleText: "Read this article for better understanding",
+    articleLink:
+      "https://journals.physiology.org/doi/abs/10.1152/jappl.1998.85.3.775"
+  }
+},
+
+  videos: {
+    "video-1": "https://www.youtube.com/embed/XZo4xyJXCak",
+    "video-2": "https://www.youtube.com/embed/FmUJSbo_z74"
+  },
+
+  quiz: {
+    "quiz-1": [
+      {
+        id: 1,
+        question: "What is statistics mainly used for?",
+        options: [
+          "Collecting and analyzing data",
+          "Designing websites",
+          "Playing games",
+          "Editing photos"
+        ],
+        correctAnswer: "Collecting and analyzing data",
+        explanation: "Statistics helps collect, organize, analyze, and interpret data."
+      },
+      {
+        id: 2,
+        question: "Which measure represents the average value?",
+        options: ["Median", "Mode", "Mean", "Range"],
+        correctAnswer: "Mean",
+        explanation: "Mean is the average value of a dataset."
+      },
+      {
+        id: 3,
+        question: "Why is statistics important in data science?",
+        options: [
+          "It helps understand data patterns",
+          "It replaces all programming",
+          "It removes the need for analysis",
+          "It is only used for design"
+        ],
+        correctAnswer: "It helps understand data patterns",
+        explanation: "Statistics helps data scientists understand patterns and make decisions."
+      }
+    ],
+
+    "quiz-2": [
+      {
+        id: 1,
+        question: "What is sampling used for?",
+        options: [
+          "Collecting representative data",
+          "Deleting data",
+          "Changing colors",
+          "Avoiding research"
+        ],
+        correctAnswer: "Collecting representative data",
+        explanation: "Sampling collects a smaller group of data that represents a larger population."
+      },
+      {
+        id: 2,
+        question: "What does correlation measure?",
+        options: [
+          "The relationship between variables",
+          "The size of a file",
+          "The color of a chart",
+          "The number of folders"
+        ],
+        correctAnswer: "The relationship between variables",
+        explanation: "Correlation explains how two variables are related."
+      },
+      {
+        id: 3,
+        question: "Why is outlier detection important?",
+        options: [
+          "Outliers may affect analysis accuracy",
+          "Outliers always improve data",
+          "Outliers remove all errors",
+          "Outliers are not related to statistics"
+        ],
+        correctAnswer: "Outliers may affect analysis accuracy",
+        explanation: "Outliers are unusual values that can influence statistical results."
+      }
+    ]
+  },
+
+  practical: {
+    "practical-1": [
+      "Create a small dataset of 10 student marks.",
+      "Calculate the mean, median, and mode.",
+      "Identify the highest and lowest marks.",
+      "Write a short conclusion about the student performance."
+    ],
+    "practical-2": [
+      "Choose a simple dataset such as sales, marks, or study hours.",
+      "Create one chart to show the data pattern.",
+      "Identify any trend, relationship, or outlier.",
+      "Explain your findings in 3 to 5 sentences."
+    ]
+  }
+};
+
+const isExploratorySubject = topic === "Exploratory Data Analysis";
+const exploratoryContent = {
+  reading: {
+    "reading-1": {
+      title: "Introduction to Exploratory Data Analysis",
+      paragraphs: [
+        "Exploratory Data Analysis (EDA) is the process of examining and analyzing datasets to understand patterns, trends, relationships, and important characteristics within the data.",
+        "EDA helps data scientists explore and summarize data before applying machine learning or statistical models, ensuring the data is accurate and meaningful for analysis.",
+        "The main purpose of EDA is to detect errors, missing values, unusual patterns, and hidden insights that may affect the performance of data analysis.",
+        "Common EDA techniques include data cleaning, data visualization, identifying outliers, checking data distributions, and analyzing relationships between variables.",
+        "Visualization tools such as bar charts, histograms, scatter plots, and box plots are often used in EDA to present data in a clearer and more understandable way."
+      
+      ],
+      articleText: "Read this article for better understanding",
+      articleLink:
+        "https://www.sciencedirect.com/science/article/pii/0377221786902092"
+    },
+
+    "reading-2": {
+      title: "Core Concepts of Exploratory Data Analysis",
+      paragraphs: [
+        "Advanced Exploratory Data Analysis (EDA) includes techniques such as correlation analysis, feature relationship analysis, trend analysis, and detecting missing or inconsistent values in datasets.",
+        "These techniques help data scientists gain deeper insights into the data and understand how different variables interact with each other.",
+        "Visualization tools such as histograms, scatter plots, boxplots, and heatmaps are commonly used to identify patterns, trends, distributions, and possible outliers in the dataset.",
+        "Correlation analysis helps measure the strength of relationships between variables, while trend analysis helps identify changes and patterns over time.",
+        "EDA is important because it improves data quality, supports better decision-making, and helps data scientists choose suitable machine learning models and analysis techniques."
+      ],
+      articleText: "Read this article for deeper understanding",
+      articleLink:
+        "https://link.springer.com/content/pdf/10.1007/978-3-031-20719-8_2?pdf=chapter%20toc"
+    }
+  },
+
+  videos: {
+    "video-1": "https://www.youtube.com/embed/a4KiExvYJKo",
+    "video-2": "https://www.youtube.com/embed/QiqZliDXCCg"
+  },
+
+  quiz: {
+    "quiz-1": [
+      {
+        id: 1,
+        question: "What is the main purpose of Exploratory Data Analysis?",
+        options: [
+          "To understand and summarize data",
+          "To design websites",
+          "To create games",
+          "To replace machine learning"
+        ],
+        correctAnswer: "To understand and summarize data",
+        explanation:
+          "EDA helps understand patterns, trends, and relationships in datasets."
+      },
+
+      {
+        id: 2,
+        question: "Which tool is commonly used in EDA?",
+        options: [
+          "Histograms",
+          "Video editing software",
+          "Music player",
+          "Compiler"
+        ],
+        correctAnswer: "Histograms",
+        explanation:
+          "Histograms are used to visualize data distribution."
+      },
+
+      {
+        id: 3,
+        question: "Why is EDA important before machine learning?",
+        options: [
+          "It improves understanding of the dataset",
+          "It deletes all errors automatically",
+          "It replaces programming",
+          "It removes the need for data cleaning"
+        ],
+        correctAnswer: "It improves understanding of the dataset",
+        explanation:
+          "EDA helps identify problems and patterns before modeling."
+      }
+    ],
+
+    "quiz-2": [
+      {
+        id: 1,
+        question: "What does a scatter plot show?",
+        options: [
+          "Relationship between variables",
+          "Sound quality",
+          "Network speed",
+          "Video resolution"
+        ],
+        correctAnswer: "Relationship between variables",
+        explanation:
+          "Scatter plots visualize relationships between two variables."
+      },
+
+      {
+        id: 2,
+        question: "Why are heatmaps useful in EDA?",
+        options: [
+          "They show correlations between variables",
+          "They increase internet speed",
+          "They remove datasets",
+          "They create animations"
+        ],
+        correctAnswer: "They show correlations between variables",
+        explanation:
+          "Heatmaps help identify strong and weak relationships in data."
+      },
+
+      {
+        id: 3,
+        question: "What is an outlier?",
+        options: [
+          "An unusual data value",
+          "A chart title",
+          "A coding language",
+          "A type of database"
+        ],
+        correctAnswer: "An unusual data value",
+        explanation:
+          "Outliers are values that differ significantly from other observations."
+      }
+    ]
+  },
+
+  practical: {
+    "practical-1": [
+      "Collect a small dataset such as student marks or sales records.",
+      "Identify the highest, lowest, and average values.",
+      "Create a simple table to organize the data.",
+      "Write a short explanation about the observed patterns."
+    ],
+
+    "practical-2": [
+      "Choose a dataset and create one histogram or scatter plot.",
+      "Identify any trend, relationship, or outlier in the data.",
+      "Explain what the chart represents.",
+      "Write 3 to 5 sentences summarizing your findings."
+    ]
+  }
+};
   const quizSets = {
     "quiz-1": [
       {
@@ -806,7 +1079,10 @@ style={{
 
   const handleQuizSubmit = () => {
     const quizId = activeItem.id;
-    const questions = quizSets[quizId] || [];
+    const questions =
+  isStatisticsSubject
+    ? statisticsContent.quiz[quizId] || []
+    : quizSets[quizId] || [];
 
     let correct = 0;
 
@@ -861,8 +1137,50 @@ style={{
           <h2 className="content-title">{activeItem.title}</h2>
 
           <div className="reading-block">
-            <h3>Introduction</h3>
-            <p>{topic} content goes here...</p>
+           <h3>
+  {isStatisticsSubject
+    ? statisticsContent.reading[activeItem.id]?.title
+    : "Introduction"}
+</h3>
+
+{isStatisticsSubject || isExploratorySubject ? (
+  (isStatisticsSubject
+    ? statisticsContent
+    : exploratoryContent
+  ).reading[activeItem.id]?.paragraphs.map((paragraph, index) => (
+    <p key={index}>{paragraph}</p>
+  ))
+) : (
+  <p>{topic} content goes here...</p>
+)}
+
+{(isStatisticsSubject || isExploratorySubject) &&
+  (isStatisticsSubject ? statisticsContent : exploratoryContent).reading[
+    activeItem.id
+  ]?.articleLink && (
+    <a
+      href={
+        (isStatisticsSubject ? statisticsContent : exploratoryContent).reading[
+          activeItem.id
+        ].articleLink
+      }
+      target="_blank"
+      rel="noreferrer"
+      style={{
+        display: "inline-block",
+        marginTop: "16px",
+        color: "#7C3AED",
+        fontWeight: "600",
+        textDecoration: "underline"
+      }}
+    >
+      {
+        (isStatisticsSubject ? statisticsContent : exploratoryContent).reading[
+          activeItem.id
+        ].articleText
+      }
+    </a>
+  )}
           </div>
 
           <ContentNoteActions item={activeItem} section={activeSection} />
@@ -883,9 +1201,25 @@ style={{
 
           <h2 className="content-title">{activeItem.title}</h2>
 
-          <div className="fake-video-frame">
-            <div className="play-button">Play Video</div>
-          </div>
+          {isStatisticsSubject || isExploratorySubject ? (
+  <iframe
+    width="100%"
+    height="400"
+    src={
+  (isStatisticsSubject ? statisticsContent : exploratoryContent).videos[
+    activeItem.id
+  ]
+}
+    title={activeItem.title}
+    frameBorder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+    allowFullScreen
+  ></iframe>
+) : (
+  <div className="fake-video-frame">
+    <div className="play-button">Play Video</div>
+  </div>
+)}
 
           <ContentNoteActions item={activeItem} section={activeSection} />
         </div>
@@ -897,7 +1231,12 @@ style={{
 
   if (activeItem?.type === "Quiz") {
     const quizId = activeItem.id;
-    const questions = quizSets[quizId] || [];
+    const questions =
+  isStatisticsSubject || isExploratorySubject
+    ? (isStatisticsSubject ? statisticsContent : exploratoryContent).quiz[
+        quizId
+      ] || []
+    : quizSets[quizId] || [];
 
     let correctCount = 0;
 
@@ -1028,10 +1367,21 @@ style={{
             <h3>Task</h3>
 
             <ul className="practical-list">
-              <li>Write 3 simple points about what you learned from the topic.</li>
-              <li>Give 1 real-world example related to the topic.</li>
-              <li>Explain in 2 to 3 sentences why this topic is important.</li>
-            </ul>
+  {isStatisticsSubject || isExploratorySubject
+  ? (isStatisticsSubject
+      ? statisticsContent
+      : exploratoryContent
+    ).practical[activeItem.id]?.map((task, index) => (
+      <li key={index}>{task}</li>
+    ))
+  : (
+      <>
+        <li>Write 3 simple points about what you learned from the topic.</li>
+        <li>Give 1 real-world example related to the topic.</li>
+        <li>Explain in 2 to 3 sentences why this topic is important.</li>
+      </>
+    )}
+</ul>
           </div>
 
           <textarea
