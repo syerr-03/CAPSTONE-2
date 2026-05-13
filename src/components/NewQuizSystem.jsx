@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import "../App.css";
 import LeaderboardPage from "../ProgressManagement/LeaderboardPage.jsx";
 import FloatingAiChat from "./FloatingAiChat.jsx";
+import { beginnerModules } from "../data/beginnerContent";
 
 function NewQuizSystem({
   module,
@@ -34,65 +35,7 @@ function NewQuizSystem({
   const [practicalText, setPracticalText] = useState("");
   const [practicalSubmitted, setPracticalSubmitted] = useState(false);
 
-  const moduleSections = useMemo(
-    () => [
-      {
-        id: "module1",
-        moduleNumber: 1,
-        heading: "Fundamentals",
-        items: [
-          {
-            id: "reading-1",
-            type: "Reading",
-            title: `Master the Basics: What is ${topic}?`
-          },
-          {
-            id: "video-1",
-            type: "Video",
-            title: `Watch and Learn: ${topic} Overview`
-          },
-          {
-            id: "quiz-1",
-            type: "Quiz",
-            title: "Test Your Knowledge: Fundamentals Quiz"
-          },
-          {
-            id: "practical-1",
-            type: "Practical Assignment",
-            title: "Practical Assignment: Basic Data Exploration"
-          }
-        ]
-      },
-      {
-        id: "module2",
-        moduleNumber: 2,
-        heading: "Programming Basics",
-        items: [
-          {
-            id: "reading-2",
-            type: "Reading",
-            title: `Core Concepts of ${topic}`
-          },
-          {
-            id: "video-2",
-            type: "Video",
-            title: `Intermediate ${topic} Techniques`
-          },
-          {
-            id: "quiz-2",
-            type: "Quiz",
-            title: "Check Your Understanding"
-          },
-          {
-            id: "practical-2",
-            type: "Practical Assignment",
-            title: "Mini Exercise"
-          }
-        ]
-      }
-    ],
-    [topic]
-  );
+  const moduleSections = beginnerModules;
 
   const getDraftNotes = () => {
     try {
@@ -862,7 +805,7 @@ style={{
 
           <div className="reading-block">
             <h3>Introduction</h3>
-            <p>{topic} content goes here...</p>
+            <p>{activeItem.description || activeItem.content || `${topic} content goes here...`}</p>
           </div>
 
           <ContentNoteActions item={activeItem} section={activeSection} />
@@ -884,8 +827,14 @@ style={{
           <h2 className="content-title">{activeItem.title}</h2>
 
           <div className="fake-video-frame">
-            <div className="play-button">Play Video</div>
-          </div>
+  {activeItem.videoUrl ? (
+    <a href={activeItem.videoUrl} target="_blank" rel="noreferrer">
+      <div className="play-button">Open Video</div>
+    </a>
+  ) : (
+    <div className="play-button">Play Video</div>
+  )}
+  </div>
 
           <ContentNoteActions item={activeItem} section={activeSection} />
         </div>
