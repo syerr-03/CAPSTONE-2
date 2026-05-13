@@ -1,8 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "../App.css";
 import LeaderboardPage from "../ProgressManagement/LeaderboardPage.jsx";
 import FloatingAiChat from "./FloatingAiChat.jsx";
-import { beginnerModules } from "../data/beginnerContent";
 
 function NewQuizSystem({
   module,
@@ -34,8 +33,112 @@ function NewQuizSystem({
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [practicalText, setPracticalText] = useState("");
   const [practicalSubmitted, setPracticalSubmitted] = useState(false);
+  const [apiModuleContent, setApiModuleContent] = useState(null);
+const [apiLoading, setApiLoading] = useState(false);
 
-  const moduleSections = beginnerModules;
+const getSubjectKey = () => {
+  const normalizedTopic = topic.toLowerCase().replace("?", "").trim();
+
+  if (normalizedTopic.includes("python")) {
+    return "pythonForDataScience";
+  }
+
+  return "whatIsDataScience";
+};
+
+useEffect(() => {
+  if (currentLevel !== "beginner" || !activeModuleNumber) {
+    setApiModuleContent(null);
+    return;
+  }
+
+  const subjectKey = getSubjectKey();
+
+  setApiLoading(true);
+
+  fetch(`http://localhost:5000/api/beginner/${subjectKey}/${activeModuleNumber}`)
+    .then((response) => response.json())
+    .then((data) => {
+      setApiModuleContent(data);
+      setApiLoading(false);
+    })
+    .catch((error) => {
+      console.error("Failed to fetch beginner API:", error);
+      setApiModuleContent(null);
+      setApiLoading(false);
+    });
+}, [activeModuleNumber, topic, currentLevel]);
+const getModuleApiContent = () => {
+  return apiModuleContent;
+};
+const getYoutubeEmbedUrl = (url) => {
+  if (!url) return "";
+
+  const videoId = url.includes("v=")
+    ? url.split("v=")[1]?.split("&")[0]
+    : url.split("/").pop();
+
+  return `https://www.youtube.com/embed/${videoId}`;
+};
+  const moduleSections = useMemo(
+    () => [
+      {
+        id: "module1",
+        moduleNumber: 1,
+        heading: "Fundamentals",
+        items: [
+          {
+            id: "reading-1",
+            type: "Reading",
+            title: `Master the Basics: What is ${topic}?`
+          },
+          {
+            id: "video-1",
+            type: "Video",
+            title: `Watch and Learn: ${topic} Overview`
+          },
+          {
+            id: "quiz-1",
+            type: "Quiz",
+            title: "Test Your Knowledge: Fundamentals Quiz"
+          },
+          {
+            id: "practical-1",
+            type: "Practical Assignment",
+            title: "Practical Assignment: Basic Data Exploration"
+          }
+        ]
+      },
+      {
+        id: "module2",
+        moduleNumber: 2,
+        heading: "Programming Basics",
+        items: [
+        {
+  id: "reading-2",
+  type: "Reading",
+  title: "Core Concepts of Data Science"
+},
+{
+  id: "video-2",
+  type: "Video",
+  title: "Data Science Concepts and Techniques"
+},
+          {
+            id: "quiz-2",
+            type: "Quiz",
+            title: "Check Your Understanding"
+          },
+          {
+            id: "practical-2",
+            type: "Practical Assignment",
+            title: "Mini Exercise"
+          }
+        ]
+      }
+    ],
+    [topic]
+  );
 
   const getDraftNotes = () => {
     try {
@@ -801,11 +904,50 @@ style={{
             ← Back to Module
           </button>
 
-          <h2 className="content-title">{activeItem.title}</h2>
+<h2 className="content-title">
+  {getModuleApiContent()?.reading?.title || activeItem.title}
+</h2>
+{apiLoading && (
+  <p style={{ textAlign: "center", color: "#6B7280" }}>
+    Loading reading material...
+  </p>
+)}
+
+{getModuleApiContent()?.reading?.image && (
+  <img
+    src={getModuleApiContent().reading.image}
+    alt={getModuleApiContent().reading.title}
+    style={{
+      width: "100%",
+      maxWidth: "850px",
+      borderRadius: "18px",
+      margin: "22px auto",
+      display: "block",
+      boxShadow: "0 12px 28px rgba(124, 58, 237, 0.18)"
+    }}
+  />
+)}
+
+{getModuleApiContent()?.reading?.url && (
+  <a
+    href={getModuleApiContent().reading.url}
+    target="_blank"
+    rel="noreferrer"
+    className="hero-button"
+    style={{
+      display: "block",
+      textAlign: "center",
+      margin: "20px auto",
+      maxWidth: "260px"
+    }}
+  >
+    Open Reading Material
+  </a>
+)}
 
           <div className="reading-block">
             <h3>Introduction</h3>
-            <p>{activeItem.description || activeItem.content || `${topic} content goes here...`}</p>
+            <p>{topic} content goes here...</p>
           </div>
 
           <ContentNoteActions item={activeItem} section={activeSection} />
@@ -824,17 +966,35 @@ style={{
             ← Back to Module
           </button>
 
-          <h2 className="content-title">{activeItem.title}</h2>
+          <h2 className="content-title">
+  {getModuleApiContent()?.video?.title || activeItem.title}
+</h2>
 
-          <div className="fake-video-frame">
-  {activeItem.videoUrl ? (
-    <a href={activeItem.videoUrl} target="_blank" rel="noreferrer">
-      <div className="play-button">Open Video</div>
-    </a>
-  ) : (
-    <div className="play-button">Play Video</div>
-  )}
+ {getModuleApiContent()?.video?.url ? (
+  <div
+    style={{
+      marginTop: "20px",
+      borderRadius: "18px",
+      overflow: "hidden",
+      border: "1px solid #E9D5FF"
+    }}
+  >
+    <iframe
+      width="100%"
+      height="420"
+      src={getYoutubeEmbedUrl(getModuleApiContent().video.url)}
+      title={getModuleApiContent().video.title}
+      frameBorder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowFullScreen
+    ></iframe>
   </div>
+) : (
+  <div className="fake-video-frame">
+    <div className="play-button">Play Video</div>
+  </div>
+)}
+
 
           <ContentNoteActions item={activeItem} section={activeSection} />
         </div>
