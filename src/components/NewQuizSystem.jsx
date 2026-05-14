@@ -94,6 +94,71 @@ function NewQuizSystem({
     [topic]
   );
 
+  const moduleContent = {
+  "reading-1": {
+    intro: `${topic} is the foundation of understanding how data, algorithms, and technology work together. In this module, you will learn the basic meaning, purpose, and real-world use of ${topic}.`,
+    image:
+      "https://images.unsplash.com/photo-1555949963-aa79dcee981c?auto=format&fit=crop&w=1200&q=80"
+  },
+
+  "video-1": {
+    video:
+      topic === "Data Visualization"
+        ? "https://www.youtube.com/embed/AdSZJzb-aX8"
+        : "https://www.youtube.com/embed/ukzFI9rgwfU"
+  },
+
+  "practical-1": {
+    task:
+      topic === "Data Visualization"
+        ? [
+            "Choose one dataset that contains categories and numbers.",
+            "Create one bar chart to compare categories.",
+            "Create one pie chart to show percentage distribution.",
+            "Explain which chart is easier to understand and why."
+          ]
+        : [
+            "Choose one simple dataset from Kaggle or Google Dataset Search.",
+            "Identify the number of rows, columns, and data types.",
+            "Write three important findings from the dataset.",
+            "Explain how this dataset can be applied in a real-world scenario."
+          ]
+  },
+
+  "reading-2": {
+    intro:
+      topic === "Data Visualization"
+        ? "Data Visualization is the process of presenting data using charts, graphs, and dashboards. It helps users understand patterns, trends, comparisons, and insights more easily. Good visualization makes complex data simple and supports better decision making."
+        : `${topic} becomes more meaningful when learners understand how theory connects with programming and data analysis. This module focuses on intermediate concepts such as data preparation, pattern recognition, visualization, and analytical thinking that are useful for solving practical problems.`,
+    image:
+      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1200&q=80"
+  },
+
+  "video-2": {
+    video:
+      topic === "Data Visualization"
+        ? "https://www.youtube.com/embed/GPVsHOlRBBI"
+        : "https://www.youtube.com/embed/GwIo3gDZCVQ"
+  },
+
+  "practical-2": {
+    task:
+      topic === "Data Visualization"
+        ? [
+            "Prepare a dataset using CSV or Excel format.",
+            "Create at least two visualizations such as a bar chart and line chart.",
+            "Add proper chart titles, labels, and legends.",
+            "Write a short explanation about the insight shown by each chart."
+          ]
+        : [
+            "Prepare a small dataset using CSV or Excel format.",
+            "Check for missing values and incorrect data types.",
+            "Create one simple chart such as a bar chart or line chart.",
+            "Write a short explanation describing the results of your analysis."
+          ]
+  }
+};
+
   const getDraftNotes = () => {
     try {
       return JSON.parse(localStorage.getItem("moduleDraftNotes")) || [];
@@ -324,33 +389,33 @@ function NewQuizSystem({
     alert("Note saved to My Notes!");
   };
 
-const deleteModuleBookNote = (moduleGroup) => {
-  if (!moduleGroup || !moduleGroup.note) return;
+  const deleteModuleBookNote = (moduleGroup) => {
+    if (!moduleGroup || !moduleGroup.note) return;
 
-  const confirmDelete = window.confirm(
-    `Delete Module ${moduleGroup.moduleNumber} note from Book?`
-  );
+    const confirmDelete = window.confirm(
+      `Delete Module ${moduleGroup.moduleNumber} note from Book?`
+    );
 
-  if (!confirmDelete) return;
+    if (!confirmDelete) return;
 
-  const existingDraftNotes = getDraftNotes();
+    const existingDraftNotes = getDraftNotes();
 
-  const updatedDraftNotes = existingDraftNotes.filter(
-    (note) =>
-      !(
-        note.level === currentLevel &&
-        note.subject === topic &&
-        note.moduleId === moduleGroup.moduleId
-      )
-  );
+    const updatedDraftNotes = existingDraftNotes.filter(
+      (note) =>
+        !(
+          note.level === currentLevel &&
+          note.subject === topic &&
+          note.moduleId === moduleGroup.moduleId
+        )
+    );
 
-  localStorage.setItem("moduleDraftNotes", JSON.stringify(updatedDraftNotes));
+    localStorage.setItem("moduleDraftNotes", JSON.stringify(updatedDraftNotes));
 
-  setSelectedBookModuleId(null);
-  setNotesVersion((prev) => prev + 1);
+    setSelectedBookModuleId(null);
+    setNotesVersion((prev) => prev + 1);
 
-  alert("Note deleted from Book only.");
-};
+    alert("Note deleted from Book only.");
+  };
 
   const renderModuleNotePanel = () => {
     if (!showModuleNote || !selectedModuleItem) return null;
@@ -363,13 +428,13 @@ const deleteModuleBookNote = (moduleGroup) => {
     return (
       <div
         className="module-note-panel"
-style={{
-  width: noteMode === "view" ? "430px" : "320px",
-  maxHeight: "470px",
-  overflowY: "auto",
-  overflowX: "hidden",
-  padding: "18px"
-}}
+        style={{
+          width: noteMode === "view" ? "430px" : "320px",
+          maxHeight: "470px",
+          overflowY: "auto",
+          overflowX: "hidden",
+          padding: "18px"
+        }}
       >
         <div className="module-note-header">
           <div>
@@ -529,32 +594,33 @@ style={{
                           alignItems: "flex-start"
                         }}
                       >
-           <div style={{ flex: 1, minWidth: 0 }}>
-  <p
-    style={{
-      margin: 0,
-      whiteSpace: "pre-line",
-      fontSize: "14px",
-      lineHeight: "1.6",
-      color: "#374151",
-      textAlign: "center",
-      wordBreak: "break-word",
-      overflowWrap: "anywhere"
-    }}
-  >
-    {selectedBookModule.note.content}
-  </p>
-                        <p
-  style={{
-    margin: "10px 0 0",
-    color: "#6B7280",
-    fontSize: "12px",
-    textAlign: "center",
-    wordBreak: "break-word"
-  }}
->
-  {selectedBookModule.note.dateTime}
-</p>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p
+                            style={{
+                              margin: 0,
+                              whiteSpace: "pre-line",
+                              fontSize: "14px",
+                              lineHeight: "1.6",
+                              color: "#374151",
+                              textAlign: "center",
+                              wordBreak: "break-word",
+                              overflowWrap: "anywhere"
+                            }}
+                          >
+                            {selectedBookModule.note.content}
+                          </p>
+
+                          <p
+                            style={{
+                              margin: "10px 0 0",
+                              color: "#6B7280",
+                              fontSize: "12px",
+                              textAlign: "center",
+                              wordBreak: "break-word"
+                            }}
+                          >
+                            {selectedBookModule.note.dateTime}
+                          </p>
                         </div>
 
                         <div
@@ -1181,6 +1247,21 @@ const exploratoryContent = {
       }
     </a>
   )}
+            <h3>Introduction</h3>
+
+            <img
+              src={moduleContent[activeItem.id]?.image}
+              alt={activeItem.title}
+              style={{
+                width: "100%",
+                maxHeight: "260px",
+                objectFit: "cover",
+                borderRadius: "16px",
+                marginBottom: "16px"
+              }}
+            />
+
+            <p>{moduleContent[activeItem.id]?.intro}</p>
           </div>
 
           <ContentNoteActions item={activeItem} section={activeSection} />
@@ -1220,6 +1301,18 @@ const exploratoryContent = {
     <div className="play-button">Play Video</div>
   </div>
 )}
+          <div style={{ marginTop: "18px" }}>
+            <iframe
+              width="100%"
+              height="315"
+              src={moduleContent[activeItem.id]?.video}
+              title={activeItem.title}
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              style={{ borderRadius: "16px" }}
+            ></iframe>
+          </div>
 
           <ContentNoteActions item={activeItem} section={activeSection} />
         </div>
@@ -1382,6 +1475,10 @@ const exploratoryContent = {
       </>
     )}
 </ul>
+              {(moduleContent[activeItem.id]?.task || []).map((task, index) => (
+                <li key={index}>{task}</li>
+              ))}
+            </ul>
           </div>
 
           <textarea
