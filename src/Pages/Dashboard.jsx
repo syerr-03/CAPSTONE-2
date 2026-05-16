@@ -26,8 +26,9 @@ function Dashboard({
   const studentName = localStorage.getItem("name") || "Student";
   const welcomeType = localStorage.getItem("welcomeType");
 
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const [activeTab, setActiveTab] = useState("subjects");
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [levelMessage, setLevelMessage] = useState("");
 
   // ===== SCHEDULE STATES =====
   const [step, setStep] = useState(0);
@@ -104,6 +105,13 @@ function Dashboard({
     if (typeof handleSelectLevel === "function") {
       handleSelectLevel(level);
     }
+
+    setLevelMessage(`Level has been set to ${level}.`);
+
+    setTimeout(() => {
+      setLevelMessage("");
+      goToTab("dashboard");
+    }, 2000);
   };
 
   const streakDays = [
@@ -258,7 +266,7 @@ function Dashboard({
                 className={`simple-menu-tab ${
                   activeTab === "notes" ? "active" : ""
                 }`}
-                onClick={() => setActivePage("notes")}
+                onClick={() => goToTab("notes")}
               >
                 Notes
               </button>
@@ -450,6 +458,16 @@ function Dashboard({
             </section>
           )}
 
+          {/* NOTES TAB */}
+          {activeTab === "notes" && (
+            <section
+              className="dashboard-content-section"
+              style={{ marginTop: "-30px" }}
+            >
+              <Notes />
+            </section>
+          )}
+
           {/* LEADERBOARD TAB */}
           {activeTab === "leaderboard" && (
             <section className="dashboard-content-section">
@@ -473,13 +491,29 @@ function Dashboard({
 
           {/* ACHIEVEMENT TAB */}
           {activeTab === "achievement" && (
-            <section className="dashboard-content-section">
-              <button className="back-btn" onClick={() => goToTab("dashboard")}>
-                ← Back
-              </button>
+            <>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "flex-start",
+                  marginLeft: "50px"
+                }}
+              >
+                <button
+                  className="back-btn"
+                  onClick={() => goToTab("dashboard")}
+                >
+                  ← Back
+                </button>
+              </div>
 
-              <AchievementPage studentData={performanceData} />
-            </section>
+              <section
+                className="dashboard-content-section"
+                style={{ marginTop: "-40px" }}
+              >
+                <AchievementPage studentData={performanceData} />
+              </section>
+            </>
           )}
 
           {/* FORUM TAB */}
@@ -493,12 +527,25 @@ function Dashboard({
             </section>
           )}
 
-          {/* SETTINGS TAB */}
+         {/* SETTINGS TAB */}
           {activeTab === "settings" && (
-            <section className="dashboard-content-section">
-              <button className="back-btn" onClick={() => goToTab("dashboard")}>
-                ← Back
-              </button>
+            <>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "flex-start",
+                  marginLeft: "50px"
+                }}
+              >
+                <button
+                  className="back-btn"
+                  onClick={() => goToTab("dashboard")}
+                >
+                  ← Back
+                </button>
+              </div>
+
+              <section className="dashboard-content-section">
 
               <div className="module-card" style={{ textAlign: "center" }}>
                 <h2 className="section-title">Learning Level Settings</h2>
@@ -538,6 +585,7 @@ function Dashboard({
                 </div>
               </div>
             </section>
+            </>
           )}
         </main>
       </div>
@@ -781,6 +829,26 @@ function Dashboard({
       )}
 
       {/* LEVEL POPUP */}
+      {levelMessage && (
+        <div
+          style={{
+            position: "fixed",
+            bottom: "100px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            background: "#7C3AED",
+            color: "white",
+            padding: "14px 24px",
+            borderRadius: "14px",
+            fontWeight: "700",
+            boxShadow: "0 10px 25px rgba(124,58,237,0.35)",
+            zIndex: 9999
+          }}
+        >
+          {levelMessage}
+        </div>
+      )}
+      
       {showLevelPopup && (
         <div style={overlay}>
           <div

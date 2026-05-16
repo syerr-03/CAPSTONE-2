@@ -196,10 +196,7 @@ function App() {
       {activePage === "certificate-preview" && (
         <CertificatePreview onBack={() => setActivePage("dashboard")} />
       )}
-
-      {activePage === "notes" && (
-        <Notes onBack={() => setActivePage("dashboard")} />
-      )}
+      
     </div>
   );
 }

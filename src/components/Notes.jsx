@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { auth } from "../firebase";
 
 const Notes = ({ onBack }) => {
   const [showInput, setShowInput] = useState(false);
@@ -22,8 +23,15 @@ const Notes = ({ onBack }) => {
 
   const colors = ["#7C3AED", "#3B82F6", "#10B981", "#F59E0B", "#EF4444"];
 
+  const getUserKey = () => {
+    const user = auth.currentUser;
+    return user?.uid || localStorage.getItem("email") || "guest";
+  };
+
+  const notesStorageKey = `notes_${getUserKey()}`;
+
   const [notes, setNotes] = useState(() => {
-    const savedNotes = localStorage.getItem("notes");
+    const savedNotes = localStorage.getItem(notesStorageKey);
 
     return savedNotes
       ? JSON.parse(savedNotes)
@@ -62,7 +70,7 @@ const Notes = ({ onBack }) => {
   });
 
   useEffect(() => {
-    localStorage.setItem("notes", JSON.stringify(notes));
+    localStorage.setItem(notesStorageKey, JSON.stringify(notes));
   }, [notes]);
 
   const addBullet = () => {
@@ -87,15 +95,15 @@ const Notes = ({ onBack }) => {
   const addNote = () => {
     if (noteTitle.trim() === "" || noteContent.trim() === "") return;
 
-const newNote = {
-  id: `personal-${Date.now()}`,
-  level: "self",
-  title: noteTitle,
-  subject: "Personal Note",
-  content: noteContent,
-  color: noteColor,
-  dateTime: getDateTime()
-};
+  const newNote = {
+    id: `personal-${Date.now()}`,
+    level: "self",
+    title: noteTitle,
+    subject: "Personal Note",
+    content: noteContent,
+    color: noteColor,
+    dateTime: getDateTime()
+  };
 
     setNotes([newNote, ...notes]);
     setNoteTitle("");
@@ -383,10 +391,7 @@ const getSectionInfo = (title) => {
 
   return (
     <div style={styles.page}>
-      <button style={styles.backBtn} onClick={onBack}>
-        ←
-      </button>
-
+      
       <div style={styles.container}>
         <section style={styles.heroCard}>
           <div style={styles.heroLeft}>

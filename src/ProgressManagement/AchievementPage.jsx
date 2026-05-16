@@ -55,11 +55,6 @@ function AchievementPage({ studentData = {}, onBack }) {
 
   return (
     <div className="page-wrapper">
-      {/* ✅ BACK BUTTON */}
-      <button className="back-btn" onClick={onBack}>
-        ← Back
-      </button>
-
       <div className="hero-section">
         <h2 className="main-title">Earn Achievement</h2>
         <p className="subtitle-text">

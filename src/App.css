@@ -2088,3 +2088,8 @@ input {
   font-size: 12px;
   font-weight: 700;
 }
+
+.quiz-page .back-btn {
+  position: relative;
+  left: -420px;
+}

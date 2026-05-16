@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "../App.css";
 import LeaderboardPage from "../ProgressManagement/LeaderboardPage.jsx";
 import FloatingAiChat from "./FloatingAiChat.jsx";
@@ -33,7 +33,53 @@ function NewQuizSystem({
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [practicalText, setPracticalText] = useState("");
   const [practicalSubmitted, setPracticalSubmitted] = useState(false);
+  const [apiModuleContent, setApiModuleContent] = useState(null);
+const [apiLoading, setApiLoading] = useState(false);
 
+const getSubjectKey = () => {
+  const normalizedTopic = topic.toLowerCase().replace("?", "").trim();
+
+  if (normalizedTopic.includes("python")) {
+    return "pythonForDataScience";
+  }
+
+  return "whatIsDataScience";
+};
+
+useEffect(() => {
+  if (currentLevel !== "beginner" || !activeModuleNumber) {
+    setApiModuleContent(null);
+    return;
+  }
+
+  const subjectKey = getSubjectKey();
+
+  setApiLoading(true);
+
+  fetch(`http://localhost:5000/api/beginner/${subjectKey}/${activeModuleNumber}`)
+    .then((response) => response.json())
+    .then((data) => {
+      setApiModuleContent(data);
+      setApiLoading(false);
+    })
+    .catch((error) => {
+      console.error("Failed to fetch beginner API:", error);
+      setApiModuleContent(null);
+      setApiLoading(false);
+    });
+}, [activeModuleNumber, topic, currentLevel]);
+const getModuleApiContent = () => {
+  return apiModuleContent;
+};
+const getYoutubeEmbedUrl = (url) => {
+  if (!url) return "";
+
+  const videoId = url.includes("v=")
+    ? url.split("v=")[1]?.split("&")[0]
+    : url.split("/").pop();
+
+  return `https://www.youtube.com/embed/${videoId}`;
+};
   const moduleSections = useMemo(
     () => [
       {
@@ -68,16 +114,16 @@ function NewQuizSystem({
         moduleNumber: 2,
         heading: "Programming Basics",
         items: [
-          {
-            id: "reading-2",
-            type: "Reading",
-            title: `Core Concepts of ${topic}`
-          },
-          {
-            id: "video-2",
-            type: "Video",
-            title: `Intermediate ${topic} Techniques`
-          },
+        {
+  id: "reading-2",
+  type: "Reading",
+  title: "Core Concepts of Data Science"
+},
+{
+  id: "video-2",
+  type: "Video",
+  title: "Data Science Concepts and Techniques"
+},
           {
             id: "quiz-2",
             type: "Quiz",
@@ -924,7 +970,46 @@ function NewQuizSystem({
             ← Back to Module
           </button>
 
-          <h2 className="content-title">{activeItem.title}</h2>
+<h2 className="content-title">
+  {getModuleApiContent()?.reading?.title || activeItem.title}
+</h2>
+{apiLoading && (
+  <p style={{ textAlign: "center", color: "#6B7280" }}>
+    Loading reading material...
+  </p>
+)}
+
+{getModuleApiContent()?.reading?.image && (
+  <img
+    src={getModuleApiContent().reading.image}
+    alt={getModuleApiContent().reading.title}
+    style={{
+      width: "100%",
+      maxWidth: "850px",
+      borderRadius: "18px",
+      margin: "22px auto",
+      display: "block",
+      boxShadow: "0 12px 28px rgba(124, 58, 237, 0.18)"
+    }}
+  />
+)}
+
+{getModuleApiContent()?.reading?.url && (
+  <a
+    href={getModuleApiContent().reading.url}
+    target="_blank"
+    rel="noreferrer"
+    className="hero-button"
+    style={{
+      display: "block",
+      textAlign: "center",
+      margin: "20px auto",
+      maxWidth: "260px"
+    }}
+  >
+    Open Reading Material
+  </a>
+)}
 
           <div className="reading-block">
             <h3>Introduction</h3>
@@ -960,20 +1045,63 @@ function NewQuizSystem({
             ← Back to Module
           </button>
 
-          <h2 className="content-title">{activeItem.title}</h2>
+          <h2 className="content-title">
+  {getModuleApiContent()?.video?.title || activeItem.title}
+</h2>
 
-          <div style={{ marginTop: "18px" }}>
-            <iframe
-              width="100%"
-              height="315"
-              src={moduleContent[activeItem.id]?.video}
-              title={activeItem.title}
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              style={{ borderRadius: "16px" }}
-            ></iframe>
-          </div>
+ {moduleContent[activeItem.id]?.video ? (
+  <div
+    style={{
+      marginTop: "20px",
+      position: "relative",
+      textAlign: "center"
+    }}
+  >
+    <img
+      src={`https://img.youtube.com/vi/${
+        moduleContent[activeItem.id]?.video
+          .split("embed/")[1]
+          ?.split("?")[0]
+      }/hqdefault.jpg`}
+      alt="Video Preview"
+      style={{
+        width: "100%",
+        maxWidth: "850px",
+        borderRadius: "18px",
+        boxShadow: "0 12px 28px rgba(124, 58, 237, 0.18)"
+      }}
+    />
+
+    <a
+      href={moduleContent[activeItem.id]?.video.replace(
+        "/embed/",
+        "/watch?v="
+      )}
+      target="_blank"
+      rel="noreferrer"
+      style={{
+        position: "absolute",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        background: "#7C3AED",
+        color: "white",
+        padding: "14px 24px",
+        borderRadius: "999px",
+        textDecoration: "none",
+        fontWeight: "700",
+        fontSize: "16px",
+        boxShadow: "0 10px 25px rgba(124,58,237,0.35)"
+      }}
+    >
+      ▶ Open in YouTube
+    </a>
+  </div>
+) : (
+  <div className="fake-video-frame">
+    <div className="play-button">No Video Available</div>
+  </div>
+)}
 
           <ContentNoteActions item={activeItem} section={activeSection} />
         </div>

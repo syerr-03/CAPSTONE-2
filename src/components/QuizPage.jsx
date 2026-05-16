@@ -536,7 +536,9 @@ await addDoc(collection(db, "performanceHistory"), {
     return (
       <div className="quiz-page-wrapper">
         <div className="quiz-container-box">
-         <h2 style={{ marginBottom: "20px" }}>✨ Choose Your Quiz to Test Your Knowledge !</h2>
+         <h2 style={{ marginBottom: "20px", color: "black" }}>
+            ✨ Choose Your Quiz to Test Your Knowledge !
+          </h2>
 
 <div
   style={{
@@ -615,9 +617,15 @@ await addDoc(collection(db, "performanceHistory"), {
   // ✅ STEP 2: SHOW QUESTIONS
   return (
     <div className="quiz-page-wrapper">
-      <div style={{ marginBottom: "15px" }}>
+      <div
+        style={{
+          marginBottom: "15px",
+          marginLeft: "50px"
+        }}
+      >
         <button
           className="back-btn"
+          style={{ marginLeft: "50px" }}
           onClick={() => {
             setSelectedQuiz(null);
             setQuizAnswers({});
