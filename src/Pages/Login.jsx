@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import { updateLoginStreak } from "../streakService";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { db, auth } from "../firebase";
@@ -31,33 +32,40 @@ function Login({ goToRegister, goToDashboard }) {
       }
 
       const userData = querySnapshot.docs[0].data();
-const email = userData.email;
+      const email = userData.email;
 
-await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
 
-// 🔥 Simpan nama user
-localStorage.setItem("name", userData.name);
+      await updateLoginStreak(userCredential.user.uid);
 
-// 🔥 Check user baru ke tak
-const justRegistered = localStorage.getItem("justRegistered") === "true";
+      // 🔥 Simpan nama user
+      localStorage.setItem("name", userData.name);
 
-// 🔥 Set welcome type
-localStorage.setItem("welcomeType", justRegistered ? "new" : "returning");
+      // 🔥 Check user baru ke tak
+      const justRegistered = localStorage.getItem("justRegistered") === "true";
 
-// 🔥 Clear flag register
-localStorage.removeItem("justRegistered");
+      // 🔥 Set welcome type
+      localStorage.setItem("welcomeType", justRegistered ? "new" : "returning");
 
-// Login success
-setSuccess("Login Successful!");
-localStorage.setItem("isLoggedIn", "true");
+      // 🔥 Clear flag register
+      localStorage.removeItem("justRegistered");
 
-      setTimeout(() => {
-        goToDashboard();
-      }, 1000);
-    } catch (error) {
-      setError("Invalid username or password");
-    }
-  };
+      // Login success
+      setSuccess("Login Successful!");
+      localStorage.setItem("isLoggedIn", "true");
+
+            setTimeout(() => {
+              goToDashboard();
+            }, 1000);
+          } catch (error) {
+              console.log("LOGIN ERROR:", error.code, error.message);
+              setError(error.code);
+            }
+        };
 
   return (
     <div
@@ -71,9 +79,24 @@ localStorage.setItem("isLoggedIn", "true");
       }}
     >
       <div className="module-card" style={{ width: "100%", maxWidth: "400px" }}>
-        <h1 className="main-title" style={{ textAlign: "center" }}>
-          Welcome Back!
-        </h1>
+  
+        <div style={{ textAlign: "center" }}>
+          <img
+            src="/logo.jpg"
+            alt="BrainyBits Logo"
+            style={{
+              width: "80px",
+              height: "80px",
+              borderRadius: "50%",
+              objectFit: "cover",
+              marginBottom: "15px"
+            }}
+          />
+
+          <h1 className="main-title">
+            Welcome to BrainyBits!
+          </h1>
+        </div>
 
         <p className="hero-subtitle" style={{ textAlign: "center", marginBottom: "20px" }}>
           Sign in to your account

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import SubjectGrid from "../components/SubjectGrid.jsx";
 import QuizPage from "../components/QuizPage.jsx";
 import Drawer from "../components/Drawer.jsx";
@@ -10,6 +10,9 @@ import LeaderboardPage from "../ProgressManagement/LeaderboardPage.jsx";
 import AiChat from "../components/aiChat.jsx";
 import Notes from "../components/Notes.jsx";
 import "../App.css";
+
+import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "../firebase";
 
 function Dashboard({
   handleEnroll,
@@ -23,10 +26,28 @@ function Dashboard({
   showLevelPopup,
   handleSelectLevel
 }) {
+
+  const [weeklyLoginDays, setWeeklyLoginDays] = useState({});
+  useEffect(() => {
+    const fetchStreak = async () => {
+      if (!auth.currentUser) return;
+
+      const userRef = doc(db, "users", auth.currentUser.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (userSnap.exists()) {
+        setWeeklyLoginDays(userSnap.data().weeklyLoginDays || {});
+      }
+    };
+
+    fetchStreak();
+  }, []);
+
+
   const studentName = localStorage.getItem("name") || "Student";
   const welcomeType = localStorage.getItem("welcomeType");
 
-  const [activeTab, setActiveTab] = useState("subjects");
+  const [activeTab, setActiveTab] = useState("dashboard");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [levelMessage, setLevelMessage] = useState("");
 
@@ -115,13 +136,13 @@ function Dashboard({
   };
 
   const streakDays = [
-    { day: "Mon", active: true },
-    { day: "Tue", active: true },
-    { day: "Wed", active: true },
-    { day: "Thu", active: true },
-    { day: "Fri", active: true },
-    { day: "Sat", active: false },
-    { day: "Sun", active: false }
+    { day: "Mon", key: "monday" },
+    { day: "Tue", key: "tuesday" },
+    { day: "Wed", key: "wednesday" },
+    { day: "Thu", key: "thursday" },
+    { day: "Fri", key: "friday" },
+    { day: "Sat", key: "saturday" },
+    { day: "Sun", key: "sunday" }
   ];
 
   const allCourses = [
@@ -214,13 +235,54 @@ function Dashboard({
               ☰
             </button>
 
-            <h1 className="simple-menu-logo">BrainyBits</h1>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                flexShrink: 0
+              }}
+            >
+              <img
+                src="/logo.jpg"
+                alt="BrainyBits Logo"
+                style={{
+                  width: "42px",
+                  height: "42px",
+                  objectFit: "cover",
+                  borderRadius: "20px"
+                }}
+              />
 
-            <nav className="simple-menu-tabs">
+              <h1
+                className="simple-menu-logo"
+                style={{
+                  margin: 0,
+                  marginLeft: "-30px"
+                }}
+              >
+                BrainyBits
+              </h1>
+            </div>
+
+            <nav
+              className="simple-menu-tabs"
+              style={{
+                overflowX: "auto",
+                overflowY: "hidden",
+                whiteSpace: "nowrap",
+                display: "flex",
+                flexWrap: "nowrap",
+                scrollbarWidth: "none",
+                padding: "8px 12px",
+                paddingLeft: "50px"
+              }}
+            >
               <button
                 className={`simple-menu-tab ${
                   activeTab === "dashboard" ? "active" : ""
                 }`}
+                style={{ flexShrink: 0 }}
                 onClick={() => goToTab("dashboard")}
               >
                 Dashboard
@@ -230,6 +292,7 @@ function Dashboard({
                 className={`simple-menu-tab ${
                   activeTab === "subjects" ? "active" : ""
                 }`}
+                style={{ flexShrink: 0 }}
                 onClick={() => goToTab("subjects")}
               >
                 Subjects
@@ -239,6 +302,7 @@ function Dashboard({
                 className={`simple-menu-tab ${
                   activeTab === "content" ? "active" : ""
                 }`}
+                style={{ flexShrink: 0 }}
                 onClick={() => goToTab("content")}
               >
                 Content
@@ -248,6 +312,7 @@ function Dashboard({
                 className={`simple-menu-tab ${
                   activeTab === "quiz" ? "active" : ""
                 }`}
+                style={{ flexShrink: 0 }}
                 onClick={() => goToTab("quiz")}
               >
                 Quiz
@@ -257,6 +322,7 @@ function Dashboard({
                 className={`simple-menu-tab ${
                   activeTab === "performance" ? "active" : ""
                 }`}
+                style={{ flexShrink: 0 }}
                 onClick={() => goToTab("performance")}
               >
                 Performance
@@ -266,6 +332,7 @@ function Dashboard({
                 className={`simple-menu-tab ${
                   activeTab === "notes" ? "active" : ""
                 }`}
+                style={{ flexShrink: 0 }}
                 onClick={() => goToTab("notes")}
               >
                 Notes
@@ -311,7 +378,9 @@ function Dashboard({
                       <span>{item.day}</span>
                       <div
                         className={
-                          item.active ? "compact-fire active" : "compact-fire"
+                          weeklyLoginDays?.[item.key]
+                            ? "compact-fire active"
+                            : "compact-fire"
                         }
                       >
                         <span className="streak-fire-emoji small">🔥</span>
@@ -599,7 +668,7 @@ function Dashboard({
                 <h3 className="section-title">Learning Days</h3>
 
                 <div style={optionWrap}>
-                  {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
+                  {streakDays.map(
                     (day) => (
                       <button
                         key={day}
@@ -908,9 +977,11 @@ const overlay = {
 const optionWrap = {
   display: "flex",
   gap: "10px",
-  flexWrap: "wrap",
-  marginTop: "15px",
-  marginBottom: "15px"
+  overflowX: "auto",
+  whiteSpace: "nowrap",
+  flexWrap: "nowrap",
+  paddingBottom: "5px",
+  scrollbarWidth: "none"
 };
 
 const option = (active) => ({
@@ -922,7 +993,8 @@ const option = (active) => ({
   color: active ? "white" : "#5b4b8a",
   fontSize: "14px",
   fontWeight: "500",
-  transition: "0.2s"
+  transition: "0.2s",
+  flexShrink: 0
 });
 
 const navRow = {

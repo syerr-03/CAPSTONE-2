@@ -14,9 +14,31 @@ function Drawer({
   return (
     <aside className={`drawer-panel ${drawerOpen ? "open" : ""}`}>
       <div className="drawer-header-area">
-        <div>
-          <h2>BrainyBits</h2>
-          <p>Learning Companion</p>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}>
+          <img
+            src="/logo.jpg"
+            alt="BrainyBits Logo"
+            style={{
+              width: "40px",
+              height: "40px",
+              borderRadius: "50%",
+              objectFit: "cover",
+              marginTop: "4px"
+            }}
+          />
+
+          <div>
+            <h2 style={{ margin: 0 }}>BrainyBits</h2>
+
+            <p
+              style={{
+                margin: 0,
+                marginTop: "4px"
+              }}
+            >
+              Learning Companion
+            </p>
+          </div>
         </div>
 
         <button className="drawer-close-btn" onClick={closeDrawer}>
