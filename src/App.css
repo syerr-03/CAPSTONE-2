@@ -2190,3 +2190,49 @@ input {
 .drawer-panel::-webkit-scrollbar-track {
   background: transparent;
 }
+
+.drawer-popup {
+  position: fixed;
+  width: 210px;
+  background: #f7f2ff;
+  border-radius: 18px;
+  padding: 10px;
+  box-shadow: 0 12px 35px rgba(124, 58, 237, 0.18);
+  z-index: 99999;
+}
+
+.subscription-popup {
+  top: 190px;
+}
+
+.learning-dropdown {
+  top: 250px;
+}
+
+.download-popup {
+  top: 490px;
+}
+
+.more-settings-popup {
+  top: 520px;
+}
+
+.drawer-popup-link {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 13px 14px;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.drawer-popup-link:hover {
+  background: #ede7ff;
+  color: #7c3aed;
+}
