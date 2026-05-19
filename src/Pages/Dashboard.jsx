@@ -668,17 +668,15 @@ function Dashboard({
                 <h3 className="section-title">Learning Days</h3>
 
                 <div style={optionWrap}>
-                  {streakDays.map(
-                    (day) => (
-                      <button
-                        key={day}
-                        onClick={() => toggleDay(day)}
-                        style={option(days.includes(day))}
-                      >
-                        {day}
-                      </button>
-                    )
-                  )}
+                  {streakDays.map((item) => (
+                    <button
+                      key={item.key}
+                      onClick={() => toggleDay(item.day)}
+                      style={option(days.includes(item.day))}
+                    >
+                      {item.day}
+                    </button>
+                  ))}
                 </div>
 
                 <div style={navRow}>

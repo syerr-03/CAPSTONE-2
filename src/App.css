@@ -129,7 +129,7 @@ body {
 .subject-card {
   background: #ffffff;
   border-radius: 24px;
-  overflow: hidden;
+  overflow: visible;
   box-shadow: 0 18px 40px rgba(17, 24, 39, 0.08);
 }
 
@@ -192,12 +192,15 @@ body {
 }
 
 .dashboard-layout-single.drawer-open {
-  grid-template-columns: 280px 1fr;
+  grid-template-columns: 1fr;
 }
 
 .dashboard-main-single {
   min-width: 0;
   padding: 28px 0 70px;
+  width: 100%;
+  position: relative;
+  z-index: 1;
 }
 
 /* =========================
@@ -206,12 +209,19 @@ body {
 
 .drawer-panel {
   width: 280px;
-  min-height: 100vh;
+  height: 100vh;
   background: #ffffff;
   border-right: 1px solid #eee7ff;
   box-shadow: 16px 0 40px rgba(17, 24, 39, 0.06);
   padding: 30px 24px;
-  overflow: hidden;
+
+  overflow-y: auto;
+  overflow-x: visible;
+
+  position: fixed;
+  top: 0;
+  left: 40;
+  z-index: 100;
 }
 
 .drawer-header-area {
@@ -2092,4 +2102,91 @@ input {
 .quiz-page .back-btn {
   position: relative;
   left: -420px;
+}
+.drawer-section-title {
+  margin: 16px 20px 4px;
+  font-size: 15px;
+  font-weight: 800;
+  color: #7c3aed;
+}
+
+.drawer-sub-link {
+  padding-left: 35px;
+}
+
+
+.learning-popup {
+  position: absolute;
+  top: 245px;
+  left: 310px;
+  width: 210px;
+  background: white;
+  border-radius: 20px;
+  padding: 12px;
+  box-shadow: 0 12px 35px rgba(124, 58, 237, 0.18);
+  z-index: 999;
+}
+
+.learning-popup-link {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 14px 16px;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+  display: flex;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.learning-popup-link:hover {
+  background: #f3efff;
+  color: #7c3aed;
+}
+
+.learning-dropdown {
+  position: fixed;
+  top: 250px;
+  left: 430px;
+  width: 210px;
+  background: #f7f2ff;
+  border-radius: 18px;
+  padding: 10px;
+  box-shadow: 0 12px 35px rgba(124, 58, 237, 0.18);
+  z-index: 5000;
+}
+
+.learning-dropdown-link {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 13px 14px;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.learning-dropdown-link:hover {
+  background: #ede7ff;
+  color: #7c3aed;
+}
+
+.drawer-panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.drawer-panel::-webkit-scrollbar-thumb {
+  background: #ddd6fe;
+  border-radius: 999px;
+}
+
+.drawer-panel::-webkit-scrollbar-track {
+  background: transparent;
 }

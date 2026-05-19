@@ -1,3 +1,4 @@
+import { useState } from "react";
 import "../App.css";
 
 function Drawer({
@@ -11,6 +12,8 @@ function Drawer({
   openSettings,
   handleLogout,
 }) {
+  const [learningOpen, setLearningOpen] = useState(false);
+
   return (
     <aside className={`drawer-panel ${drawerOpen ? "open" : ""}`}>
       <div className="drawer-header-area">
@@ -23,19 +26,13 @@ function Drawer({
               height: "40px",
               borderRadius: "50%",
               objectFit: "cover",
-              marginTop: "4px"
+              marginTop: "4px",
             }}
           />
 
           <div>
             <h2 style={{ margin: 0 }}>BrainyBits</h2>
-
-            <p
-              style={{
-                margin: 0,
-                marginTop: "4px"
-              }}
-            >
+            <p style={{ margin: 0, marginTop: "4px" }}>
               Learning Companion
             </p>
           </div>
@@ -46,20 +43,43 @@ function Drawer({
         </button>
       </div>
 
-      <button className="drawer-link active">
-        <span>Edit Profile</span>
+      <button className="drawer-link">
+        <span>Account</span>
         <span>›</span>
       </button>
 
-      <button className="drawer-link" onClick={openSchedule}>
-        <span>Schedule</span>
+      <button className="drawer-link">
+        <span>Subscriptions</span>
         <span>›</span>
       </button>
 
-      <button className="drawer-link" onClick={openGoals}>
-        <span>Learning Goals</span>
-        <span>›</span>
+      <button
+        type="button"
+        className="drawer-link"
+        onClick={() => setLearningOpen(!learningOpen)}
+      >
+        <span>Learning</span>
+        <span>{learningOpen ? "⌃" : "›"}</span>
       </button>
+
+      {learningOpen && (
+        <div className="learning-dropdown">
+          <button className="learning-dropdown-link" onClick={openSettings}>
+            <span>Set Level</span>
+            <span>›</span>
+          </button>
+
+          <button className="learning-dropdown-link" onClick={openGoals}>
+            <span>Goal</span>
+            <span>›</span>
+          </button>
+
+          <button className="learning-dropdown-link" onClick={openSchedule}>
+            <span>Schedule</span>
+            <span>›</span>
+          </button>
+        </div>
+      )}
 
       <button className="drawer-link" onClick={openProgress}>
         <span>Progress</span>
@@ -76,8 +96,20 @@ function Drawer({
         <span>›</span>
       </button>
 
-      <button className="drawer-link" onClick={openSettings}>
-        <span>Settings</span>
+      <button className="drawer-link">
+        <span>Download</span>
+        <span>›</span>
+      </button>
+
+      <div className="drawer-divider"></div>
+
+      <button className="drawer-link">
+        <span>More Settings</span>
+        <span>›</span>
+      </button>
+
+      <button className="drawer-link">
+        <span>Quick Help</span>
         <span>›</span>
       </button>
 
