@@ -11,8 +11,10 @@ function Drawer({
   openAchievement,
   openForum,
   openSettings,
+  openFeedback,
   handleLogout,
 }) {
+  
   const [openMenu, setOpenMenu] = useState(null);
   const [popupPosition, setPopupPosition] = useState({ top: 0, left: 0 });
   const [showHelp, setShowHelp] = useState(false);
@@ -20,6 +22,7 @@ function Drawer({
   const learningRef = useRef(null);
   const downloadRef = useRef(null);
   const moreSettingsRef = useRef(null);
+  const [showFeedbackForm, setShowFeedbackForm] = useState(false);
 
   const toggleMenu = (menuName, buttonRef) => {
     if (openMenu === menuName) {
@@ -194,6 +197,15 @@ function Drawer({
 
           <button className="drawer-popup-link" onClick={() => {}}>
             <span>Language</span>
+            <span>›</span>
+          </button>
+
+          {/* FEEDBACK FORM */}
+          <button
+            className="drawer-popup-link"
+            onClick={openFeedback}
+          >
+            <span>Feedback Form</span>
             <span>›</span>
           </button>
         </div>

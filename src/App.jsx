@@ -8,6 +8,7 @@ import Register from "./Pages/Register.jsx";
 import NewQuizSystem from "./components/NewQuizSystem.jsx";
 import CertificatePreview from "./components/CertificatePreview.jsx";
 import Notes from "./components/Notes.jsx";
+import { Routes, Route } from "react-router-dom";
 
 function App() {
   const [activePage, setActivePage] = useState(
@@ -198,7 +199,7 @@ function App() {
       )}
       
     </div>
-  );
+);
 }
 
 export default App;

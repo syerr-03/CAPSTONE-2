@@ -9,6 +9,7 @@ import ForumPage from "../ProgressManagement/ForumPage.jsx";
 import LeaderboardPage from "../ProgressManagement/LeaderboardPage.jsx";
 import AiChat from "../components/aiChat.jsx";
 import Notes from "../components/Notes.jsx";
+import QuickHelpModal from "../components/QuickHelpModal";
 import "../App.css";
 
 import { doc, getDoc } from "firebase/firestore";
@@ -50,6 +51,8 @@ function Dashboard({
   const [activeTab, setActiveTab] = useState("dashboard");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [levelMessage, setLevelMessage] = useState("");
+
+  const [showHelp, setShowHelp] = useState(false);
 
   // ===== SCHEDULE STATES =====
   const [step, setStep] = useState(0);
@@ -220,6 +223,7 @@ function Dashboard({
             openAchievement={() => goToTab("achievement")}
             openForum={() => goToTab("forum")}
             openSettings={() => goToTab("settings")}
+            openFeedback={() => goToTab("feedback")}
             handleLogout={handleLogout}
           />
         )}
@@ -563,9 +567,11 @@ function Dashboard({
             <>
               <div
                 style={{
+                  width: "100%",
                   display: "flex",
                   justifyContent: "flex-start",
-                  marginLeft: "50px"
+                  paddingLeft: "90px",
+                  marginBottom: "20px"
                 }}
               >
                 <button
@@ -593,6 +599,57 @@ function Dashboard({
               </button>
 
               <ForumPage />
+            </section>
+          )}
+
+          {/* FEEDBACK TAB */}
+          {activeTab === "feedback" && (
+            <section
+              className="dashboard-content-section"
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                width: "100%"
+              }}
+            >
+              <div
+                style={{
+                  width: "100%",
+                  display: "flex",
+                  justifyContent: "flex-start",
+                  marginBottom: "20px"
+                }}
+              >
+                <button
+                  className="back-btn"
+                  onClick={() => goToTab("dashboard")}
+                >
+                  ← Back
+                </button>
+              </div>
+
+              <div className="feedback-card">
+                <h1>Feedback Form</h1>
+
+                <p>
+                  Share your feedback to help us improve BrainyBits.
+                </p>
+
+                <textarea
+                  placeholder="Write your feedback..."
+                  className="feedback-textarea"
+                />
+
+                <button
+                  className="feedback-submit"
+                  onClick={() => {
+                    alert("Feedback submitted successfully!");
+                  }}
+                >
+                  Submit
+                </button>
+              </div>
             </section>
           )}
 
@@ -656,6 +713,7 @@ function Dashboard({
             </section>
             </>
           )}
+
         </main>
       </div>
 
