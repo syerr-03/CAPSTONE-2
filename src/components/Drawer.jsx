@@ -12,6 +12,9 @@ function Drawer({
   openForum,
   openSettings,
   openFeedback,
+  onStandardPlan,
+  onPremiumPlan,
+  onInstitutionalPlan,
   handleLogout,
 }) {
   
@@ -94,13 +97,39 @@ function Drawer({
 
       {openMenu === "subscriptions" && (
         <div className="drawer-popup subscription-popup" style={popupStyle}>
-          <button className="drawer-popup-link" onClick={() => {}}>
+          <button
+            className="drawer-popup-link"
+            onClick={() => {
+              if (onStandardPlan) onStandardPlan();
+              setOpenMenu(null);
+              closeDrawer();
+            }}
+          >
             <span>Standard</span>
             <span>›</span>
           </button>
 
-          <button className="drawer-popup-link" onClick={() => {}}>
+          <button
+            className="drawer-popup-link"
+            onClick={() => {
+              if (onPremiumPlan) onPremiumPlan();
+              setOpenMenu(null);
+              closeDrawer();
+            }}
+          >
             <span>Premium</span>
+            <span>›</span>
+          </button>
+
+          <button
+            className="drawer-popup-link"
+            onClick={() => {
+              if (onInstitutionalPlan) onInstitutionalPlan();
+              setOpenMenu(null);
+              closeDrawer();
+            }}
+          >
+            <span>Institutional</span>
             <span>›</span>
           </button>
         </div>
