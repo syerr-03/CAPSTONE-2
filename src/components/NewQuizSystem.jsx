@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import "../App.css";
-import LeaderboardPage from "../ProgressManagement/LeaderboardPage.jsx";
 import FloatingAiChat from "./FloatingAiChat.jsx";
 
 function NewQuizSystem({
@@ -11,8 +10,7 @@ function NewQuizSystem({
   updateAdaptiveLevel,
   completedItems = [],
   setCompletedItems,
-  updateLeaderboard,
-  leaderboard
+  
 }) {
   const topic = module?.title || "What is Data Science?";
   const currentLevel = localStorage.getItem("learningLevel") || "beginner";
@@ -939,10 +937,6 @@ const getYoutubeEmbedUrl = (url) => {
 
     if (typeof setQuizScore === "function") setQuizScore(percent);
 
-    if (typeof updateLeaderboard === "function") {
-      const studentName = localStorage.getItem("username") || "Student";
-      updateLeaderboard(studentName, percent, currentLevel);
-    }
 
     if (typeof updateAdaptiveLevel === "function") {
       updateAdaptiveLevel(percent, null);
@@ -1212,9 +1206,7 @@ const getYoutubeEmbedUrl = (url) => {
                 </p>
               </div>
 
-              <div style={{ marginTop: "30px" }}>
-                <LeaderboardPage leaderboard={leaderboard} />
-              </div>
+
             </>
           )}
 
