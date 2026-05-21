@@ -2295,3 +2295,29 @@ input {
   font-weight: 700;
   cursor: pointer;
 }
+
+.dashboard-page .simple-menu-logo,
+.dashboard-page .section-title,
+.dashboard-page h1,
+.dashboard-page h2,
+.dashboard-page h3,
+.dashboard-page h4,
+.dashboard-page p,
+.dashboard-page label {
+  color: #000000 !important;
+}
+
+
+/* ADMIN PAGE TEXT FIX */
+.dashboard-page .simple-menu-logo,
+.dashboard-page .section-title {
+  color: #111827 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.dashboard-page h1,
+.dashboard-page h2 {
+  color: #111827 !important;
+  opacity: 1 !important;
+}

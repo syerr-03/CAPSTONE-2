@@ -28,6 +28,35 @@ function Dashboard({
   handleSelectLevel
 }) {
 
+  const [subjectsForLevel, setSubjectsForLevel] = useState([]);
+
+  useEffect(() => {
+    const raw = localStorage.getItem("bbSubjectsByLevel");
+    if (!raw) {
+      setSubjectsForLevel([]);
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(raw) || {};
+      const level = (learningLevel || "beginner").toLowerCase();
+
+      const beginner = parsed.beginner || [];
+      const intermediate = parsed.intermediate || [];
+      const advanced = parsed.advanced || [];
+
+      const allowed = {
+        beginner: [...beginner],
+        intermediate: [...beginner, ...intermediate],
+        advanced: [...beginner, ...intermediate, ...advanced]
+      };
+
+      setSubjectsForLevel(allowed[level] || [...beginner]);
+    } catch (e) {
+      setSubjectsForLevel([]);
+    }
+  }, [learningLevel]);
+
   const [weeklyLoginDays, setWeeklyLoginDays] = useState({});
   useEffect(() => {
     const fetchStreak = async () => {
@@ -491,6 +520,7 @@ function Dashboard({
               <h2 className="section-title">Available Subjects</h2>
               <SubjectGrid
                 onEnroll={enrollSubject}
+                subjects={subjectsForLevel}
                 learningLevel={learningLevel}
               />
             </section>
