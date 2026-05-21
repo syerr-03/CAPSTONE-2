@@ -1,305 +1,187 @@
-import { useEffect, useState } from "react";
-import "../App.css";
+import React, { useState } from "react";
+import "./App.css";
 
-const defaultSubjectsByLevel = {
-  beginner: [],
-  intermediate: [],
-  advanced: []
+import Login from "./Pages/Login.jsx";
+import Register from "./Pages/Register.jsx";
+import Dashboard from "./Pages/Dashboard.jsx";
+import AdminDashboard from "./Pages/AdminDashboard.jsx";
+import NewQuizSystem from "./components/NewQuizSystem.jsx";
+import CertificatePreview from "./components/CertificatePreview.jsx";
+import "./ProgressManagement/ProgressManagement.css";
+
+function App() {
+  const [activePage, setActivePage] = useState("login");
+  const [selectedSubject, setSelectedSubject] = useState(null);
+
+  const [learningLevel, setLearningLevel] = useState(
+    localStorage.getItem("learningLevel") || "beginner"
+  );
+
+  const studentKey = localStorage.getItem("name") || "guest";
+  const progressKey = `progress_${studentKey}`;
+  const subjectProgressKey = `subjectProgress_${studentKey}`;
+  const savedProgress = JSON.parse(localStorage.getItem(progressKey)) || {
+    completedItems: [],
+    quizScore: 0,
+    practicalScore: 0
+  };
+
+  const [completedItems, setCompletedItems] = useState(savedProgress.completedItems);
+  const [quizScore, setQuizScore] = useState(savedProgress.quizScore);
+  const [practicalScore, setPracticalScore] = useState(savedProgress.practicalScore);
+  const [subjectProgress, setSubjectProgress] = useState(
+  JSON.parse(localStorage.getItem(subjectProgressKey)) || {}
+);
+
+const saveSubjectProgress = (updatedProgress) => {
+  setSubjectProgress(updatedProgress);
+  localStorage.setItem(subjectProgressKey, JSON.stringify(updatedProgress));
 };
+  const saveProgress = (newCompletedItems, newQuizScore, newPracticalScore) => {
+  localStorage.setItem(
+    progressKey,
+    JSON.stringify({
+      completedItems: newCompletedItems,
+      quizScore: newQuizScore,
+      practicalScore: newPracticalScore
+    })
+  );
+};
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [difficultyLevel, setDifficultyLevel] = useState("Medium");
 
-function AdminDashboard() {
-  const [selectedLevel, setSelectedLevel] = useState("beginner");
-  const [subjectsByLevel, setSubjectsByLevel] = useState(defaultSubjectsByLevel);
+  const totalModules = 8;
 
-  const [subjectTitle, setSubjectTitle] = useState("");
-  const [subjectDesc, setSubjectDesc] = useState("");
-  const [subjectIcon, setSubjectIcon] = useState("📘");
+  const studentData = {
+    completedModules: completedItems.length,
+    totalModules,
+    progressPercent: Math.round((completedItems.length / totalModules) * 100),
+    completedContent: completedItems.map((item) => ({
+      title: item,
+      type: "Learning Activity",
+    })),
+    quizScore,
+    practicalScore,
+    averageScore: Math.round((quizScore + practicalScore) / 2),
+    difficultyLevel,
+    streak: 7,
+    weakTopics: [],
+    subjectProgress,
+  };
 
-  useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem("bbSubjectsByLevel"));
+  const goToDashboard = () => {
+    const role = localStorage.getItem("role");
 
-    if (saved) {
-      setSubjectsByLevel(saved);
+    if (role === "admin") {
+      setActivePage("admin");
     } else {
-      localStorage.setItem("bbSubjectsByLevel", JSON.stringify(defaultSubjectsByLevel));
+      setActivePage("dashboard");
     }
-  }, []);
-
-  const saveSubjects = (updated) => {
-    setSubjectsByLevel(updated);
-    localStorage.setItem("bbSubjectsByLevel", JSON.stringify(updated));
   };
 
-  const currentSubjects = subjectsByLevel[selectedLevel] || [];
-
-  const addSubject = () => {
-    if (!subjectTitle.trim()) {
-      alert("Please enter subject title");
-      return;
-    }
-
-    const newSubject = {
-      id: Date.now(),
-      title: subjectTitle,
-      description: subjectDesc,
-      icon: subjectIcon,
-      modules: []
-    };
-
-    const updated = {
-      ...subjectsByLevel,
-      [selectedLevel]: [...currentSubjects, newSubject]
-    };
-
-    saveSubjects(updated);
-    setSubjectTitle("");
-    setSubjectDesc("");
-    setSubjectIcon("📘");
-  };
-
-  const editSubject = (id) => {
-    const newTitle = prompt("New subject title:");
-    if (!newTitle) return;
-
-    const updatedSubjects = currentSubjects.map((subject) =>
-      subject.id === id ? { ...subject, title: newTitle } : subject
-    );
-
-    saveSubjects({
-      ...subjectsByLevel,
-      [selectedLevel]: updatedSubjects
-    });
-  };
-
-  const deleteSubject = (id) => {
-    if (!window.confirm("Delete this subject?")) return;
-
-    const updatedSubjects = currentSubjects.filter((subject) => subject.id !== id);
-
-    saveSubjects({
-      ...subjectsByLevel,
-      [selectedLevel]: updatedSubjects
-    });
-  };
-
-  const addModule = (subjectId) => {
-    const moduleName = prompt("Module name:");
-    if (!moduleName) return;
-
-    const updatedSubjects = currentSubjects.map((subject) =>
-      subject.id === subjectId
-        ? {
-            ...subject,
-            modules: [
-              ...subject.modules,
-              {
-                id: Date.now(),
-                heading: moduleName,
-                items: []
-              }
-            ]
-          }
-        : subject
-    );
-
-    saveSubjects({
-      ...subjectsByLevel,
-      [selectedLevel]: updatedSubjects
-    });
-  };
-
-  const addQuiz = (subjectId, moduleId) => {
-    const quizTitle = prompt("Quiz title:");
-    if (!quizTitle) return;
-
-    const question = prompt("Question:");
-    const option1 = prompt("Option 1:");
-    const option2 = prompt("Option 2:");
-    const option3 = prompt("Option 3:");
-    const option4 = prompt("Option 4:");
-    const correctAnswer = prompt("Correct answer:");
-
-    const updatedSubjects = currentSubjects.map((subject) =>
-      subject.id === subjectId
-        ? {
-            ...subject,
-            modules: subject.modules.map((module) =>
-              module.id === moduleId
-                ? {
-                    ...module,
-                    items: [
-                      ...module.items,
-                      {
-                        id: Date.now(),
-                        type: "Quiz",
-                        title: quizTitle,
-                        questions: [
-                          {
-                            id: 1,
-                            question,
-                            options: [option1, option2, option3, option4],
-                            correctAnswer
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                : module
-            )
-          }
-        : subject
-    );
-
-    saveSubjects({
-      ...subjectsByLevel,
-      [selectedLevel]: updatedSubjects
-    });
-  };
-
-  const logout = () => {
-    localStorage.removeItem("role");
+  const handleLogout = () => {
     localStorage.removeItem("isLoggedIn");
-    window.location.reload();
+    localStorage.removeItem("role");
+    localStorage.removeItem("name");
+    setActivePage("login");
+  };
+
+  const handleEnroll = (subject) => {
+    setSelectedSubject(subject);
+    setActivePage("learning-content");
+  };
+
+  const updateLeaderboard = (name, score) => {
+    const newEntry = {
+      name: name || localStorage.getItem("name") || "Student",
+      score: score || 0,
+    };
+
+    setLeaderboard((prev) =>
+      [...prev, newEntry].sort((a, b) => b.score - a.score)
+    );
+  };
+
+  const handleSelectLevel = (level) => {
+    setLearningLevel(level);
+    localStorage.setItem("learningLevel", level);
+  };
+
+  const updateAdaptiveLevel = (score) => {
+    if (score >= 80) setDifficultyLevel("Hard");
+    else if (score >= 50) setDifficultyLevel("Medium");
+    else setDifficultyLevel("Easy");
   };
 
   return (
-    <div
-      className="dashboard-page"
-      style={{
-        background: "linear-gradient(135deg, #F5F3FF, #EDE9FE)",
-        color: "#111827",
-        minHeight: "100vh",
-        padding: "30px"
+    <div className="app-container">
+      {activePage === "login" && (
+        <Login
+          goToRegister={() => setActivePage("register")}
+          goToDashboard={goToDashboard}
+        />
+      )}
+
+      {activePage === "register" && (
+        <Register goToLogin={() => setActivePage("login")} />
+      )}
+
+      {activePage === "admin" && <AdminDashboard />}
+
+      {activePage === "dashboard" && (
+        <Dashboard
+          handleEnroll={handleEnroll}
+          studentData={studentData}
+          leaderboard={leaderboard}
+          updateLeaderboard={updateLeaderboard}
+          setQuizScore={setQuizScore}
+          setActivePage={setActivePage}
+          handleLogout={handleLogout}
+          learningLevel={learningLevel}
+          showLevelPopup={false}
+          handleSelectLevel={handleSelectLevel}
+        />
+      )}
+
+      {activePage === "learning-content" && selectedSubject && (
+        <NewQuizSystem
+      module={selectedSubject}
+      onBack={() => setActivePage("dashboard")}
+
+      setQuizScore={(score) => {
+        setQuizScore(score);
+        saveProgress(completedItems, score, practicalScore);
       }}
-    >
-      <main
-        className="dashboard-main-single"
-        style={{
-          background: "transparent",
-          color: "#111827"
-        }}
-      >
-        <header className="simple-menu-bar">
-          <h1 className="simple-menu-logo">Admin Panel</h1>
 
-          <nav className="simple-menu-tabs">
-            <button className="simple-menu-tab" onClick={logout}>
-              Logout
-            </button>
-          </nav>
-        </header>
+      setPracticalScore={(score) => {
+        setPracticalScore(score);
+        saveProgress(completedItems, quizScore, score);
+      }}
 
-        <section className="dashboard-content-section">
-          <h2 className="section-title">Manage Learning Content</h2>
+      completedItems={completedItems}
 
-          <div className="module-card" style={{ marginBottom: "25px" }}>
-            <h3>Select Level First</h3>
+      setCompletedItems={(itemsOrFunction) => {
+        const newItems =
+          typeof itemsOrFunction === "function"
+            ? itemsOrFunction(completedItems)
+            : itemsOrFunction;
 
-            <select
-              className="search-input"
-              value={selectedLevel}
-              onChange={(e) => setSelectedLevel(e.target.value)}
-              style={{ marginBottom: "15px", maxWidth: "300px" }}
-            >
-              <option value="beginner">Beginner</option>
-              <option value="intermediate">Intermediate</option>
-              <option value="advanced">Advanced</option>
-            </select>
+        setCompletedItems(newItems);
+        saveProgress(newItems, quizScore, practicalScore);
+      }}
 
-            <p>
-              You are editing: <b>{selectedLevel.toUpperCase()}</b>
-            </p>
-          </div>
+      updateAdaptiveLevel={updateAdaptiveLevel}
+      updateLeaderboard={updateLeaderboard}
+      leaderboard={leaderboard}
+      saveSubjectProgress={saveSubjectProgress}
+    />
+          )}
 
-          <div className="module-card" style={{ marginBottom: "25px" }}>
-            <h3>Add Subject for {selectedLevel}</h3>
+          {activePage === "certificate-preview" && (
+            <CertificatePreview onBack={() => setActivePage("dashboard")} />
+          )}
+        </div>
+      );
+    }
 
-            <input
-              className="search-input"
-              placeholder="Subject title"
-              value={subjectTitle}
-              onChange={(e) => setSubjectTitle(e.target.value)}
-              style={{ marginBottom: "10px" }}
-            />
-
-            <input
-              className="search-input"
-              placeholder="Subject description"
-              value={subjectDesc}
-              onChange={(e) => setSubjectDesc(e.target.value)}
-              style={{ marginBottom: "10px" }}
-            />
-
-            <input
-              className="search-input"
-              placeholder="Icon"
-              value={subjectIcon}
-              onChange={(e) => setSubjectIcon(e.target.value)}
-              style={{ marginBottom: "10px" }}
-            />
-
-            <button className="hero-button" onClick={addSubject}>
-              Add Subject
-            </button>
-          </div>
-
-          {currentSubjects.map((subject) => (
-            <div className="module-card" key={subject.id} style={{ marginBottom: "20px" }}>
-              <h3>
-                {subject.icon} {subject.title}
-              </h3>
-
-              <p>{subject.description}</p>
-
-              <button className="hero-button" onClick={() => editSubject(subject.id)}>
-                Edit Subject
-              </button>
-
-              <button
-                className="hero-button"
-                style={{ marginLeft: "10px", background: "#ef4444" }}
-                onClick={() => deleteSubject(subject.id)}
-              >
-                Remove Subject
-              </button>
-
-              <button
-                className="hero-button"
-                style={{ marginLeft: "10px" }}
-                onClick={() => addModule(subject.id)}
-              >
-                Add Module
-              </button>
-
-              {subject.modules.map((module) => (
-                <div
-                  key={module.id}
-                  style={{ borderTop: "1px solid #ddd", marginTop: "15px", paddingTop: "15px" }}
-                >
-                  <h4>{module.heading}</h4>
-
-                  <button
-                    className="hero-button"
-                    onClick={() => addQuiz(subject.id, module.id)}
-                  >
-                    Add Quiz
-                  </button>
-
-                  <ul>
-                    {module.items.map((item) => (
-                      <li key={item.id}>
-                        {item.type} - {item.title}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          ))}
-        </section>
-      </main>
-    </div>
-  );
-}
-
-export default AdminDashboard;
+export default App;

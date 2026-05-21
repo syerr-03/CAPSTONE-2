@@ -41,17 +41,78 @@ function Dashboard({
       const parsed = JSON.parse(raw) || {};
       const level = (learningLevel || "beginner").toLowerCase();
 
-      const beginner = parsed.beginner || [];
-      const intermediate = parsed.intermediate || [];
-      const advanced = parsed.advanced || [];
+      const adminBeginner = parsed.beginner || [];
+const adminIntermediate = parsed.intermediate || [];
+const adminAdvanced = parsed.advanced || [];
 
-      const allowed = {
-        beginner: [...beginner],
-        intermediate: [...beginner, ...intermediate],
-        advanced: [...beginner, ...intermediate, ...advanced]
-      };
+const defaultSubjects = [
+  {
+    id: 1,
+    title: "What is Data Science?",
+    description: "Start with the basic meaning, purpose, and use of data science.",
+    icon: "📊",
+    level: "beginner"
+  },
+  {
+    id: 2,
+    title: "Python for Data Science",
+    description: "Learn basic Python syntax, variables, and simple coding skills.",
+    icon: "🐍",
+    level: "beginner"
+  },
+  {
+    id: 3,
+    title: "Statistics Fundamentals",
+    description: "Improve your understanding of probability, mean, and data analysis.",
+    icon: "📈",
+    level: "intermediate"
+  },
+  {
+    id: 4,
+    title: "Exploratory Data Analysis",
+    description: "Learn how to inspect, clean, and understand datasets.",
+    icon: "🔍",
+    level: "intermediate"
+  },
+  {
+    id: 5,
+    title: "Machine Learning Basics",
+    description: "Understand model training, prediction, and evaluation.",
+    icon: "🤖",
+    level: "advanced"
+  },
+  {
+    id: 6,
+    title: "Data Visualization",
+    description: "Learn advanced ways to present insights using charts and dashboards.",
+    icon: "🎨",
+    level: "advanced"
+  }
+];
 
-      setSubjectsForLevel(allowed[level] || [...beginner]);
+const defaultBeginner = defaultSubjects.filter((s) => s.level === "beginner");
+const defaultIntermediate = defaultSubjects.filter((s) => s.level === "intermediate");
+const defaultAdvanced = defaultSubjects.filter((s) => s.level === "advanced");
+
+const allowed = {
+  beginner: [...defaultBeginner, ...adminBeginner],
+  intermediate: [
+    ...defaultBeginner,
+    ...defaultIntermediate,
+    ...adminBeginner,
+    ...adminIntermediate
+  ],
+  advanced: [
+    ...defaultBeginner,
+    ...defaultIntermediate,
+    ...defaultAdvanced,
+    ...adminBeginner,
+    ...adminIntermediate,
+    ...adminAdvanced
+  ]
+};
+
+setSubjectsForLevel(allowed[level] || allowed.beginner);
     } catch (e) {
       setSubjectsForLevel([]);
     }
@@ -88,6 +149,9 @@ function Dashboard({
   const [days, setDays] = useState([]);
   const [time, setTime] = useState([]);
   const [duration, setDuration] = useState([]);
+  const [scheduleReminder, setScheduleReminder] = useState(
+  localStorage.getItem("scheduleReminder") || ""
+);
 
   // ===== GOALS STATES =====
   const [goalStep, setGoalStep] = useState(0);
@@ -142,6 +206,19 @@ function Dashboard({
     setGoalStep(1);
     setDrawerOpen(false);
   };
+
+  const handleSaveSchedule = () => {
+  const reminderText = "Reminder: Complete one module today.";
+
+  localStorage.setItem("scheduleReminder", reminderText);
+  localStorage.setItem(
+    "studentSchedule",
+    JSON.stringify({ days, time, duration })
+  );
+
+  setScheduleReminder(reminderText);
+  setStep(4);
+};
 
   const enrollSubject = (subject) => {
     if (handleEnroll) {
@@ -387,6 +464,47 @@ function Dashboard({
                 </div>
               </section>
 
+              {scheduleReminder && (
+              <section
+                className="compact-streak-card"
+                style={{
+                  marginTop: "24px",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  textAlign: "center",
+                  minHeight: "120px",
+                  background: "linear-gradient(135deg, #F3E8FF, #E9D5FF)",
+                  border: "1px solid #DDD6FE"
+                }}
+              >
+                <div>
+                  <h3
+                    style={{
+                      fontSize: "28px",
+                      fontWeight: "700",
+                      color: "#312E81",
+                      marginBottom: "12px"
+                    }}
+                  >
+                    ⏰ Study Reminder
+                  </h3>
+
+                  <p
+                    style={{
+                      fontSize: "18px",
+                      color: "#5B21B6",
+                      fontWeight: "500",
+                      margin: 0
+                    }}
+                  >
+                    📚 Complete one module today and keep your streak alive 🔥✨
+                  </p>
+                </div>
+              </section>
+            )}
+                          
+
               <section className="compact-streak-card">
                 <div className="compact-streak-info">
                   <div className="main-fire-circle">
@@ -422,6 +540,8 @@ function Dashboard({
                   ))}
                 </div>
               </section>
+
+              
 
               <section className="certificate-dashboard-card">
                 <div className="certificate-visual">
@@ -836,7 +956,7 @@ function Dashboard({
                   <button
                     className="hero-button"
                     style={{ padding: "10px 25px" }}
-                    onClick={() => setStep(4)}
+                    onClick={handleSaveSchedule}
                   >
                     Save
                   </button>

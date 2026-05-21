@@ -80,65 +80,88 @@ const getYoutubeEmbedUrl = (url) => {
 
   return `https://www.youtube.com/embed/${videoId}`;
 };
-  const moduleSections = useMemo(
-    () => [
-      {
-        id: "module1",
-        moduleNumber: 1,
-        heading: "Fundamentals",
-        items: [
-          {
-            id: "reading-1",
-            type: "Reading",
-            title: `Master the Basics: What is ${topic}?`
-          },
-          {
-            id: "video-1",
-            type: "Video",
-            title: `Watch and Learn: ${topic} Overview`
-          },
-          {
-            id: "quiz-1",
-            type: "Quiz",
-            title: "Test Your Knowledge: Fundamentals Quiz"
-          },
-          {
-            id: "practical-1",
-            type: "Practical Assignment",
-            title: "Practical Assignment: Basic Data Exploration"
-          }
-        ]
-      },
-      {
-        id: "module2",
-        moduleNumber: 2,
-        heading: "Programming Basics",
-        items: [
+
+const isAdminCreatedSubject =
+  module?.modules && Array.isArray(module.modules) && module.modules.length > 0;
+
+const getAdminItemContent = (item) => {
+  if (!item) return null;
+
+  return {
+    readingContent: item.content || "",
+    videoLink: item.videoLink || "",
+    quizQuestions: item.questions || [],
+    practicalInstruction: item.instruction || ""
+  };
+};
+
+  const moduleSections = useMemo(() => {
+  if (isAdminCreatedSubject) {
+    return module.modules.map((mod, index) => ({
+      id: mod.id || `admin-module-${index + 1}`,
+      moduleNumber: index + 1,
+      heading: mod.heading || `Module ${index + 1}`,
+      items: mod.items || []
+    }));
+  }
+
+  return [
+    {
+      id: "module1",
+      moduleNumber: 1,
+      heading: "Fundamentals",
+      items: [
         {
-  id: "reading-2",
-  type: "Reading",
-  title: "Core Concepts of Data Science"
-},
-{
-  id: "video-2",
-  type: "Video",
-  title: "Data Science Concepts and Techniques"
-},
-          {
-            id: "quiz-2",
-            type: "Quiz",
-            title: "Check Your Understanding"
-          },
-          {
-            id: "practical-2",
-            type: "Practical Assignment",
-            title: "Mini Exercise"
-          }
-        ]
-      }
-    ],
-    [topic]
-  );
+          id: "reading-1",
+          type: "Reading",
+          title: `Master the Basics: What is ${topic}?`
+        },
+        {
+          id: "video-1",
+          type: "Video",
+          title: `Watch and Learn: ${topic} Overview`
+        },
+        {
+          id: "quiz-1",
+          type: "Quiz",
+          title: "Test Your Knowledge: Fundamentals Quiz"
+        },
+        {
+          id: "practical-1",
+          type: "Practical Assignment",
+          title: "Practical Assignment: Basic Data Exploration"
+        }
+      ]
+    },
+    {
+      id: "module2",
+      moduleNumber: 2,
+      heading: "Programming Basics",
+      items: [
+        {
+          id: "reading-2",
+          type: "Reading",
+          title: "Core Concepts of Data Science"
+        },
+        {
+          id: "video-2",
+          type: "Video",
+          title: "Data Science Concepts and Techniques"
+        },
+        {
+          id: "quiz-2",
+          type: "Quiz",
+          title: "Check Your Understanding"
+        },
+        {
+          id: "practical-2",
+          type: "Practical Assignment",
+          title: "Mini Exercise"
+        }
+      ]
+    }
+  ];
+}, [isAdminCreatedSubject, module, topic]);
 
   const moduleContent = {
   "reading-1": {
@@ -1026,7 +1049,11 @@ const getYoutubeEmbedUrl = (url) => {
               }}
             />
 
-            <p>{moduleContent[activeItem.id]?.intro}</p>
+            <p className="content-text">
+            {isAdminCreatedSubject
+              ? activeItem.content || "No reading content added yet."
+              : moduleContent[activeItem.id]?.intro || "No reading content added yet."}
+          </p>
           </div>
 
           <ContentNoteActions item={activeItem} section={activeSection} />

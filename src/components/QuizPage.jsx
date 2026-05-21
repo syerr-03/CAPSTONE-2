@@ -29,6 +29,12 @@ function QuizPage({
 
   const [quizAnswers, setQuizAnswers] = useState({});
   const [quizSubmitted, setQuizSubmitted] = useState(false);
+  const studentName = localStorage.getItem("name") || "Student";
+  const quizAttemptKey = `quizAttempts_${studentName}_${learningLevel}`;
+  const [quizAttempts, setQuizAttempts] = useState(() => {
+  return JSON.parse(localStorage.getItem(quizAttemptKey)) || {};
+  });
+
   const [leaderboardRefresh, setLeaderboardRefresh] = useState(0);
   const allowedLevels = {
     beginner: ["beginner"],
@@ -353,6 +359,19 @@ function QuizPage({
     const percent = Math.round((getScore() / activeQuestions.length) * 100);
 
     if (onSubmitQuiz) onSubmitQuiz(percent);
+    const previousBest = quizAttempts[selectedQuiz]?.bestScore || 0;
+    const bestScore = Math.max(previousBest, percent);
+    const updatedAttempts = {
+        ...quizAttempts,
+        [selectedQuiz]: {
+          answered: true,
+          bestScore,
+          lastScore: percent
+        }
+      };
+
+      setQuizAttempts(updatedAttempts);
+      localStorage.setItem(quizAttemptKey, JSON.stringify(updatedAttempts));
 
     const user = auth.currentUser;
 
@@ -361,8 +380,26 @@ function QuizPage({
       localStorage.getItem("username") ||
       user?.email ||
       "Student";
+      const level = learningLevel || "beginner";
 
-    const level = learningLevel || "beginner";
+      const scoreKey = `quizScores_${name}_${level}`;
+      const savedScores = JSON.parse(localStorage.getItem(scoreKey)) || {};
+
+      const oldBest = savedScores[selectedQuiz]?.bestScore || 0;
+      const newBest = Math.max(oldBest, percent);
+
+      savedScores[selectedQuiz] = {
+        quizTitle: activeQuiz?.title || selectedQuiz,
+        subject: activeQuiz?.title || selectedQuiz,
+        quizId: selectedQuiz,
+        bestScore: newBest,
+        lastScore: percent,
+        answered: true
+      };
+
+      localStorage.setItem(scoreKey, JSON.stringify(savedScores));
+
+      setQuizSubmitted(true);
 
     try {
       // ✅ 1. Save quiz history
@@ -601,6 +638,11 @@ await addDoc(collection(db, "performanceHistory"), {
             ).length
           } questions • Test your skills
         </p>
+        {quizAttempts[key]?.answered && (
+          <p style={{ margin: "8px 0 0", color: "#7C3AED", fontWeight: "700" }}>
+               ✅ Answered • Best Score: {quizAttempts[key].bestScore}%
+        </p>
+        )}
       </div>
 
       <span style={{ fontSize: "30px", fontWeight: "800", color: "#8b5cf6" }}>
@@ -624,16 +666,16 @@ await addDoc(collection(db, "performanceHistory"), {
         }}
       >
         <button
-          className="back-btn"
-          style={{ marginLeft: "50px" }}
-          onClick={() => {
-            setSelectedQuiz(null);
-            setQuizAnswers({});
-            setQuizSubmitted(false);
-          }}
-        >
-          ← Back
-        </button>
+  className="back-btn"
+  style={{ marginLeft: "50px" }}
+  onClick={() => {
+    setSelectedQuiz(null);
+    setQuizAnswers({});
+    setQuizSubmitted(false);
+  }}
+>
+  ← Back
+</button>
       </div>
       <div className="quiz-container-box">
 
@@ -796,7 +838,7 @@ await addDoc(collection(db, "performanceHistory"), {
                 fontWeight: "600"
               }}
             >
-              Try Again
+              Retake Quiz to Improve Score
             </button>
 
             {/* ✅ LEADERBOARD */}

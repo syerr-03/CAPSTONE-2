@@ -72,10 +72,11 @@ function Login({ goToRegister, goToDashboard }) {
       // Login success
       setSuccess("Login Successful!");
       localStorage.setItem("isLoggedIn", "true");
+      localStorage.setItem("role", "student");
 
-      setTimeout(() => {
-        goToDashboard();
-      }, 1000);
+       setTimeout(() => {
+       goToDashboard();
+        }, 1000);
     } catch (error) {
       console.log("LOGIN ERROR:", error.code, error.message);
       setError(error.code);
