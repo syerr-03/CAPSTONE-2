@@ -18,11 +18,26 @@ function Login({ goToRegister, goToDashboard }) {
     setError("");
     setSuccess("");
 
+    // ===== ADMIN LOGIN (no registration) =====
+    if (username === "Admin" && password === "Admin@123") {
+      localStorage.setItem("name", "Admin");
+      localStorage.setItem("role", "admin");
+      localStorage.setItem("isLoggedIn", "true");
+      localStorage.setItem("welcomeType", "returning");
+
+      setSuccess("Login Successful!");
+      setTimeout(() => {
+        goToDashboard();
+      }, 500);
+      return;
+    }
+
     try {
       const q = query(
         collection(db, "users"),
         where("username", "==", username)
       );
+
 
       const querySnapshot = await getDocs(q);
 
@@ -58,14 +73,14 @@ function Login({ goToRegister, goToDashboard }) {
       setSuccess("Login Successful!");
       localStorage.setItem("isLoggedIn", "true");
 
-            setTimeout(() => {
-              goToDashboard();
-            }, 1000);
-          } catch (error) {
-              console.log("LOGIN ERROR:", error.code, error.message);
-              setError(error.code);
-            }
-        };
+      setTimeout(() => {
+        goToDashboard();
+      }, 1000);
+    } catch (error) {
+      console.log("LOGIN ERROR:", error.code, error.message);
+      setError(error.code);
+    }
+  };
 
   return (
     <div
