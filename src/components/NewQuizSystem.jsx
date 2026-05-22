@@ -811,13 +811,20 @@ const getAdminItemContent = (item) => {
   const allItems = moduleSections.flatMap((section) => section.items);
 
   const markItemCompleted = (itemId) => {
-    if (typeof setCompletedItems !== "function") return;
+  const todayKey = new Date().toISOString().split("T")[0];
 
-    setCompletedItems((prev) => {
-      const current = Array.isArray(prev) ? prev : [];
-      return current.includes(itemId) ? current : [...current, itemId];
-    });
-  };
+  localStorage.setItem(
+    `completedToday_${todayKey}`,
+    "true"
+  );
+
+  if (typeof setCompletedItems !== "function") return;
+
+  setCompletedItems((prev) => {
+    const current = Array.isArray(prev) ? prev : [];
+    return current.includes(itemId) ? current : [...current, itemId];
+  });
+};
 
   const openContent = (item, section) => {
     setActiveItem(item);

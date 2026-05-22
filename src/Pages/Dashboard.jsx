@@ -243,6 +243,19 @@ setSubjectsForLevel(allowed[level] || allowed.beginner);
       goToTab("dashboard");
     }, 2000);
   };
+  const todayName = new Date().toLocaleDateString("en-US", {
+  weekday: "short"
+  });
+
+  const todayKey = new Date().toISOString().split("T")[0];
+
+  const completedToday =
+    localStorage.getItem(`completedToday_${todayKey}`) === "true";
+
+  const shouldShowScheduleReminder =
+    scheduleReminder &&
+    days.includes(todayName) &&
+    !completedToday;
 
   const streakDays = [
     { day: "Mon", key: "monday" },
@@ -464,9 +477,10 @@ setSubjectsForLevel(allowed[level] || allowed.beginner);
                 </div>
               </section>
 
-              {scheduleReminder && (
+              {shouldShowScheduleReminder && (
               <section
                 className="compact-streak-card"
+                onClick={() => goToTab("subjects")}
                 style={{
                   marginTop: "24px",
                   display: "flex",
@@ -475,7 +489,8 @@ setSubjectsForLevel(allowed[level] || allowed.beginner);
                   textAlign: "center",
                   minHeight: "120px",
                   background: "linear-gradient(135deg, #F3E8FF, #E9D5FF)",
-                  border: "1px solid #DDD6FE"
+                  border: "1px solid #DDD6FE",
+                  cursor: "pointer"
                 }}
               >
                 <div>
@@ -498,7 +513,7 @@ setSubjectsForLevel(allowed[level] || allowed.beginner);
                       margin: 0
                     }}
                   >
-                    📚 Complete one module today and keep your streak alive 🔥✨
+                    📚 You still haven’t completed today’s study session. Click here to continue learning 🔥✨
                   </p>
                 </div>
               </section>
