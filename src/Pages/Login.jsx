@@ -73,7 +73,7 @@ function Login({ goToRegister, goToDashboard }) {
         });
 
         localStorage.setItem("memberSince", formattedDate);
-      }
+      }  
 
       // 🔥 Check user baru ke tak
       const justRegistered = localStorage.getItem("justRegistered") === "true";
