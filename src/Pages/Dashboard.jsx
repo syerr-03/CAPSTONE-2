@@ -1,4 +1,8 @@
+<<<<<<< HEAD
+import { useState } from "react";
+=======
 import React, { useEffect, useState } from "react";
+>>>>>>> 934bd9a50387c8d18a8ed5ac2f026b6c6392c663
 import SubjectGrid from "../components/SubjectGrid.jsx";
 import QuizPage from "../components/QuizPage.jsx";
 import Drawer from "../components/Drawer.jsx";
@@ -11,6 +15,8 @@ import AiChat from "../components/aiChat.jsx";
 import Notes from "../components/Notes.jsx";
 import QuickHelpModal from "../components/QuickHelpModal";
 
+<<<<<<< HEAD
+=======
 import "../App.css";
 import jsPDF from "jspdf";
 
@@ -18,6 +24,7 @@ import {Copy, Mail, MessageCircle, X} from "lucide-react";
 import { doc, getDoc, updateDoc} from "firebase/firestore";
 import { auth, db } from "../firebase";
 
+>>>>>>> 934bd9a50387c8d18a8ed5ac2f026b6c6392c663
 function Dashboard({
   handleEnroll,
   studentData,
@@ -32,7 +39,10 @@ function Dashboard({
   userPlan,
   onPremiumPlan,
   onStandardPlan,
+  onPremiumPaymentSuccess,
 }) {
+<<<<<<< HEAD
+=======
 
   const [subjectsForLevel, setSubjectsForLevel] = useState([]);
 
@@ -141,6 +151,7 @@ setSubjectsForLevel(allowed[level] || allowed.beginner);
   }, []);
 
 
+>>>>>>> 934bd9a50387c8d18a8ed5ac2f026b6c6392c663
   const studentName = localStorage.getItem("name") || "Student";
   const welcomeType = localStorage.getItem("welcomeType");
 
@@ -159,7 +170,6 @@ setSubjectsForLevel(allowed[level] || allowed.beginner);
 
   const [showContactPopup, setShowContactPopup] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [levelMessage, setLevelMessage] = useState("");
 
   const [showHelp, setShowHelp] = useState(false);
   const [showStandardModal, setShowStandardModal] = useState(false);
@@ -350,7 +360,11 @@ const getCurrentTimeSlot = () => {
     setSubscriptionPaymentError("");
     setShowSubscriptionPaymentModal(false);
     setShowSubscriptionPaymentSuccess(true);
-    // TODO: Activate premium subscription after payment success when subscription logic is ready.
+    
+    // Activate premium subscription after payment success
+    if (onPremiumPaymentSuccess) {
+      onPremiumPaymentSuccess();
+    }
   };
 
   const handleCloseSubscriptionSuccess = () => {
@@ -496,9 +510,7 @@ const getCurrentTimeSlot = () => {
   };
 
   const toggleDuration = (d) => {
-    setDuration(
-      duration.includes(d) ? duration.filter((x) => x !== d) : [...duration, d]
-    );
+    setDuration(duration.includes(d) ? duration.filter((x) => x !== d) : [...duration, d]);
   };
 
   const goToTab = (tab) => {
@@ -563,6 +575,8 @@ useEffect(() => {
     }
   };
 
+<<<<<<< HEAD
+=======
   
   const saveSelectedLevel = (level) => {
     localStorage.setItem("learningLevel", level);
@@ -592,16 +606,19 @@ useEffect(() => {
     days.includes(todayName) &&
     !completedToday;
 
+>>>>>>> 934bd9a50387c8d18a8ed5ac2f026b6c6392c663
   const streakDays = [
-    { day: "Mon", key: "monday" },
-    { day: "Tue", key: "tuesday" },
-    { day: "Wed", key: "wednesday" },
-    { day: "Thu", key: "thursday" },
-    { day: "Fri", key: "friday" },
-    { day: "Sat", key: "saturday" },
-    { day: "Sun", key: "sunday" }
+    { day: "Mon", active: true },
+    { day: "Tue", active: true },
+    { day: "Wed", active: true },
+    { day: "Thu", active: true },
+    { day: "Fri", active: true },
+    { day: "Sat", active: false },
+    { day: "Sun", active: false }
   ];
 
+<<<<<<< HEAD
+=======
   const allCourses = [
     {
       id: 1,
@@ -703,6 +720,7 @@ useEffect(() => {
     }
   };
 
+>>>>>>> 934bd9a50387c8d18a8ed5ac2f026b6c6392c663
   return (
     <div className="dashboard-page">
       <div className={`dashboard-layout-single ${drawerOpen ? "drawer-open" : ""}`}>
@@ -795,9 +813,10 @@ useEffect(() => {
               <div>
                 <div className="subscription-modal-section-title">Includes</div>
                 <ul className="subscription-modal-include-list">
-                  <li>Access to premium learning content</li>
+                  <li>Access all subjects</li>
                   <li>Unlimited quizzes</li>
                   <li>Unlimited AI ChatBot</li>
+                  <li>Priority support</li>
                 </ul>
               </div>
 
@@ -1201,114 +1220,51 @@ useEffect(() => {
               ☰
             </button>
 
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "6px",
-                flexShrink: 0
-              }}
-            >
-              <img
-                src="/logo.jpg"
-                alt="BrainyBits Logo"
-                style={{
-                  width: "42px",
-                  height: "42px",
-                  objectFit: "cover",
-                  borderRadius: "20px"
-                }}
-              />
+            <h1 className="simple-menu-logo">BrainyBits</h1>
 
-              <h1
-                className="simple-menu-logo"
-                style={{
-                  margin: 0,
-                  marginLeft: "-30px"
-                }}
-              >
-                BrainyBits
-              </h1>
-            </div>
+            <nav className="simple-menu-tabs">
+             <button
+  className={`simple-menu-tab ${activeTab === "dashboard" ? "active" : ""}`}
+  onClick={() => goToTab("dashboard")}
+>
+  Dashboard
+</button>
 
-            <nav
-              className="simple-menu-tabs"
-              style={{
-                overflowX: "auto",
-                overflowY: "hidden",
-                whiteSpace: "nowrap",
-                display: "flex",
-                flexWrap: "nowrap",
-                scrollbarWidth: "none",
-                padding: "8px 12px",
-                paddingLeft: "50px"
-              }}
-            >
-              <button
-                className={`simple-menu-tab ${
-                  activeTab === "dashboard" ? "active" : ""
-                }`}
-                style={{ flexShrink: 0 }}
-                onClick={() => goToTab("dashboard")}
-              >
-                Dashboard
-              </button>
+<button
+  className={`simple-menu-tab ${activeTab === "subjects" ? "active" : ""}`}
+  onClick={() => goToTab("subjects")}
+>
+  Subjects
+</button>
 
-              <button
-                className={`simple-menu-tab ${
-                  activeTab === "subjects" ? "active" : ""
-                }`}
-                style={{ flexShrink: 0 }}
-                onClick={() => goToTab("subjects")}
-              >
-                Subjects
-              </button>
+<button
+  className={`simple-menu-tab ${activeTab === "content" ? "active" : ""}`}
+  onClick={() => goToTab("content")}
+>
+  Content
+</button>
 
-              <button
-                className={`simple-menu-tab ${
-                  activeTab === "content" ? "active" : ""
-                }`}
-                style={{ flexShrink: 0 }}
-                onClick={() => goToTab("content")}
-              >
-                Content
-              </button>
 
-              <button
-                className={`simple-menu-tab ${
-                  activeTab === "quiz" ? "active" : ""
-                }`}
-                style={{ flexShrink: 0 }}
-                onClick={() => goToTab("quiz")}
-              >
-                Quiz
-              </button>
+<button
+  className={`simple-menu-tab ${activeTab === "quiz" ? "active" : ""}`}
+  onClick={() => goToTab("quiz")}
+>
+  Quiz
+</button>
 
-              <button
-                className={`simple-menu-tab ${
-                  activeTab === "performance" ? "active" : ""
-                }`}
-                style={{ flexShrink: 0 }}
-                onClick={() => goToTab("performance")}
-              >
-                Performance
-              </button>
-
-              <button
-                className={`simple-menu-tab ${
-                  activeTab === "notes" ? "active" : ""
-                }`}
-                style={{ flexShrink: 0 }}
-                onClick={() => goToTab("notes")}
-              >
-                Notes
-              </button>
+<button
+  className={`simple-menu-tab ${activeTab === "performance" ? "active" : ""}`}
+  onClick={() => goToTab("performance")}
+>
+  Performance
+</button>
             </nav>
           </header>
 
           {/* DASHBOARD TAB */}
           {activeTab === "dashboard" && (
             <>
+              {/* WELCOME + ACTIONS */}
               <section className="dashboard-compact-top">
                 <div className="compact-welcome-card">
                   <h2>
@@ -1320,6 +1276,9 @@ useEffect(() => {
                 </div>
               </section>
 
+<<<<<<< HEAD
+              {/* STREAK */}
+=======
               {shouldShowScheduleReminder && (
               <section
                 className="compact-streak-card"
@@ -1363,6 +1322,7 @@ useEffect(() => {
             )}
                           
 
+>>>>>>> 934bd9a50387c8d18a8ed5ac2f026b6c6392c663
               <section className="compact-streak-card">
                 <div className="compact-streak-info">
                   <div className="main-fire-circle">
@@ -1385,13 +1345,7 @@ useEffect(() => {
                   {streakDays.map((item) => (
                     <div className="compact-streak-day" key={item.day}>
                       <span>{item.day}</span>
-                      <div
-                        className={
-                          weeklyLoginDays?.[item.key]
-                            ? "compact-fire active"
-                            : "compact-fire"
-                        }
-                      >
+                      <div className={item.active ? "compact-fire active" : "compact-fire"}>
                         <span className="streak-fire-emoji small">🔥</span>
                       </div>
                     </div>
@@ -1399,8 +1353,12 @@ useEffect(() => {
                 </div>
               </section>
 
+<<<<<<< HEAD
+              {/* CERTIFICATE SECTION */}
+=======
               
 
+>>>>>>> 934bd9a50387c8d18a8ed5ac2f026b6c6392c663
               <section className="certificate-dashboard-card">
                 <div className="certificate-visual">
                   <div className="certificate-paper">
@@ -1410,11 +1368,7 @@ useEffect(() => {
                     <div className="paper-medal">🏅</div>
                   </div>
 
-                  <div
-                    className={`certificate-lock ${
-                      isCertificateUnlocked ? "unlocked" : ""
-                    }`}
-                  >
+                  <div className={`certificate-lock ${isCertificateUnlocked ? "unlocked" : ""}`}>
                     {isCertificateUnlocked ? "✓" : "🔒"}
                   </div>
                 </div>
@@ -1422,15 +1376,18 @@ useEffect(() => {
                 <div className="certificate-info">
                   <div className="certificate-title-row">
                     <h2>E-Certificate</h2>
-                    <span
-                      className={`certificate-status ${
-                        isCertificateUnlocked ? "unlocked" : ""
-                      }`}
-                    >
+                    <span className={`certificate-status ${isCertificateUnlocked ? "unlocked" : ""}`}>
                       {isCertificateUnlocked ? "Unlocked" : "Locked"}
                     </span>
                   </div>
 
+<<<<<<< HEAD
+                  <p>
+                    Complete the requirements below to unlock your professional certificate.
+                  </p>
+
+=======
+>>>>>>> 934bd9a50387c8d18a8ed5ac2f026b6c6392c663
                   <ul className="certificate-requirements">
                     <li className={certificateMemory.beginner ? "done" : ""}>
                       <span>{certificateMemory.beginner ? "✓" : ""}</span>
@@ -1471,9 +1428,7 @@ useEffect(() => {
                   </div>
 
                   <button
-                    className={`certificate-claim-btn ${
-                      isCertificateUnlocked ? "active" : ""
-                    }`}
+                    className={`certificate-claim-btn ${isCertificateUnlocked ? "active" : ""}`}
                     disabled={!isCertificateUnlocked}
                     onClick={handleCertificateClick}
                   >
@@ -1490,10 +1445,10 @@ useEffect(() => {
                 </div>
               </section>
 
-              {/* RECOMMENDED COURSE */}
+              {/* MY COURSES */}
               <section className="dashboard-content-section">
-                <h2 className="section-title">Recommended Course</h2>
-                <SubjectGrid onEnroll={enrollSubject} subjects={recommendedCourses} />
+                <h2 className="section-title">My Courses</h2>
+                <SubjectGrid onEnroll={enrollSubject} learningLevel={learningLevel} />
               </section>
             </>
           )}
@@ -1512,6 +1467,17 @@ useEffect(() => {
           )}
 
           {/* CONTENT TAB */}
+<<<<<<< HEAD
+{activeTab === "content" && (
+  <section className="dashboard-content-section">
+    <h2 className="section-title">AI Learning Assistant & Notes</h2>
+
+    <AiChat />
+    <Notes />
+  </section>
+)}
+
+=======
           {activeTab === "content" && (
             <section className="dashboard-content-section">
               <h2 className="section-title">AI Learning Assistant & Notes</h2>
@@ -1522,12 +1488,14 @@ useEffect(() => {
               <Notes />
             </section>
           )}
+>>>>>>> 934bd9a50387c8d18a8ed5ac2f026b6c6392c663
 
           {/* QUIZ TAB */}
           {activeTab === "quiz" && (
             <section className="dashboard-content-section">
               <QuizPage
                 onSubmitQuiz={setQuizScore}
+                
                 quizScore={performanceData.quizScore}
                 difficultyLevel={performanceData.difficultyLevel}
                 practicalScore={performanceData.practicalScore}
@@ -1542,21 +1510,11 @@ useEffect(() => {
           {/* PERFORMANCE TAB */}
           {activeTab === "performance" && (
             <section className="dashboard-content-section">
-              <PerformancePage
-                studentData={performanceData}
+              <PerformancePage 
+                studentData={performanceData} 
                 leaderboard={leaderboard}
                 learningLevel={learningLevel}
               />
-            </section>
-          )}
-
-          {/* NOTES TAB */}
-          {activeTab === "notes" && (
-            <section
-              className="dashboard-content-section"
-              style={{ marginTop: "-30px" }}
-            >
-              <Notes />
             </section>
           )}
 
@@ -1570,19 +1528,21 @@ useEffect(() => {
           {/* PROGRESS TAB */}
           {activeTab === "progress" && (
             <section className="dashboard-content-section">
+
               <button className="back-btn" onClick={() => goToTab("dashboard")}>
                 ← Back
               </button>
 
-              <ProgressPage
-                studentData={performanceData}
-                onBack={() => goToTab("dashboard")}
-              />
+              <ProgressPage studentData={performanceData} />
+
             </section>
           )}
 
           {/* ACHIEVEMENT TAB */}
           {activeTab === "achievement" && (
+<<<<<<< HEAD
+            <section className="dashboard-content-section">
+=======
             <>
               <div
                 style={{
@@ -1600,26 +1560,32 @@ useEffect(() => {
                   ← Back
                 </button>
               </div>
+>>>>>>> 934bd9a50387c8d18a8ed5ac2f026b6c6392c663
 
-              <section
-                className="dashboard-content-section"
-                style={{ marginTop: "-40px" }}
-              >
-                <AchievementPage studentData={performanceData} />
-              </section>
-            </>
+              <button className="back-btn" onClick={() => goToTab("dashboard")}>
+                ← Back
+              </button>
+
+              <AchievementPage studentData={performanceData} />
+
+            </section>
           )}
 
           {/* FORUM TAB */}
           {activeTab === "forum" && (
             <section className="dashboard-content-section">
+
               <button className="back-btn" onClick={() => goToTab("dashboard")}>
                 ← Back
               </button>
 
               <ForumPage />
+
             </section>
           )}
+<<<<<<< HEAD
+          {/* SETTINGS TAB */}
+=======
 
           {/* FEEDBACK TAB */}
           {activeTab === "feedback" && (
@@ -1819,7 +1785,7 @@ useEffect(() => {
                       <li>Unlimited AI Chatbot</li>
                       <li>Priority support</li>
                     </ul>
-                    <button onClick={onPremiumPlan}>
+                    <button onClick={openPremiumPlanModal}>
                       {userPlan === "premium"
                         ? "Premium Active"
                         : "Upgrade to Premium"}
@@ -1986,64 +1952,36 @@ useEffect(() => {
           )}
 
          {/* SETTINGS TAB */}
+>>>>>>> 934bd9a50387c8d18a8ed5ac2f026b6c6392c663
           {activeTab === "settings" && (
-            <>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "flex-start",
-                  marginLeft: "50px"
-                }}
-              >
-                <button
-                  className="back-btn"
-                  onClick={() => goToTab("dashboard")}
-                >
-                  ← Back
-                </button>
-              </div>
-
-              <section className="dashboard-content-section">
+            <section className="dashboard-content-section">
+              <button className="back-btn" onClick={() => goToTab("dashboard")}>
+                ← Back
+              </button>
 
               <div className="module-card" style={{ textAlign: "center" }}>
                 <h2 className="section-title">Learning Level Settings</h2>
 
                 <p style={{ marginBottom: "20px" }}>
-                  Current level:{" "}
-                  <strong>{learningLevel || "Not selected"}</strong>
+                  Current level: <strong>{learningLevel || "Not selected"}</strong>
                 </p>
 
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "12px",
-                    justifyContent: "center"
-                  }}
-                >
-                  <button
-                    className="hero-button"
-                    onClick={() => saveSelectedLevel("beginner")}
-                  >
+                <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
+                  <button className="hero-button" onClick={() => handleSelectLevel("beginner")}>
                     Beginner
                   </button>
 
-                  <button
-                    className="hero-button"
-                    onClick={() => saveSelectedLevel("intermediate")}
-                  >
+                  <button className="hero-button" onClick={() => handleSelectLevel("intermediate")}>
                     Intermediate
                   </button>
 
-                  <button
-                    className="hero-button"
-                    onClick={() => saveSelectedLevel("advanced")}
-                  >
+                  <button className="hero-button" onClick={() => handleSelectLevel("advanced")}>
                     Advanced
                   </button>
                 </div>
               </div>
             </section>
-            </>
+
           )}
 
         </main>
@@ -2058,21 +1996,19 @@ useEffect(() => {
                 <h3 className="section-title">Learning Days</h3>
 
                 <div style={optionWrap}>
-                  {streakDays.map((item) => (
+                  {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
                     <button
-                      key={item.key}
-                      onClick={() => toggleDay(item.day)}
-                      style={option(days.includes(item.day))}
+                      key={day}
+                      onClick={() => toggleDay(day)}
+                      style={option(days.includes(day))}
                     >
-                      {item.day}
+                      {day}
                     </button>
                   ))}
                 </div>
 
                 <div style={navRow}>
-                  <span style={back} onClick={() => setStep(0)}>
-                    ←
-                  </span>
+                  <span style={back} onClick={() => setStep(0)}>←</span>
                   <button
                     className="hero-button"
                     style={{ padding: "10px 25px" }}
@@ -2101,9 +2037,7 @@ useEffect(() => {
                 </div>
 
                 <div style={navRow}>
-                  <span style={back} onClick={() => setStep(1)}>
-                    ←
-                  </span>
+                  <span style={back} onClick={() => setStep(1)}>←</span>
                   <button
                     className="hero-button"
                     style={{ padding: "10px 25px" }}
@@ -2132,9 +2066,7 @@ useEffect(() => {
                 </div>
 
                 <div style={navRow}>
-                  <span style={back} onClick={() => setStep(2)}>
-                    ←
-                  </span>
+                  <span style={back} onClick={() => setStep(2)}>←</span>
                   <button
                     className="hero-button"
                     style={{ padding: "10px 25px" }}
@@ -2171,13 +2103,7 @@ useEffect(() => {
                 <h3 className="section-title">Goal Type</h3>
 
                 <div style={optionWrap}>
-                  {[
-                    "Skill 🧠",
-                    "Exam 📚",
-                    "Coding 💻",
-                    "Language 🌍",
-                    "Consistency 🔥"
-                  ].map((g) => (
+                  {["Skill 🧠", "Exam 📚", "Coding 💻", "Language 🌍", "Consistency 🔥"].map((g) => (
                     <button
                       key={g}
                       onClick={() => setGoalType(g)}
@@ -2189,9 +2115,7 @@ useEffect(() => {
                 </div>
 
                 <div style={navRow}>
-                  <span style={back} onClick={() => setGoalStep(0)}>
-                    ←
-                  </span>
+                  <span style={back} onClick={() => setGoalStep(0)}>←</span>
                   <button
                     className="hero-button"
                     style={{ padding: "10px 25px" }}
@@ -2209,23 +2133,19 @@ useEffect(() => {
                 <h3 className="section-title">Target Progress</h3>
 
                 <div style={optionWrap}>
-                  {["1 topic/week", "5 lessons", "Improve level", "Maintain"].map(
-                    (t) => (
-                      <button
-                        key={t}
-                        onClick={() => setTarget(t)}
-                        style={option(target === t)}
-                      >
-                        {t}
-                      </button>
-                    )
-                  )}
+                  {["1 topic/week", "5 lessons", "Improve level", "Maintain"].map((t) => (
+                    <button
+                      key={t}
+                      onClick={() => setTarget(t)}
+                      style={option(target === t)}
+                    >
+                      {t}
+                    </button>
+                  ))}
                 </div>
 
                 <div style={navRow}>
-                  <span style={back} onClick={() => setGoalStep(1)}>
-                    ←
-                  </span>
+                  <span style={back} onClick={() => setGoalStep(1)}>←</span>
                   <button
                     className="hero-button"
                     style={{ padding: "10px 25px" }}
@@ -2255,9 +2175,7 @@ useEffect(() => {
                 </div>
 
                 <div style={navRow}>
-                  <span style={back} onClick={() => setGoalStep(2)}>
-                    ←
-                  </span>
+                  <span style={back} onClick={() => setGoalStep(2)}>←</span>
                   <button
                     className="hero-button"
                     style={{ padding: "10px 25px" }}
@@ -2285,59 +2203,24 @@ useEffect(() => {
         </div>
       )}
 
-      {/* LEVEL POPUP */}
-      {levelMessage && (
-        <div
-          style={{
-            position: "fixed",
-            bottom: "100px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            background: "#7C3AED",
-            color: "white",
-            padding: "14px 24px",
-            borderRadius: "14px",
-            fontWeight: "700",
-            boxShadow: "0 10px 25px rgba(124,58,237,0.35)",
-            zIndex: 9999
-          }}
-        >
-          {levelMessage}
-        </div>
-      )}
-      
       {showLevelPopup && (
         <div style={overlay}>
-          <div
-            className="module-card popup-card"
-            style={{ textAlign: "center" }}
-          >
+          <div className="module-card popup-card" style={{ textAlign: "center" }}>
             <h2 className="section-title">Choose Your Learning Level</h2>
-
             <p style={{ marginBottom: "20px", color: "#6b7280" }}>
-              Select your current learning level to personalize your modules and
-              quizzes.
+              Select your current learning level to personalize your modules and quizzes.
             </p>
 
             <div style={{ display: "grid", gap: "12px" }}>
-              <button
-                className="hero-button"
-                onClick={() => saveSelectedLevel("beginner")}
-              >
+              <button className="hero-button" onClick={() => handleSelectLevel("beginner")}>
                 Beginner
               </button>
 
-              <button
-                className="hero-button"
-                onClick={() => saveSelectedLevel("intermediate")}
-              >
+              <button className="hero-button" onClick={() => handleSelectLevel("intermediate")}>
                 Intermediate
               </button>
 
-              <button
-                className="hero-button"
-                onClick={() => saveSelectedLevel("advanced")}
-              >
+              <button className="hero-button" onClick={() => handleSelectLevel("advanced")}>
                 Advanced
               </button>
             </div>
@@ -2365,11 +2248,9 @@ const overlay = {
 const optionWrap = {
   display: "flex",
   gap: "10px",
-  overflowX: "auto",
-  whiteSpace: "nowrap",
-  flexWrap: "nowrap",
-  paddingBottom: "5px",
-  scrollbarWidth: "none"
+  flexWrap: "wrap",
+  marginTop: "15px",
+  marginBottom: "15px"
 };
 
 const option = (active) => ({
@@ -2381,8 +2262,7 @@ const option = (active) => ({
   color: active ? "white" : "#5b4b8a",
   fontSize: "14px",
   fontWeight: "500",
-  transition: "0.2s",
-  flexShrink: 0
+  transition: "0.2s"
 });
 
 const navRow = {
