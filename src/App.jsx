@@ -12,7 +12,6 @@ import "./ProgressManagement/ProgressManagement.css";
 function App() {
   const [activePage, setActivePage] = useState("login");
   const [selectedSubject, setSelectedSubject] = useState(null);
-  const [completedItems, setCompletedItems] = useState([1, 2, 3]);
   const [certificateProgressMemory, setCertificateProgressMemory] = useState(() => {
     const saved = JSON.parse(localStorage.getItem("certificateProgressMemory") || "null");
     return saved && typeof saved === "object"
@@ -31,30 +30,12 @@ function App() {
   const [completedSubjectMemory, setCompletedSubjectMemory] = useState(() => {
     return JSON.parse(localStorage.getItem("certificateSubjectCompletion") || "{}") || {};
   });
-  const [difficultyLevel, setDifficultyLevel] = useState("Medium");
-  const [quizScore, setQuizScore] = useState(75);
-  const [practicalScore, setPracticalScore] = useState(80);
-  const [adaptiveMessage, setAdaptiveMessage] = useState("");
-
+  
   const certificateSubjectIdsByLevel = {
     beginner: [1, 2],
     intermediate: [3, 4],
     advanced: [5, 6]
   };
-
-  const [leaderboard, setLeaderboard] = useState([
-    { name: "Aina", score: 80, level: "beginner" },
-    { name: "Amar", score: 88, level: "beginner" },
-    { name: "Kevin", score: 70, level: "beginner" },
-
-    { name: "Aina", score: 75, level: "intermediate" },
-    { name: "Amar", score: 85, level: "intermediate" },
-    { name: "Kevin", score: 65, level: "intermediate" },
-
-    { name: "Aina", score: 90, level: "advanced" },
-    { name: "Amar", score: 92, level: "advanced" },
-    { name: "Kevin", score: 88, level: "advanced" }
-  ]);
 
   const [showLevelPopup, setShowLevelPopup] = useState(
     localStorage.getItem("learningLevel") ? false : true
@@ -65,6 +46,21 @@ function App() {
   );
 
   const totalLearningItems = 8;
+  const studentKey = localStorage.getItem("name") || "guest";
+  const progressKey = `progress_${studentKey}`;
+  const subjectProgressKey = `subjectProgress_${studentKey}`;
+  const savedProgress = JSON.parse(localStorage.getItem(progressKey)) || {
+    completedItems: [],
+    quizScore: 0,
+    practicalScore: 0
+  };
+
+  const [completedItems, setCompletedItems] = useState(savedProgress.completedItems);
+  const [quizScore, setQuizScore] = useState(savedProgress.quizScore);
+  const [practicalScore, setPracticalScore] = useState(savedProgress.practicalScore);
+  const [subjectProgress, setSubjectProgress] = useState(
+  JSON.parse(localStorage.getItem(subjectProgressKey)) || {}
+);
 
   const updateCertificateProgressMemory = (newMemory) => {
     const normalizedMemory = {
@@ -135,21 +131,7 @@ function App() {
     setLearningLevel(level);
     localStorage.setItem("learningLevel", level);
     setShowLevelPopup(false);
-  const studentKey = localStorage.getItem("name") || "guest";
-  const progressKey = `progress_${studentKey}`;
-  const subjectProgressKey = `subjectProgress_${studentKey}`;
-  const savedProgress = JSON.parse(localStorage.getItem(progressKey)) || {
-    completedItems: [],
-    quizScore: 0,
-    practicalScore: 0
   };
-
-  const [completedItems, setCompletedItems] = useState(savedProgress.completedItems);
-  const [quizScore, setQuizScore] = useState(savedProgress.quizScore);
-  const [practicalScore, setPracticalScore] = useState(savedProgress.practicalScore);
-  const [subjectProgress, setSubjectProgress] = useState(
-  JSON.parse(localStorage.getItem(subjectProgressKey)) || {}
-);
 
 const saveSubjectProgress = (updatedProgress) => {
   setSubjectProgress(updatedProgress);
@@ -220,11 +202,6 @@ const saveSubjectProgress = (updatedProgress) => {
     );
   };
 
-  const handleSelectLevel = (level) => {
-    setLearningLevel(level);
-    localStorage.setItem("learningLevel", level);
-  };
-
   const updateAdaptiveLevel = (score) => {
     if (score >= 80) setDifficultyLevel("Hard");
     else if (score >= 50) setDifficultyLevel("Medium");
@@ -247,59 +224,59 @@ const saveSubjectProgress = (updatedProgress) => {
       {activePage === "admin" && <AdminDashboard />}
 
       {activePage === "dashboard" && (
-        <Dashboard
-          handleEnroll={handleEnroll}
-          studentData={studentData}
-          leaderboard={leaderboard}
-          updateLeaderboard={updateLeaderboard}
-          setQuizScore={setQuizScore}
-          setActivePage={setActivePage}
-          handleLogout={handleLogout}
-          learningLevel={learningLevel}
-          showLevelPopup={false}
-          handleSelectLevel={handleSelectLevel}
-        />
-      )}
+      <Dashboard
+  handleEnroll={handleEnroll}
+  studentData={studentData}
+  leaderboard={leaderboard}
+  updateLeaderboard={updateLeaderboard}
+  setQuizScore={setQuizScore}
+  setActivePage={setActivePage}
+  handleLogout={handleLogout}
+  learningLevel={learningLevel}
+  showLevelPopup={false}
+  handleSelectLevel={handleSelectLevel}
+/>
+)}
 
-      {activePage === "learning-content" && selectedSubject && (
-        <NewQuizSystem
-      module={selectedSubject}
-      onBack={() => setActivePage("dashboard")}
+{activePage === "learning-content" && selectedSubject && (
+  <NewQuizSystem
+    module={selectedSubject}
+    onBack={() => setActivePage("dashboard")}
 
-      setQuizScore={(score) => {
-        setQuizScore(score);
-        saveProgress(completedItems, score, practicalScore);
-      }}
+    setQuizScore={(score) => {
+      setQuizScore(score);
+      saveProgress(completedItems, score, practicalScore);
+    }}
 
-      setPracticalScore={(score) => {
-        setPracticalScore(score);
-        saveProgress(completedItems, quizScore, score);
-      }}
+    setPracticalScore={(score) => {
+      setPracticalScore(score);
+      saveProgress(completedItems, quizScore, score);
+    }}
 
-      completedItems={completedItems}
+    completedItems={completedItems}
 
-      setCompletedItems={(itemsOrFunction) => {
-        const newItems =
-          typeof itemsOrFunction === "function"
-            ? itemsOrFunction(completedItems)
-            : itemsOrFunction;
+    setCompletedItems={(itemsOrFunction) => {
+      const newItems =
+        typeof itemsOrFunction === "function"
+          ? itemsOrFunction(completedItems)
+          : itemsOrFunction;
 
-        setCompletedItems(newItems);
-        saveProgress(newItems, quizScore, practicalScore);
-      }}
+      setCompletedItems(newItems);
+      saveProgress(newItems, quizScore, practicalScore);
+    }}
 
-      updateAdaptiveLevel={updateAdaptiveLevel}
-      updateLeaderboard={updateLeaderboard}
-      leaderboard={leaderboard}
-      saveSubjectProgress={saveSubjectProgress}
-    />
-          )}
+    updateAdaptiveLevel={updateAdaptiveLevel}
+    updateLeaderboard={updateLeaderboard}
+    leaderboard={leaderboard}
+    saveSubjectProgress={saveSubjectProgress}
+  />
+)}
 
-          {activePage === "certificate-preview" && (
-            <CertificatePreview onBack={() => setActivePage("dashboard")} />
-          )}
-        </div>
-      );
-    }
+{activePage === "certificate-preview" && (
+  <CertificatePreview onBack={() => setActivePage("dashboard")} />
+)}
+</div>
+);
+}
 
 export default App;
