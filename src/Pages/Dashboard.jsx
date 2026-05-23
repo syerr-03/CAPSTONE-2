@@ -14,7 +14,7 @@ import QuickHelpModal from "../components/QuickHelpModal";
 import "../App.css";
 
 import {Copy, Mail, MessageCircle, X} from "lucide-react";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc} from "firebase/firestore";
 import { auth, db } from "../firebase";
 
 function Dashboard({
@@ -141,6 +141,18 @@ setSubjectsForLevel(allowed[level] || allowed.beginner);
   const welcomeType = localStorage.getItem("welcomeType");
 
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [editName, setEditName] = useState(
+    localStorage.getItem("name") || ""
+  );
+
+  const [editPhone, setEditPhone] = useState(
+    localStorage.getItem("phone") || ""
+  );
+
+  const [editProfilePic, setEditProfilePic] = useState(
+    localStorage.getItem("profilePic") || ""
+  );
+
   const [showContactPopup, setShowContactPopup] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [levelMessage, setLevelMessage] = useState("");
@@ -376,6 +388,31 @@ useEffect(() => {
           (course) =>
             course.level.toLowerCase() === learningLevel.toLowerCase()
         );
+
+  const handleSaveProfile = async () => {
+    try {
+      const uid = localStorage.getItem("uid");
+
+      if (!uid) {
+        alert("User ID not found. Please login again.");
+        return;
+      }
+
+      await updateDoc(doc(db, "users", uid), {
+        name: editName,
+        phone: editPhone,
+      });
+
+      localStorage.setItem("name", editName);
+      localStorage.setItem("phone", editPhone);
+      localStorage.setItem("profilePic", editProfilePic);
+
+      alert("Profile updated successfully!");
+      setActiveTab("account");
+    } catch (error) {
+      alert(error.message);
+    }
+  };
 
   return (
     <div className="dashboard-page">
@@ -869,6 +906,105 @@ useEffect(() => {
             </section>
           )}
 
+          {/* ACCOUNT TAB */}
+          {activeTab === "account" && (
+            <section className="account-page">
+
+              <div className="account-back-wrapper">
+                <button
+                  className="account-back-btn"
+                  onClick={() => setActiveTab("dashboard")}
+                >
+                  ← Back
+                </button>
+              </div>
+
+              <div className="account-header">
+                <h1>My Account</h1>
+                <p>Manage your personal information and account settings.</p>
+              </div>
+
+              <div className="account-profile-card">
+                <div className="account-avatar-empty">
+                  👤
+                </div>
+
+                <div className="account-profile-info">
+                  <h2>
+                    {localStorage.getItem("name") || "Student Name"}
+                  </h2>
+
+                  <p className="account-info-line">
+                    📧 {localStorage.getItem("userEmail") || "student@email.com"}
+                  </p>
+
+                  <p className="account-info-line muted">
+                    📞 {localStorage.getItem("phone") || "Not set"}
+                  </p>
+                </div>
+
+                <button
+                  className="account-edit-btn"
+                  onClick={() => setActiveTab("editProfile")}
+                >
+                  ✎ Edit Profile
+                </button>
+              </div>
+
+              <h3 className="account-section-title">Account Details</h3>
+
+              <div className="account-details-grid">
+                <div className="account-detail-card">
+                  <div className="account-detail-icon">🎓</div>
+                  <div>
+                    <h4>Learning Level</h4>
+                    <p>{learningLevel || "Not set"}</p>
+                  </div>
+                </div>
+
+                <div className="account-detail-card">
+                  <div className="account-detail-icon">👑</div>
+                  <div>
+                    <h4>Current Plan</h4>
+                    <p>Standard Plan</p>
+                  </div>
+                </div>
+
+                <div className="account-detail-card">
+                  <div className="account-detail-icon">📅</div>
+                  <div>
+                    <h4>Member Since</h4>
+                    <p>{localStorage.getItem("memberSince") || "Not available"}</p>
+                  </div>
+                </div>
+              </div>
+
+              <h3 className="account-section-title">Security</h3>
+
+              <div className="security-card">
+                <div className="security-row">
+                  <div className="security-icon">🔒</div>
+                  <div>
+                    <h4>Change Password</h4>
+                    <p>Update your password regularly for better security.</p>
+                  </div>
+                  <button>Change</button>
+                </div>
+
+                <hr />
+
+                <div className="security-row">
+                  <div className="security-icon">🛡️</div>
+                  <div>
+                    <h4>Two-Factor Authentication (2FA)</h4>
+                    <p>Add an extra layer of security to your account.</p>
+                  </div>
+                  <button>Manage</button>
+                </div>
+              </div>
+            </section>
+          )}
+
           {/* SUBSCRIPTIONS TAB */}
           {activeTab === "subscriptions" && (
             <>
@@ -1019,6 +1155,58 @@ useEffect(() => {
                 </div>
               )}
             </>
+          )}
+
+          {/* EDIT PROFILE TAB */}
+          {activeTab === "editProfile" && (
+            <section className="edit-profile-page">
+              <button
+                className="drawer-link"
+                onClick={() => {
+                  setActiveTab("account");
+                  setDrawerOpen(false);
+                }}
+              >
+                ← Back
+              </button>
+
+              <div className="account-header">
+                <h1>Edit Profile</h1>
+                <p>Update your profile picture, username and phone number.</p>
+              </div>
+
+              <div className="edit-profile-card">
+                <div className="edit-profile-avatar">
+                  {editProfilePic ? (
+                    <img src={editProfilePic} alt="Profile" />
+                  ) : (
+                    <span>👤</span>
+                  )}
+                </div>
+
+                <label className="edit-input-label">Username</label>
+                <input
+                  className="edit-profile-input"
+                  type="text"
+                  placeholder="Enter username"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                />
+
+                <label className="edit-input-label">Phone Number</label>
+                <input
+                  className="edit-profile-input"
+                  type="text"
+                  placeholder="Enter phone number"
+                  value={editPhone}
+                  onChange={(e) => setEditPhone(e.target.value)}
+                />
+
+                <button className="save-profile-btn" onClick={handleSaveProfile}>
+                  Save Profile
+                </button>
+              </div>
+            </section>
           )}
 
          {/* SETTINGS TAB */}

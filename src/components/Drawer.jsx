@@ -80,10 +80,16 @@ function Drawer({
         </button>
       </div>
 
-      <button className="drawer-link">
-        <span>Account</span>
-        <span>›</span>
-      </button>
+      <button
+      className="drawer-link"
+      onClick={() => {
+        setActiveTab("account");
+        closeDrawer();
+      }}
+    >
+      <span>Account</span>
+      <span>›</span>
+    </button>
 
       <button
         ref={subscriptionRef}

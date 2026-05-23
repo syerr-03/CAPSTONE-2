@@ -49,16 +49,31 @@ function Login({ goToRegister, goToDashboard }) {
       const userData = querySnapshot.docs[0].data();
       const email = userData.email;
 
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
+  const userCredential = await signInWithEmailAndPassword(
+    auth,
+    email,
+    password
+  );
+
+  const user = userCredential.user;
 
       await updateLoginStreak(userCredential.user.uid);
 
       // 🔥 Simpan nama user
       localStorage.setItem("name", userData.name);
+      localStorage.setItem("userEmail", userData.email);
+      
+      if (userData.createdAt) {
+        const createdDate = userData.createdAt.toDate();
+
+        const formattedDate = createdDate.toLocaleDateString("en-GB", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        });
+
+        localStorage.setItem("memberSince", formattedDate);
+      }
 
       // 🔥 Check user baru ke tak
       const justRegistered = localStorage.getItem("justRegistered") === "true";
