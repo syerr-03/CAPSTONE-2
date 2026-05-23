@@ -45,23 +45,31 @@ function App() {
     localStorage.getItem("learningLevel") || "beginner"
   );
 
-  const [userPlan, setUserPlan] = useState(
-  localStorage.getItem("userPlan") || "standard"
-);
+  const [userSubscriptionPlan, setUserSubscriptionPlan] = useState(
+    localStorage.getItem("userSubscriptionPlan") || "standard"
+  );
 
-  const handleUpgradePremium = () => {
-    localStorage.setItem("userPlan", "premium");
-    setUserPlan("premium");
-    alert("Premium plan activated! All modules, quizzes and AI chatbot are now unlocked.");
+  // For backward compatibility, also keep userPlan for now
+  const userPlan = userSubscriptionPlan;
+
+  const handleOpenPremiumUpgrade = () => {
+    // This now navigates to subscriptions tab where user can see the upgrade button
+    // Premium is NOT activated here - user must complete payment first
   };
 
   const handleSwitchToStandard = () => {
-    localStorage.setItem("userPlan", "standard");
-    setUserPlan("standard");
-
+    localStorage.setItem("userSubscriptionPlan", "standard");
+    setUserSubscriptionPlan("standard");
     alert(
       "You are now using the Standard Plan. Some modules, quizzes, and AI chatbot features are limited."
     );
+  };
+
+  const handlePremiumPaymentSuccess = () => {
+    // Called from Dashboard after successful premium payment
+    localStorage.setItem("userSubscriptionPlan", "premium");
+    setUserSubscriptionPlan("premium");
+    alert("Premium plan activated! All modules, quizzes and AI chatbot are now unlocked.");
   };
 
   const totalLearningItems = 8;
@@ -256,8 +264,9 @@ const saveSubjectProgress = (updatedProgress) => {
         showLevelPopup={false}
         handleSelectLevel={handleSelectLevel}
         userPlan={userPlan}
-        onPremiumPlan={handleUpgradePremium}
+        onPremiumPlan={handleOpenPremiumUpgrade}
         onStandardPlan={handleSwitchToStandard}
+        onPremiumPaymentSuccess={handlePremiumPaymentSuccess}
       />
 )}
 
