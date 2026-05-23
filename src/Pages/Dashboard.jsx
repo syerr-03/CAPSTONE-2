@@ -653,7 +653,22 @@ useEffect(() => {
     }
   ];
 
-  const weakTopics = performanceData.weakTopics || [];
+  const quizScores = JSON.parse(localStorage.getItem("quizScores") || "{}");
+
+  const weaknessMap = {
+    dataScience: "Data Science Basics",
+    artificialIntelligence: "Machine Learning",
+    machineLearning: "Machine Learning",
+    pythonProgramming: "Python Basics",
+    statistics: "Statistics",
+    eda: "EDA",
+    dataVisualization: "Data Visualization"
+  };
+
+  const weakTopics = Object.entries(quizScores)
+    .filter(([quizId, score]) => Number(score) < 60)
+    .map(([quizId]) => weaknessMap[quizId])
+    .filter(Boolean);
 
   const recommendedCourses =
     weakTopics.length > 0
