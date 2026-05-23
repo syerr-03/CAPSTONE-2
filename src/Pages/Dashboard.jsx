@@ -12,6 +12,7 @@ import Notes from "../components/Notes.jsx";
 import QuickHelpModal from "../components/QuickHelpModal";
 
 import "../App.css";
+import jsPDF from "jspdf";
 
 import {Copy, Mail, MessageCircle, X} from "lucide-react";
 import { doc, getDoc, updateDoc} from "firebase/firestore";
@@ -158,6 +159,23 @@ setSubjectsForLevel(allowed[level] || allowed.beginner);
   const [levelMessage, setLevelMessage] = useState("");
 
   const [showHelp, setShowHelp] = useState(false);
+  const [showStandardModal, setShowStandardModal] = useState(false);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const [showInstitutionalModal, setShowInstitutionalModal] = useState(false);
+  const [showSubscriptionPaymentModal, setShowSubscriptionPaymentModal] = useState(false);
+  const [showSubscriptionPaymentSuccess, setShowSubscriptionPaymentSuccess] = useState(false);
+  const [subscriptionFullName, setSubscriptionFullName] = useState("");
+  const [subscriptionIcNumber, setSubscriptionIcNumber] = useState("");
+  const [subscriptionPaymentMethod, setSubscriptionPaymentMethod] = useState("");
+  const [subscriptionPaymentStep, setSubscriptionPaymentStep] = useState("method");
+  const [subscriptionBank, setSubscriptionBank] = useState("");
+  const [subscriptionBankUsername, setSubscriptionBankUsername] = useState("");
+  const [subscriptionBankPassword, setSubscriptionBankPassword] = useState("");
+  const [subscriptionCardNumber, setSubscriptionCardNumber] = useState("");
+  const [subscriptionCardExpiry, setSubscriptionCardExpiry] = useState("");
+  const [subscriptionCardCvv, setSubscriptionCardCvv] = useState("");
+  const [subscriptionCardHolderName, setSubscriptionCardHolderName] = useState("");
+  const [subscriptionPaymentError, setSubscriptionPaymentError] = useState("");
 
   // ===== SCHEDULE STATES =====
 const [step, setStep] = useState(0);
@@ -197,16 +215,269 @@ const getCurrentTimeSlot = () => {
   const [target, setTarget] = useState("");
   const [style, setStyle] = useState("");
 
+  const openStandardPlanModal = () => {
+    setShowStandardModal(true);
+    setShowPremiumModal(false);
+    setShowSubscriptionPaymentModal(false);
+    setShowSubscriptionPaymentSuccess(false);
+    setSubscriptionPaymentError("");
+  };
+
+  const openPremiumPlanModal = () => {
+    setShowPremiumModal(true);
+    setShowStandardModal(false);
+    setShowInstitutionalModal(false);
+    setShowSubscriptionPaymentModal(false);
+    setShowSubscriptionPaymentSuccess(false);
+    setSubscriptionPaymentError("");
+  };
+
+  const openInstitutionalPlanModal = () => {
+    setShowInstitutionalModal(true);
+    setShowStandardModal(false);
+    setShowPremiumModal(false);
+    setShowSubscriptionPaymentModal(false);
+    setShowSubscriptionPaymentSuccess(false);
+    setSubscriptionPaymentError("");
+  };
+
+  const resetSubscriptionPaymentFlow = () => {
+    setSubscriptionFullName("");
+    setSubscriptionIcNumber("");
+    setSubscriptionPaymentMethod("");
+    setSubscriptionPaymentStep("method");
+    setSubscriptionBank("");
+    setSubscriptionBankUsername("");
+    setSubscriptionBankPassword("");
+    setSubscriptionCardNumber("");
+    setSubscriptionCardExpiry("");
+    setSubscriptionCardCvv("");
+    setSubscriptionCardHolderName("");
+    setSubscriptionPaymentError("");
+  };
+
+  const closeSubscriptionModals = () => {
+    setShowStandardModal(false);
+    setShowPremiumModal(false);
+    setShowInstitutionalModal(false);
+    setShowSubscriptionPaymentModal(false);
+    setShowSubscriptionPaymentSuccess(false);
+    resetSubscriptionPaymentFlow();
+  };
+
+  const handleContinueStandard = () => {
+    setShowStandardModal(false);
+  };
+
+  const handleProceedInstitutional = () => {
+    setShowInstitutionalModal(false);
+  };
+
+  const handleStartPremiumPayment = () => {
+    setShowPremiumModal(false);
+    resetSubscriptionPaymentFlow();
+    setShowSubscriptionPaymentModal(true);
+  };
+
+  const handleSubscriptionPaymentNext = () => {
+    if (!subscriptionFullName.trim()) {
+      setSubscriptionPaymentError("Please enter your full name.");
+      return;
+    }
+
+    if (!subscriptionIcNumber.trim()) {
+      setSubscriptionPaymentError("Please enter your IC number.");
+      return;
+    }
+
+    if (!subscriptionPaymentMethod) {
+      setSubscriptionPaymentError("Please select a payment method.");
+      return;
+    }
+
+    setSubscriptionPaymentError("");
+    setSubscriptionPaymentStep("details");
+  };
+
+  const handleSubscriptionPaymentBack = () => {
+    setSubscriptionPaymentStep("method");
+    setSubscriptionPaymentError("");
+  };
+
+  const getMaskedSubscriptionCardNumber = () => {
+    const digits = subscriptionCardNumber.replace(/\D/g, "");
+    return digits.length >= 4 ? `**** **** **** ${digits.slice(-4)}` : "N/A";
+  };
+
+  const handleSubscriptionPaymentSubmit = () => {
+    if (subscriptionPaymentMethod === "onlineBanking") {
+      if (!subscriptionBank) {
+        setSubscriptionPaymentError("Please select a bank.");
+        return;
+      }
+      if (!subscriptionBankUsername.trim()) {
+        setSubscriptionPaymentError("Please enter your bank username.");
+        return;
+      }
+      if (!subscriptionBankPassword.trim()) {
+        setSubscriptionPaymentError("Please enter your bank password.");
+        return;
+      }
+    }
+
+    if (subscriptionPaymentMethod === "card") {
+      if (!subscriptionCardNumber.trim()) {
+        setSubscriptionPaymentError("Please enter your card number.");
+        return;
+      }
+      if (!subscriptionCardExpiry.trim()) {
+        setSubscriptionPaymentError("Please enter your card expiry date.");
+        return;
+      }
+      if (!subscriptionCardCvv.trim()) {
+        setSubscriptionPaymentError("Please enter your CVV.");
+        return;
+      }
+      if (!subscriptionCardHolderName.trim()) {
+        setSubscriptionPaymentError("Please enter the cardholder name.");
+        return;
+      }
+    }
+
+    setSubscriptionPaymentError("");
+    setShowSubscriptionPaymentModal(false);
+    setShowSubscriptionPaymentSuccess(true);
+    // TODO: Activate premium subscription after payment success when subscription logic is ready.
+  };
+
+  const handleCloseSubscriptionSuccess = () => {
+    setShowSubscriptionPaymentSuccess(false);
+    closeSubscriptionModals();
+  };
+
+  const handleDownloadSubscriptionReceipt = () => {
+    const receipt = new jsPDF({ unit: "pt", format: "a4" });
+    const pageWidth = receipt.internal.pageSize.getWidth();
+    const margin = 40;
+    const lineHeight = 20;
+    const now = new Date();
+    const formattedDate = now.toLocaleString();
+    const receiptNumber = `R-${Math.floor(100000 + Math.random() * 900000)}`;
+
+    receipt.setFont("helvetica", "bold");
+    receipt.setFontSize(22);
+    receipt.setTextColor("#3b0768");
+    receipt.text("Payment Receipt", pageWidth / 2, 72, { align: "center" });
+
+    receipt.setDrawColor("#7c3aed");
+    receipt.setLineWidth(1);
+    receipt.line(margin, 86, pageWidth - margin, 86);
+
+    receipt.setFont("helvetica", "normal");
+    receipt.setFontSize(11);
+    receipt.setTextColor("#6b7280");
+    receipt.text(
+      "Thank you for your payment.",
+      pageWidth / 2,
+      108,
+      { align: "center" }
+    );
+
+    const tableWidth = 400;
+    const tableX = (pageWidth - tableWidth) / 2;
+    let currentY = 138;
+    receipt.setFontSize(12);
+    receipt.setTextColor("#7c3aed");
+    receipt.text("PAYER DETAILS", pageWidth / 2, currentY, { align: "center" });
+
+    currentY += 18;
+    const rowHeight = 24;
+    const labelWidth = 150;
+    const valueStart = tableX + labelWidth + 12;
+
+    const payerRows = [
+      ["Full Name", subscriptionFullName || "N/A"],
+      ["IC Number", subscriptionIcNumber || "N/A"]
+    ];
+
+    payerRows.forEach(([label, value]) => {
+      receipt.setFillColor("#f5efff");
+      receipt.roundedRect(tableX, currentY, labelWidth, rowHeight, 6, 6, "F");
+      receipt.setDrawColor("#d8c2f7");
+      receipt.roundedRect(tableX, currentY, tableWidth, rowHeight, 6, 6);
+
+      receipt.setFontSize(11);
+      receipt.setTextColor("#4b1e9a");
+      receipt.text(label, tableX + 10, currentY + 16);
+      receipt.setTextColor("#111827");
+      receipt.text(value, valueStart, currentY + 16);
+      currentY += rowHeight + 8;
+    });
+
+    currentY += 12;
+    receipt.setFontSize(12);
+    receipt.setTextColor("#7c3aed");
+    receipt.text("PAYMENT DETAILS", pageWidth / 2, currentY, { align: "center" });
+
+    currentY += 16;
+    const paymentRows = [
+      ["Payment Item", "Premium Subscription"],
+      ["Amount", "RM200/month"],
+      ["Payment Method", subscriptionPaymentMethod === "card" ? "Debit / Credit Card" : "Online Banking"],
+      [subscriptionPaymentMethod === "card" ? "Card Number" : "Bank Name", subscriptionPaymentMethod === "card" ? getMaskedSubscriptionCardNumber() : subscriptionBank || "N/A"],
+      ["Payment Status", "Successful"],
+      ["Date and Time", formattedDate],
+      ["Receipt Number", receiptNumber]
+    ];
+
+    paymentRows.forEach(([label, value]) => {
+      receipt.setFillColor("#f5efff");
+      receipt.roundedRect(tableX, currentY, labelWidth, rowHeight, 6, 6, "F");
+      receipt.setDrawColor("#d8c2f7");
+      receipt.roundedRect(tableX, currentY, tableWidth, rowHeight, 6, 6);
+
+      receipt.setFontSize(11);
+      receipt.setTextColor("#4b1e9a");
+      receipt.text(label, tableX + 10, currentY + 16);
+      receipt.setTextColor("#111827");
+      receipt.text(value, valueStart, currentY + 16);
+      currentY += rowHeight + 8;
+    });
+
+    currentY += 10;
+    receipt.setDrawColor("#7c3aed");
+    receipt.setLineWidth(0.5);
+    receipt.line(tableX, currentY, tableX + tableWidth, currentY);
+
+    receipt.save(`premium-receipt-${subscriptionFullName || "user"}-${Date.now()}.pdf`);
+  };
+
   const performanceData = studentData || {
     completedModules: 0,
     progressPercent: 0,
+    certificateProgress: 0,
+    certificateProgressMemory: {
+      beginner: false,
+      intermediate: false,
+      advanced: false
+    },
     quizScore: 0,
     practicalScore: 0,
     difficultyLevel: "Medium"
   };
 
-  const certificateProgress = performanceData.progressPercent || 0;
-  const isCertificateUnlocked = certificateProgress >= 100;
+  const certificateMemory =
+    performanceData.certificateProgressMemory || {
+      beginner: false,
+      intermediate: false,
+      advanced: false
+    };
+
+  const certificateProgress = performanceData.certificateProgress || 0;
+  const isCertificateUnlocked =
+    certificateMemory.beginner &&
+    certificateMemory.intermediate &&
+    certificateMemory.advanced;
 
   const handleCertificateClick = () => {
     if (!isCertificateUnlocked) return;
@@ -433,6 +704,472 @@ useEffect(() => {
           openFeedback={() => goToTab("feedback")}
           handleLogout={handleLogout}
         />
+        )}
+
+        {showStandardModal && (
+          <div className="subscription-modal-overlay">
+            <div className="subscription-modal-card">
+              <button className="subscription-modal-close" onClick={closeSubscriptionModals}>
+                ×
+              </button>
+
+              <div className="subscription-modal-icon">⭐</div>
+
+              <div style={{ textAlign: "center" }}>
+                <h3 className="subscription-modal-title">Standard Plan</h3>
+                <p className="subscription-modal-subtitle">Basic access for normal learning.</p>
+              </div>
+
+              <div className="subscription-modal-price-group">
+                <span className="subscription-modal-price-main">Free</span>
+                <span className="subscription-modal-price-detail">RM 0 / month</span>
+              </div>
+
+              <div>
+                <div className="subscription-modal-section-title">Includes</div>
+                <ul className="subscription-modal-include-list">
+                  <li>Access to basic learning materials</li>
+                  <li>Basic quizzes</li>
+                  <li>Limited AI ChatBot</li>
+                </ul>
+              </div>
+
+              <div className="subscription-modal-info">No payment is required for this plan.</div>
+
+              <div className="subscription-modal-footer">
+                <button
+                  type="button"
+                  className="cert-preview-primary-btn"
+                  onClick={handleContinueStandard}
+                >
+                  Continue with Standard
+                </button>
+                <button
+                  type="button"
+                  className="cert-preview-secondary-btn"
+                  onClick={closeSubscriptionModals}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showPremiumModal && (
+          <div className="subscription-modal-overlay">
+            <div className="subscription-modal-card">
+              <button className="subscription-modal-close" onClick={closeSubscriptionModals}>
+                ×
+              </button>
+
+              <div className="subscription-modal-icon">👑</div>
+
+              <div style={{ textAlign: "center" }}>
+                <h3 className="subscription-modal-title">Premium Subscription</h3>
+                <p className="subscription-modal-subtitle">Premium access for extended learning support.</p>
+              </div>
+
+              <div className="subscription-modal-price-group">
+                <span className="subscription-modal-price-main">RM200/month</span>
+              </div>
+
+              <div>
+                <div className="subscription-modal-section-title">Includes</div>
+                <ul className="subscription-modal-include-list">
+                  <li>Access to premium learning content</li>
+                  <li>Unlimited quizzes</li>
+                  <li>Unlimited AI ChatBot</li>
+                </ul>
+              </div>
+
+              <div className="subscription-modal-info">Secure checkout for your premium subscription.</div>
+
+              <div className="subscription-modal-footer">
+                <button
+                  type="button"
+                  className="cert-preview-primary-btn"
+                  onClick={handleStartPremiumPayment}
+                >
+                  Make Payment
+                </button>
+                <button
+                  type="button"
+                  className="cert-preview-secondary-btn"
+                  onClick={closeSubscriptionModals}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showInstitutionalModal && (
+          <div className="subscription-modal-overlay">
+            <div className="subscription-modal-card">
+              <button className="subscription-modal-close" onClick={closeSubscriptionModals}>
+                ×
+              </button>
+
+              <div className="subscription-modal-icon">🏛️</div>
+
+              <div style={{ textAlign: "center" }}>
+                <h3 className="subscription-modal-title">Institutional Plan</h3>
+                <p className="subscription-modal-subtitle">Subscription for institutions based on yearly student count.</p>
+              </div>
+
+              <div className="subscription-modal-price-group">
+                <span className="subscription-modal-price-main">RM150</span>
+                <span className="subscription-modal-price-detail">per student / year</span>
+              </div>
+
+              <div>
+                <div className="subscription-modal-section-title">Includes</div>
+                <ul className="subscription-modal-include-list">
+                  <li>Access for institutional student users</li>
+                  <li>Yearly pricing based on student total</li>
+                  <li>Centralized learning access</li>
+                </ul>
+              </div>
+
+              <div className="subscription-modal-info">Final total payment depends on number of students per year.</div>
+
+              <div className="subscription-modal-footer">
+                <button
+                  type="button"
+                  className="cert-preview-primary-btn"
+                  onClick={handleProceedInstitutional}
+                >
+                  Proceed with Institutional
+                </button>
+                <button
+                  type="button"
+                  className="cert-preview-secondary-btn"
+                  onClick={closeSubscriptionModals}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showSubscriptionPaymentModal && (
+          <div className="payment-modal-overlay">
+            <div className="payment-modal-card" style={{ paddingTop: "18px", gap: "14px" }}>
+              <div style={{ display: "flex", justifyContent: "center" }}>
+                <div className="payment-modal-icon">
+                  <span style={{ fontSize: "20px", lineHeight: 1 }}>💳</span>
+                </div>
+              </div>
+
+              <div style={{ textAlign: "center" }}>
+                <h2 className="payment-modal-title">Make Payment</h2>
+                <p className="payment-modal-subtitle">
+                  {subscriptionPaymentStep === "method"
+                    ? "Premium Subscription · RM200/month"
+                    : subscriptionPaymentMethod === "onlineBanking"
+                    ? "Complete your payment using online banking."
+                    : "Enter your card details to complete payment."}
+                </p>
+              </div>
+
+              <div className="payment-modal-form">
+                <div className="payment-modal-field">
+                  <span className="payment-modal-input-icon">👤</span>
+                  <input
+                    type="text"
+                    aria-label="Full name"
+                    value={subscriptionFullName}
+                    onChange={(e) => setSubscriptionFullName(e.target.value.toUpperCase())}
+                    placeholder="Enter full name"
+                    className="payment-modal-input"
+                  />
+                </div>
+
+                <div className="payment-modal-field">
+                  <span className="payment-modal-input-icon">🆔</span>
+                  <input
+                    type="text"
+                    aria-label="IC number"
+                    value={subscriptionIcNumber}
+                    onChange={(e) => {
+                      const numbersOnly = e.target.value.replace(/\D/g, "");
+                      setSubscriptionIcNumber(numbersOnly.slice(0, 12));
+                    }}
+                    placeholder="12 digit IC number"
+                    maxLength="12"
+                    className="payment-modal-input"
+                  />
+                </div>
+
+                {subscriptionPaymentStep === "method" && (
+                  <div className="payment-method-grid">
+                    <button
+                      type="button"
+                      className={`payment-method-card ${subscriptionPaymentMethod === "onlineBanking" ? "selected" : ""}`}
+                      onClick={() => setSubscriptionPaymentMethod("onlineBanking")}
+                    >
+                      <div className="payment-method-card-icon">🏦</div>
+                      <span className="payment-method-card-title">Online Banking</span>
+                      <span className="payment-method-card-text">Pay securely using your bank account</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      className={`payment-method-card ${subscriptionPaymentMethod === "card" ? "selected" : ""}`}
+                      onClick={() => setSubscriptionPaymentMethod("card")}
+                    >
+                      <div className="payment-method-card-icon">💳</div>
+                      <span className="payment-method-card-title">Debit / Credit Card</span>
+                      <span className="payment-method-card-text">Pay securely using your card</span>
+                    </button>
+                  </div>
+                )}
+
+                {subscriptionPaymentStep === "details" && subscriptionPaymentMethod === "onlineBanking" && (
+                  <>
+                    <div className="payment-modal-field">
+                      <span className="payment-modal-input-icon">🏦</span>
+                      <select
+                        aria-label="Select your bank"
+                        value={subscriptionBank}
+                        onChange={(e) => setSubscriptionBank(e.target.value)}
+                        className="payment-modal-input"
+                      >
+                        <option value="" hidden>
+                          Select your bank
+                        </option>
+                        <option value="Maybank">Maybank</option>
+                        <option value="CIMB Bank">CIMB Bank</option>
+                        <option value="Bank Islam">Bank Islam</option>
+                        <option value="RHB Bank">RHB Bank</option>
+                        <option value="Public Bank">Public Bank</option>
+                        <option value="Hong Leong Bank">Hong Leong Bank</option>
+                      </select>
+                    </div>
+
+                    <div className="payment-modal-field">
+                      <span className="payment-modal-input-icon">👤</span>
+                      <input
+                        type="text"
+                        aria-label="Bank username"
+                        value={subscriptionBankUsername}
+                        onChange={(e) => setSubscriptionBankUsername(e.target.value)}
+                        placeholder="Enter bank username"
+                        className="payment-modal-input"
+                      />
+                    </div>
+
+                    <div className="payment-modal-field">
+                      <span className="payment-modal-input-icon">🔒</span>
+                      <input
+                        type="password"
+                        aria-label="Bank password"
+                        value={subscriptionBankPassword}
+                        onChange={(e) => setSubscriptionBankPassword(e.target.value)}
+                        placeholder="Enter bank password"
+                        className="payment-modal-input"
+                      />
+                    </div>
+                  </>
+                )}
+
+                {subscriptionPaymentStep === "details" && subscriptionPaymentMethod === "card" && (
+                  <>
+                    <div className="payment-modal-field">
+                      <span className="payment-modal-input-icon">💳</span>
+                      <input
+                        type="text"
+                        aria-label="Card number"
+                        value={subscriptionCardNumber}
+                        onChange={(e) => setSubscriptionCardNumber(e.target.value.replace(/\D/g, ""))}
+                        placeholder="Card number"
+                        className="payment-modal-input"
+                      />
+                    </div>
+
+                    <div className="payment-modal-field">
+                      <span className="payment-modal-input-icon">📅</span>
+                      <input
+                        type="text"
+                        aria-label="Expiry date"
+                        value={subscriptionCardExpiry}
+                        onChange={(e) => setSubscriptionCardExpiry(e.target.value)}
+                        placeholder="MM/YY"
+                        className="payment-modal-input"
+                      />
+                    </div>
+
+                    <div className="payment-modal-field">
+                      <span className="payment-modal-input-icon">🔒</span>
+                      <input
+                        type="text"
+                        aria-label="CVV"
+                        value={subscriptionCardCvv}
+                        onChange={(e) => setSubscriptionCardCvv(e.target.value.replace(/\D/g, ""))}
+                        placeholder="CVV"
+                        className="payment-modal-input"
+                      />
+                    </div>
+
+                    <div className="payment-modal-field">
+                      <span className="payment-modal-input-icon">👤</span>
+                      <input
+                        type="text"
+                        aria-label="Cardholder name"
+                        value={subscriptionCardHolderName}
+                        onChange={(e) => setSubscriptionCardHolderName(e.target.value.toUpperCase())}
+                        placeholder="Cardholder name"
+                        className="payment-modal-input"
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <p className="payment-modal-error">{subscriptionPaymentError}</p>
+
+              <div className="payment-modal-footer">
+                {subscriptionPaymentStep === "method" ? (
+                  <>
+                    <button
+                      type="button"
+                      className="cert-preview-primary-btn"
+                      onClick={handleSubscriptionPaymentNext}
+                      style={{ width: "100%", padding: "12px 0", fontSize: "15px" }}
+                    >
+                      Next
+                    </button>
+                    <button
+                      type="button"
+                      className="cert-preview-secondary-btn"
+                      onClick={() => {
+                        setShowSubscriptionPaymentModal(false);
+                        setShowPremiumModal(true);
+                        resetSubscriptionPaymentFlow();
+                      }}
+                      style={{ width: "100%", padding: "12px 0", fontSize: "15px" }}
+                    >
+                      Cancel
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      className="cert-preview-primary-btn"
+                      onClick={handleSubscriptionPaymentSubmit}
+                      style={{ width: "100%", padding: "12px 0", fontSize: "15px" }}
+                    >
+                      Make Payment
+                    </button>
+                    <button
+                      type="button"
+                      className="cert-preview-secondary-btn"
+                      onClick={handleSubscriptionPaymentBack}
+                      style={{ width: "100%", padding: "12px 0", fontSize: "15px" }}
+                    >
+                      Back
+                    </button>
+                    <button
+                      type="button"
+                      className="cert-preview-secondary-btn"
+                      onClick={() => {
+                        setShowSubscriptionPaymentModal(false);
+                        setShowPremiumModal(true);
+                        resetSubscriptionPaymentFlow();
+                      }}
+                      style={{ width: "100%", padding: "12px 0", fontSize: "15px" }}
+                    >
+                      Cancel
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showSubscriptionPaymentSuccess && (
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(0,0,0,0.42)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 9999,
+              padding: "16px"
+            }}
+          >
+            <div
+              style={{
+                width: "100%",
+                maxWidth: "520px",
+                background: "#ffffff",
+                borderRadius: "24px",
+                boxShadow: "0 24px 48px rgba(124, 58, 237, 0.18)",
+                padding: "24px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "14px",
+                maxHeight: "90vh",
+                overflowY: "auto"
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "center" }}>
+                <div
+                  style={{
+                    width: "56px",
+                    height: "56px",
+                    borderRadius: "50%",
+                    background: "linear-gradient(135deg, #7c3aed, #9f67ff)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#ffffff",
+                    fontSize: "26px"
+                  }}
+                >
+                  ✓
+                </div>
+              </div>
+
+              <div>
+                <h2 style={{ margin: 0, color: "#4b1e9a", fontSize: "22px" }}>
+                  Payment Successful
+                </h2>
+                <p style={{ margin: "10px 0 0", color: "#6b7280", fontSize: "14px" }}>
+                  Payment successful. Your Premium Subscription payment has been completed.
+                </p>
+              </div>
+
+              <p style={{ margin: 0, color: "#4b1e9a", fontWeight: 600, fontSize: "14px" }}>
+                Do you want to download your receipt?
+              </p>
+
+              <button
+                type="button"
+                className="cert-preview-primary-btn"
+                onClick={handleDownloadSubscriptionReceipt}
+                style={{ width: "100%", padding: "12px 0", fontSize: "15px" }}
+              >
+                Download Receipt
+              </button>
+
+              <button
+                type="button"
+                className="cert-preview-secondary-btn"
+                onClick={handleCloseSubscriptionSuccess}
+                style={{ width: "100%", padding: "12px 0", fontSize: "15px" }}
+              >
+                Back to Dashboard
+              </button>
+            </div>
+          </div>
         )}
 
         {/* MAIN CONTENT */}
@@ -676,25 +1413,31 @@ useEffect(() => {
                     </span>
                   </div>
 
-                  <p>
-                    Complete the requirements below to unlock your professional
-                    certificate.
-                  </p>
-
                   <ul className="certificate-requirements">
-                    <li className={certificateProgress >= 100 ? "done" : ""}>
-                      <span>{certificateProgress >= 100 ? "✓" : ""}</span>
-                      Complete all modules
+                    <li className={certificateMemory.beginner ? "done" : ""}>
+                      <span>{certificateMemory.beginner ? "✓" : ""}</span>
+                      Complete all Beginner modules
                     </li>
-                    <li className={certificateProgress >= 100 ? "done" : ""}>
-                      <span>{certificateProgress >= 100 ? "✓" : ""}</span>
-                      Complete quiz and practical
+                    <li className={certificateMemory.intermediate ? "done" : ""}>
+                      <span>{certificateMemory.intermediate ? "✓" : ""}</span>
+                      Complete all Intermediate modules
                     </li>
-                    <li className={certificateProgress >= 100 ? "done" : ""}>
-                      <span>{certificateProgress >= 100 ? "✓" : ""}</span>
-                      Reach 100% progress
+                    <li className={certificateMemory.advanced ? "done" : ""}>
+                      <span>{certificateMemory.advanced ? "✓" : ""}</span>
+                      Complete all Advanced modules
+                    </li>
+                    <li className={isCertificateUnlocked ? "done" : ""}>
+                      <span>{isCertificateUnlocked ? "✓" : ""}</span>
+                      Reach 100% overall progress
                     </li>
                   </ul>
+
+                  <div className="certificate-info-note">
+                    <span className="certificate-info-icon">i</span>
+                    <p>
+                      This certificate will be unlocked once you complete the full learning path, including Beginner, Intermediate, and Advanced levels.
+                    </p>
+                  </div>
                 </div>
 
                 <div className="certificate-progress-area">
@@ -718,13 +1461,13 @@ useEffect(() => {
                   >
                     {isCertificateUnlocked
                       ? "Purchase Certificate - RM40"
-                      : "🔒Claim Certificate"}
+                      : "🔒 Certificate Locked"}
                   </button>
 
                   <small>
                     {isCertificateUnlocked
                       ? "You can now purchase and download your certificate."
-                      : "Complete all requirements to claim your certificate."}
+                      : "Complete all Beginner, Intermediate, and Advanced levels to claim your certificate."}
                   </small>
                 </div>
               </section>
