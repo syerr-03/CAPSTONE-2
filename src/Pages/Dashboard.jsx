@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import SubjectGrid from "../components/SubjectGrid.jsx";
 import QuizPage from "../components/QuizPage.jsx";
 import Drawer from "../components/Drawer.jsx";
@@ -10,10 +10,12 @@ import LeaderboardPage from "../ProgressManagement/LeaderboardPage.jsx";
 import AiChat from "../components/aiChat.jsx";
 import Notes from "../components/Notes.jsx";
 import QuickHelpModal from "../components/QuickHelpModal";
+
 import "../App.css";
 import jsPDF from "jspdf";
 
-import { doc, getDoc } from "firebase/firestore";
+import {Copy, Mail, MessageCircle, X} from "lucide-react";
+import { doc, getDoc, updateDoc} from "firebase/firestore";
 import { auth, db } from "../firebase";
 
 function Dashboard({
@@ -28,6 +30,96 @@ function Dashboard({
   showLevelPopup,
   handleSelectLevel
 }) {
+
+  const [subjectsForLevel, setSubjectsForLevel] = useState([]);
+
+  useEffect(() => {
+    const raw = localStorage.getItem("bbSubjectsByLevel");
+    if (!raw) {
+      setSubjectsForLevel([]);
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(raw) || {};
+      const level = (learningLevel || "beginner").toLowerCase();
+
+      const adminBeginner = parsed.beginner || [];
+const adminIntermediate = parsed.intermediate || [];
+const adminAdvanced = parsed.advanced || [];
+
+const defaultSubjects = [
+  {
+    id: 1,
+    title: "What is Data Science?",
+    description: "Start with the basic meaning, purpose, and use of data science.",
+    icon: "📊",
+    level: "beginner"
+  },
+  {
+    id: 2,
+    title: "Python for Data Science",
+    description: "Learn basic Python syntax, variables, and simple coding skills.",
+    icon: "🐍",
+    level: "beginner"
+  },
+  {
+    id: 3,
+    title: "Statistics Fundamentals",
+    description: "Improve your understanding of probability, mean, and data analysis.",
+    icon: "📈",
+    level: "intermediate"
+  },
+  {
+    id: 4,
+    title: "Exploratory Data Analysis",
+    description: "Learn how to inspect, clean, and understand datasets.",
+    icon: "🔍",
+    level: "intermediate"
+  },
+  {
+    id: 5,
+    title: "Machine Learning Basics",
+    description: "Understand model training, prediction, and evaluation.",
+    icon: "🤖",
+    level: "advanced"
+  },
+  {
+    id: 6,
+    title: "Data Visualization",
+    description: "Learn advanced ways to present insights using charts and dashboards.",
+    icon: "🎨",
+    level: "advanced"
+  }
+];
+
+const defaultBeginner = defaultSubjects.filter((s) => s.level === "beginner");
+const defaultIntermediate = defaultSubjects.filter((s) => s.level === "intermediate");
+const defaultAdvanced = defaultSubjects.filter((s) => s.level === "advanced");
+
+const allowed = {
+  beginner: [...defaultBeginner, ...adminBeginner],
+  intermediate: [
+    ...defaultBeginner,
+    ...defaultIntermediate,
+    ...adminBeginner,
+    ...adminIntermediate
+  ],
+  advanced: [
+    ...defaultBeginner,
+    ...defaultIntermediate,
+    ...defaultAdvanced,
+    ...adminBeginner,
+    ...adminIntermediate,
+    ...adminAdvanced
+  ]
+};
+
+setSubjectsForLevel(allowed[level] || allowed.beginner);
+    } catch (e) {
+      setSubjectsForLevel([]);
+    }
+  }, [learningLevel]);
 
   const [weeklyLoginDays, setWeeklyLoginDays] = useState({});
   useEffect(() => {
@@ -50,6 +142,19 @@ function Dashboard({
   const welcomeType = localStorage.getItem("welcomeType");
 
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [editName, setEditName] = useState(
+    localStorage.getItem("name") || ""
+  );
+
+  const [editPhone, setEditPhone] = useState(
+    localStorage.getItem("phone") || ""
+  );
+
+  const [editProfilePic, setEditProfilePic] = useState(
+    localStorage.getItem("profilePic") || ""
+  );
+
+  const [showContactPopup, setShowContactPopup] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [levelMessage, setLevelMessage] = useState("");
 
@@ -73,11 +178,37 @@ function Dashboard({
   const [subscriptionPaymentError, setSubscriptionPaymentError] = useState("");
 
   // ===== SCHEDULE STATES =====
-  const [step, setStep] = useState(0);
-  const [days, setDays] = useState([]);
-  const [time, setTime] = useState([]);
-  const [duration, setDuration] = useState([]);
+const [step, setStep] = useState(0);
+const [days, setDays] = useState([]);
+const [time, setTime] = useState([]);
+const [duration, setDuration] = useState([]);
 
+const [scheduleReminder, setScheduleReminder] = useState(
+  localStorage.getItem("scheduleReminder") || ""
+);
+
+const currentUser = localStorage.getItem("loggedInUser");
+const scheduleKey = `schedule_${currentUser}`;
+
+const getCurrentTimeSlot = () => {
+  const now = new Date();
+  const hour = now.getHours();
+  const minute = now.getMinutes();
+
+  const currentTime = hour + minute / 60;
+
+  if (currentTime >= 8 && currentTime < 12) {
+    return "Morning";
+  } else if (currentTime >= 12 && currentTime <= 14) {
+    return "Afternoon";
+  } else if (currentTime > 14 && currentTime <= 19) {
+    return "Evening";
+  } else if (currentTime > 19 && currentTime <= 24) {
+    return "Night";
+  }
+
+  return "";
+};
   // ===== GOALS STATES =====
   const [goalStep, setGoalStep] = useState(0);
   const [goalType, setGoalType] = useState("");
@@ -385,6 +516,42 @@ function Dashboard({
     setDrawerOpen(false);
   };
 
+ const handleSaveSchedule = () => {
+  const reminderText = "Reminder: Complete one module today.";
+  const currentUser = localStorage.getItem("loggedInUser");
+
+  localStorage.setItem(`scheduleReminder_${currentUser}`, reminderText);
+
+  localStorage.setItem(
+    `studentSchedule_${currentUser}`,
+    JSON.stringify({ days, time, duration })
+  );
+
+  setScheduleReminder(reminderText);
+  setStep(4);
+};
+
+// ===== CHECK REMINDER BASED ON USER + TIME =====
+const checkScheduleReminder = () => {
+  const currentUser = localStorage.getItem("loggedInUser");
+
+  const savedSchedule = JSON.parse(
+    localStorage.getItem(`studentSchedule_${currentUser}`)
+  );
+
+  if (!savedSchedule) return;
+
+  const currentSlot = getCurrentTimeSlot();
+
+  if (savedSchedule.time.includes(currentSlot)) {
+    alert("Reminder: It's your scheduled study time today!");
+  }
+};
+
+useEffect(() => {
+  checkScheduleReminder();
+}, []);
+
   const enrollSubject = (subject) => {
     if (handleEnroll) {
       handleEnroll(subject);
@@ -408,6 +575,19 @@ function Dashboard({
       goToTab("dashboard");
     }, 2000);
   };
+  const todayName = new Date().toLocaleDateString("en-US", {
+  weekday: "short"
+  });
+
+  const todayKey = new Date().toISOString().split("T")[0];
+
+  const completedToday =
+    localStorage.getItem(`completedToday_${todayKey}`) === "true";
+
+  const shouldShowScheduleReminder =
+    scheduleReminder &&
+    days.includes(todayName) &&
+    !completedToday;
 
   const streakDays = [
     { day: "Mon", key: "monday" },
@@ -480,26 +660,50 @@ function Dashboard({
             course.level.toLowerCase() === learningLevel.toLowerCase()
         );
 
+  const handleSaveProfile = async () => {
+    try {
+      const uid = localStorage.getItem("uid");
+
+      if (!uid) {
+        alert("User ID not found. Please login again.");
+        return;
+      }
+
+      await updateDoc(doc(db, "users", uid), {
+        name: editName,
+        phone: editPhone,
+      });
+
+      localStorage.setItem("name", editName);
+      localStorage.setItem("phone", editPhone);
+      localStorage.setItem("profilePic", editProfilePic);
+
+      alert("Profile updated successfully!");
+      setActiveTab("account");
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
   return (
     <div className="dashboard-page">
       <div className={`dashboard-layout-single ${drawerOpen ? "drawer-open" : ""}`}>
         {/* DRAWER */}
         {drawerOpen && (
-          <Drawer
-            drawerOpen={drawerOpen}
-            closeDrawer={() => setDrawerOpen(false)}
-            openSchedule={openSchedule}
-            openGoals={openGoals}
-            openProgress={() => goToTab("progress")}
-            openAchievement={() => goToTab("achievement")}
-            openForum={() => goToTab("forum")}
-            openSettings={() => goToTab("settings")}
-            openFeedback={() => goToTab("feedback")}
-            onStandardPlan={openStandardPlanModal}
-            onPremiumPlan={openPremiumPlanModal}
-            onInstitutionalPlan={openInstitutionalPlanModal}
-            handleLogout={handleLogout}
-          />
+         <Drawer
+          drawerOpen={drawerOpen}
+          closeDrawer={() => setDrawerOpen(false)}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          openSchedule={openSchedule}
+          openGoals={openGoals}
+          openProgress={() => goToTab("progress")}
+          openAchievement={() => goToTab("achievement")}
+          openForum={() => goToTab("forum")}
+          openSettings={() => goToTab("settings")}
+          openFeedback={() => goToTab("feedback")}
+          handleLogout={handleLogout}
+        />
         )}
 
         {showStandardModal && (
@@ -1098,6 +1302,49 @@ function Dashboard({
                 </div>
               </section>
 
+              {shouldShowScheduleReminder && (
+              <section
+                className="compact-streak-card"
+                onClick={() => goToTab("subjects")}
+                style={{
+                  marginTop: "24px",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  textAlign: "center",
+                  minHeight: "120px",
+                  background: "linear-gradient(135deg, #F3E8FF, #E9D5FF)",
+                  border: "1px solid #DDD6FE",
+                  cursor: "pointer"
+                }}
+              >
+                <div>
+                  <h3
+                    style={{
+                      fontSize: "28px",
+                      fontWeight: "700",
+                      color: "#312E81",
+                      marginBottom: "12px"
+                    }}
+                  >
+                    ⏰ Study Reminder
+                  </h3>
+
+                  <p
+                    style={{
+                      fontSize: "18px",
+                      color: "#5B21B6",
+                      fontWeight: "500",
+                      margin: 0
+                    }}
+                  >
+                    📚 You still haven’t completed today’s study session. Click here to continue learning 🔥✨
+                  </p>
+                </div>
+              </section>
+            )}
+                          
+
               <section className="compact-streak-card">
                 <div className="compact-streak-info">
                   <div className="main-fire-circle">
@@ -1133,6 +1380,8 @@ function Dashboard({
                   ))}
                 </div>
               </section>
+
+              
 
               <section className="certificate-dashboard-card">
                 <div className="certificate-visual">
@@ -1237,6 +1486,7 @@ function Dashboard({
               <h2 className="section-title">Available Subjects</h2>
               <SubjectGrid
                 onEnroll={enrollSubject}
+                subjects={subjectsForLevel}
                 learningLevel={learningLevel}
               />
             </section>
@@ -1399,6 +1649,309 @@ function Dashboard({
             </section>
           )}
 
+          {/* ACCOUNT TAB */}
+          {activeTab === "account" && (
+            <section className="account-page">
+
+              <div className="account-back-wrapper">
+                <button
+                  className="account-back-btn"
+                  onClick={() => setActiveTab("dashboard")}
+                >
+                  ← Back
+                </button>
+              </div>
+
+              <div className="account-header">
+                <h1>My Account</h1>
+                <p>Manage your personal information and account settings.</p>
+              </div>
+
+              <div className="account-profile-card">
+                <div className="account-avatar-empty">
+                  👤
+                </div>
+
+                <div className="account-profile-info">
+                  <h2>
+                    {localStorage.getItem("name") || "Student Name"}
+                  </h2>
+
+                  <p className="account-info-line">
+                    📧 {localStorage.getItem("userEmail") || "student@email.com"}
+                  </p>
+
+                  <p className="account-info-line muted">
+                    📞 {localStorage.getItem("phone") || "Not set"}
+                  </p>
+                </div>
+
+                <button
+                  className="account-edit-btn"
+                  onClick={() => setActiveTab("editProfile")}
+                >
+                  ✎ Edit Profile
+                </button>
+              </div>
+
+              <h3 className="account-section-title">Account Details</h3>
+
+              <div className="account-details-grid">
+                <div className="account-detail-card">
+                  <div className="account-detail-icon">🎓</div>
+                  <div>
+                    <h4>Learning Level</h4>
+                    <p>{learningLevel || "Not set"}</p>
+                  </div>
+                </div>
+
+                <div className="account-detail-card">
+                  <div className="account-detail-icon">👑</div>
+                  <div>
+                    <h4>Current Plan</h4>
+                    <p>Standard Plan</p>
+                  </div>
+                </div>
+
+                <div className="account-detail-card">
+                  <div className="account-detail-icon">📅</div>
+                  <div>
+                    <h4>Member Since</h4>
+                    <p>{localStorage.getItem("memberSince") || "Not available"}</p>
+                  </div>
+                </div>
+              </div>
+
+              <h3 className="account-section-title">Security</h3>
+
+              <div className="security-card">
+                <div className="security-row">
+                  <div className="security-icon">🔒</div>
+                  <div>
+                    <h4>Change Password</h4>
+                    <p>Update your password regularly for better security.</p>
+                  </div>
+                  <button>Change</button>
+                </div>
+
+                <hr />
+
+                <div className="security-row">
+                  <div className="security-icon">🛡️</div>
+                  <div>
+                    <h4>Two-Factor Authentication (2FA)</h4>
+                    <p>Add an extra layer of security to your account.</p>
+                  </div>
+                  <button>Manage</button>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* SUBSCRIPTIONS TAB */}
+          {activeTab === "subscriptions" && (
+            <>
+              <section className="subscription-page">
+                <button
+                  className="subscription-back-btn"
+                  onClick={() => setActiveTab("dashboard")}
+                >
+                  ← Back
+                </button>
+
+                <div className="subscription-header">
+                  <h1>Subscriptions</h1>
+                  <p>Choose the plan that best suits your learning needs.</p>
+                </div>
+
+                <div className="subscription-grid">
+                  <div className="subscription-card standard-card">
+                    <div className="plan-icon">🌱</div>
+                    <h2>Standard</h2>
+                    <span>Free Plan</span>
+                    <p>Access essential learning materials and basic features.</p>
+                    <ul>
+                      <li>Access to basic subjects</li>
+                      <li>Limited quizzes</li>
+                      <li>Limited AI Chatbot</li>
+                      <li>Community support</li>
+                    </ul>
+                    <button>Current Plan</button>
+                  </div>
+
+                  <div className="subscription-card premium-card">
+                    <div className="plan-icon">💎</div>
+                    <h2>Premium</h2>
+                    <span>RM200/month</span>
+                    <p>Unlock more content and advanced learning features.</p>
+                    <ul>
+                      <li>Access all subjects</li>
+                      <li>Unlimited quizzes</li>
+                      <li>Unlimited AI Chatbot</li>
+                      <li>Priority support</li>
+                    </ul>
+                    <button>Upgrade to Premium</button>
+                  </div>
+
+                  <div className="subscription-card institutional-card">
+                    <div className="plan-icon">🏛️</div>
+                    <h2>Institutional</h2>
+                    <span>Institutional Plan</span>
+                    <p>Designed for schools, universities and organizations.</p>
+                    <ul>
+                      <li>All Premium features</li>
+                      <li>Institutional analytics</li>
+                      <li>User & role management</li>
+                      <li>Dedicated account manager</li>
+                    </ul>
+                    <button onClick={() => setShowContactPopup(true)}>
+                      Contact Us
+                    </button>
+                  </div>
+                </div>
+              </section>
+
+              {showContactPopup && (
+                <div className="contact-popup-overlay">
+                  <div className="contact-popup">
+                    <button
+                      className="contact-close-btn"
+                      onClick={() => setShowContactPopup(false)}
+                    >
+                      <X size={20} />
+                    </button>
+
+                    <h2>Contact Us</h2>
+                    <p>Reach us for Institutional subscription inquiries.</p>
+
+                    <div className="contact-item">
+                      <div className="contact-left">
+                        <div className="contact-icon">
+                          <MessageCircle size={28} />
+                        </div>
+
+                        <div className="contact-text">
+                          <h4>WhatsApp Support</h4>
+
+                          <p
+                            onClick={() =>
+                              window.open("https://wa.me/60133152376", "_blank")
+                            }
+                            style={{
+                              cursor: "pointer",
+                              textDecoration: "underline",
+                            }}
+                          >
+                            +60 13-315 2376
+                          </p>
+                        </div>
+                      </div>
+
+                      <button
+                        className="copy-btn"
+                        onClick={() => {
+                          navigator.clipboard.writeText("+60 13-315 2376");
+                          alert("Phone number copied!");
+                        }}
+                      >
+                        <Copy size={26} />
+                      </button>
+                    </div>
+
+                    <div className="contact-item">
+                      <div className="contact-left">
+                        <div className="contact-icon email-icon">
+                          <Mail size={28} />
+                        </div>
+
+                        <div className="contact-text">
+                          <h4>Email Us</h4>
+
+                          <p
+                            onClick={() =>
+                              window.open(
+                                "mailto:syarifahnaniey@gmail.com",
+                                "_blank"
+                              )
+                            }
+                            style={{
+                              cursor: "pointer",
+                              textDecoration: "underline",
+                            }}
+                          >
+                            syarifahnaniey@gmail.com
+                          </p>
+                        </div>
+                      </div>
+
+                      <button
+                        className="copy-btn email-copy"
+                        onClick={() => {
+                          navigator.clipboard.writeText("syarifahnaniey@gmail.com");
+                          alert("Email copied!");
+                        }}
+                      >
+                        <Copy size={26} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* EDIT PROFILE TAB */}
+          {activeTab === "editProfile" && (
+            <section className="edit-profile-page">
+              <button
+                className="drawer-link"
+                onClick={() => {
+                  setActiveTab("account");
+                  setDrawerOpen(false);
+                }}
+              >
+                ← Back
+              </button>
+
+              <div className="account-header">
+                <h1>Edit Profile</h1>
+                <p>Update your profile picture, username and phone number.</p>
+              </div>
+
+              <div className="edit-profile-card">
+                <div className="edit-profile-avatar">
+                  {editProfilePic ? (
+                    <img src={editProfilePic} alt="Profile" />
+                  ) : (
+                    <span>👤</span>
+                  )}
+                </div>
+
+                <label className="edit-input-label">Username</label>
+                <input
+                  className="edit-profile-input"
+                  type="text"
+                  placeholder="Enter username"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                />
+
+                <label className="edit-input-label">Phone Number</label>
+                <input
+                  className="edit-profile-input"
+                  type="text"
+                  placeholder="Enter phone number"
+                  value={editPhone}
+                  onChange={(e) => setEditPhone(e.target.value)}
+                />
+
+                <button className="save-profile-btn" onClick={handleSaveProfile}>
+                  Save Profile
+                </button>
+              </div>
+            </section>
+          )}
+
          {/* SETTINGS TAB */}
           {activeTab === "settings" && (
             <>
@@ -1552,7 +2105,7 @@ function Dashboard({
                   <button
                     className="hero-button"
                     style={{ padding: "10px 25px" }}
-                    onClick={() => setStep(4)}
+                    onClick={handleSaveSchedule}
                   >
                     Save
                   </button>

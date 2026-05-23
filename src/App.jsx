@@ -1,20 +1,16 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
-import "./ProgressManagement/ProgressManagement.css";
 
-import Dashboard from "./Pages/Dashboard.jsx";
 import Login from "./Pages/Login.jsx";
 import Register from "./Pages/Register.jsx";
+import Dashboard from "./Pages/Dashboard.jsx";
+import AdminDashboard from "./Pages/AdminDashboard.jsx";
 import NewQuizSystem from "./components/NewQuizSystem.jsx";
 import CertificatePreview from "./components/CertificatePreview.jsx";
-import Notes from "./components/Notes.jsx";
-import { Routes, Route } from "react-router-dom";
+import "./ProgressManagement/ProgressManagement.css";
 
 function App() {
-  const [activePage, setActivePage] = useState(
-    localStorage.getItem("isLoggedIn") === "true" ? "dashboard" : "login"
-  );
-
+  const [activePage, setActivePage] = useState("login");
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [completedItems, setCompletedItems] = useState([1, 2, 3]);
   const [certificateProgressMemory, setCertificateProgressMemory] = useState(() => {
@@ -65,7 +61,7 @@ function App() {
   );
 
   const [learningLevel, setLearningLevel] = useState(
-    localStorage.getItem("learningLevel") || ""
+    localStorage.getItem("learningLevel") || "beginner"
   );
 
   const totalLearningItems = 8;
@@ -139,125 +135,117 @@ function App() {
     setLearningLevel(level);
     localStorage.setItem("learningLevel", level);
     setShowLevelPopup(false);
+  const studentKey = localStorage.getItem("name") || "guest";
+  const progressKey = `progress_${studentKey}`;
+  const subjectProgressKey = `subjectProgress_${studentKey}`;
+  const savedProgress = JSON.parse(localStorage.getItem(progressKey)) || {
+    completedItems: [],
+    quizScore: 0,
+    practicalScore: 0
+  };
+
+  const [completedItems, setCompletedItems] = useState(savedProgress.completedItems);
+  const [quizScore, setQuizScore] = useState(savedProgress.quizScore);
+  const [practicalScore, setPracticalScore] = useState(savedProgress.practicalScore);
+  const [subjectProgress, setSubjectProgress] = useState(
+  JSON.parse(localStorage.getItem(subjectProgressKey)) || {}
+);
+
+const saveSubjectProgress = (updatedProgress) => {
+  setSubjectProgress(updatedProgress);
+  localStorage.setItem(subjectProgressKey, JSON.stringify(updatedProgress));
+};
+  const saveProgress = (newCompletedItems, newQuizScore, newPracticalScore) => {
+  localStorage.setItem(
+    progressKey,
+    JSON.stringify({
+      completedItems: newCompletedItems,
+      quizScore: newQuizScore,
+      practicalScore: newPracticalScore
+    })
+  );
+};
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [difficultyLevel, setDifficultyLevel] = useState("Medium");
+
+  const totalModules = 8;
+
+  const studentData = {
+    completedModules: completedItems.length,
+    totalModules,
+    progressPercent: Math.round((completedItems.length / totalModules) * 100),
+    completedContent: completedItems.map((item) => ({
+      title: item,
+      type: "Learning Activity",
+    })),
+    quizScore,
+    practicalScore,
+    averageScore: Math.round((quizScore + practicalScore) / 2),
+    difficultyLevel,
+    streak: 7,
+    weakTopics: [],
+    subjectProgress,
+  };
+
+  const goToDashboard = () => {
+    const role = localStorage.getItem("role");
+
+    if (role === "admin") {
+      setActivePage("admin");
+    } else {
+      setActivePage("dashboard");
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("role");
+    localStorage.removeItem("name");
+    setActivePage("login");
   };
 
   const handleEnroll = (subject) => {
     setSelectedSubject(subject);
     setActivePage("learning-content");
-    setCompletedItems([]);
-    setDifficultyLevel("Medium");
-    setQuizScore(null);
-    setPracticalScore(null);
-    setAdaptiveMessage("");
   };
 
-  const handleLogout = () => {
-    const confirmLogout = window.confirm("Are you sure you want to logout?");
+  const updateLeaderboard = (name, score) => {
+    const newEntry = {
+      name: name || localStorage.getItem("name") || "Student",
+      score: score || 0,
+    };
 
-    if (!confirmLogout) return;
-
-    localStorage.removeItem("isLoggedIn");
-    localStorage.removeItem("username");
-    setActivePage("login");
+    setLeaderboard((prev) =>
+      [...prev, newEntry].sort((a, b) => b.score - a.score)
+    );
   };
 
-  const getAdaptiveMessage = (level) => {
-    if (level === "Easy") {
-      return "You may need more support. Review the reading and video.";
-    }
-
-    if (level === "Medium") {
-      return "You are making steady progress.";
-    }
-
-    return "Excellent performance. Ready for advanced content.";
+  const handleSelectLevel = (level) => {
+    setLearningLevel(level);
+    localStorage.setItem("learningLevel", level);
   };
 
-  const updateAdaptiveLevel = (newQuizScore, newPracticalScore) => {
-    if (newQuizScore === null || newPracticalScore === null) return;
-
-    const finalScore = newQuizScore * 0.4 + newPracticalScore * 0.6;
-
-    let newLevel = "Easy";
-
-    if (finalScore >= 75) {
-      newLevel = "Hard";
-    } else if (finalScore >= 50) {
-      newLevel = "Medium";
-    }
-
-    setDifficultyLevel(newLevel);
-    setAdaptiveMessage(getAdaptiveMessage(newLevel));
-  };
-
-  const updateLeaderboard = (
-    studentName,
-    score,
-    level = localStorage.getItem("learningLevel") || "beginner"
-  ) => {
-    const name = studentName || "Student";
-
-    setLeaderboard((prev) => {
-      const existing = prev.find(
-        (item) => item.name === name && item.level === level
-      );
-
-      let updated;
-
-      if (existing) {
-        updated = prev.map((item) =>
-          item.name === name && item.level === level
-            ? { ...item, score: Math.max(item.score, score) }
-            : item
-        );
-      } else {
-        updated = [...prev, { name, score, level }];
-      }
-
-      return updated.sort((a, b) => b.score - a.score);
-    });
-  };
-
-  const certificateCompletedCount =
-    (certificateProgressMemory.beginner ? 1 : 0) +
-    (certificateProgressMemory.intermediate ? 1 : 0) +
-    (certificateProgressMemory.advanced ? 1 : 0);
-
-  const certificateProgress =
-    certificateCompletedCount === 3
-      ? 100
-      : certificateCompletedCount === 2
-      ? 67
-      : certificateCompletedCount === 1
-      ? 33
-      : 0;
-
-  const studentData = {
-    completedModules: completedItems.length,
-    totalModules: totalLearningItems,
-    progressPercent: selectedSubject
-      ? Math.round((completedItems.length / totalLearningItems) * 100)
-      : 0,
-    certificateProgress,
-    certificateProgressMemory,
-    quizScore: quizScore || 0,
-    practicalScore: practicalScore || 0,
-    averageScore: Math.round(((quizScore || 0) + (practicalScore || 0)) / 2),
-    difficultyLevel:
-      learningLevel === "beginner"
-        ? "Beginner"
-        : learningLevel === "intermediate"
-        ? "Intermediate"
-        : learningLevel === "advanced"
-        ? "Advanced"
-        : "Beginner",
-    adaptiveMessage:
-      adaptiveMessage ||
-      "Complete quiz and practical task to get adaptive feedback."
+  const updateAdaptiveLevel = (score) => {
+    if (score >= 80) setDifficultyLevel("Hard");
+    else if (score >= 50) setDifficultyLevel("Medium");
+    else setDifficultyLevel("Easy");
   };
 
   return (
     <div className="app-container">
+      {activePage === "login" && (
+        <Login
+          goToRegister={() => setActivePage("register")}
+          goToDashboard={goToDashboard}
+        />
+      )}
+
+      {activePage === "register" && (
+        <Register goToLogin={() => setActivePage("login")} />
+      )}
+
+      {activePage === "admin" && <AdminDashboard />}
+
       {activePage === "dashboard" && (
         <Dashboard
           handleEnroll={handleEnroll}
@@ -268,43 +256,50 @@ function App() {
           setActivePage={setActivePage}
           handleLogout={handleLogout}
           learningLevel={learningLevel}
-          showLevelPopup={showLevelPopup}
+          showLevelPopup={false}
           handleSelectLevel={handleSelectLevel}
         />
       )}
 
-      {activePage === "login" && (
-        <Login
-          goToRegister={() => setActivePage("register")}
-          goToDashboard={() => setActivePage("dashboard")}
-        />
-      )}
-
-      {activePage === "register" && (
-        <Register goToLogin={() => setActivePage("login")} />
-      )}
-
       {activePage === "learning-content" && selectedSubject && (
         <NewQuizSystem
-          module={selectedSubject}
-          onBack={() => setActivePage("dashboard")}
-          setQuizScore={setQuizScore}
-          setPracticalScore={setPracticalScore}
-          completedItems={completedItems}
-          setCompletedItems={setCompletedItems}
-          difficultyLevel={difficultyLevel}
-          updateAdaptiveLevel={updateAdaptiveLevel}
-          updateLeaderboard={updateLeaderboard}
-          leaderboard={leaderboard}
-        />
-      )}
+      module={selectedSubject}
+      onBack={() => setActivePage("dashboard")}
 
-      {activePage === "certificate-preview" && (
-        <CertificatePreview onBack={() => setActivePage("dashboard")} />
-      )}
-      
-    </div>
-);
-}
+      setQuizScore={(score) => {
+        setQuizScore(score);
+        saveProgress(completedItems, score, practicalScore);
+      }}
+
+      setPracticalScore={(score) => {
+        setPracticalScore(score);
+        saveProgress(completedItems, quizScore, score);
+      }}
+
+      completedItems={completedItems}
+
+      setCompletedItems={(itemsOrFunction) => {
+        const newItems =
+          typeof itemsOrFunction === "function"
+            ? itemsOrFunction(completedItems)
+            : itemsOrFunction;
+
+        setCompletedItems(newItems);
+        saveProgress(newItems, quizScore, practicalScore);
+      }}
+
+      updateAdaptiveLevel={updateAdaptiveLevel}
+      updateLeaderboard={updateLeaderboard}
+      leaderboard={leaderboard}
+      saveSubjectProgress={saveSubjectProgress}
+    />
+          )}
+
+          {activePage === "certificate-preview" && (
+            <CertificatePreview onBack={() => setActivePage("dashboard")} />
+          )}
+        </div>
+      );
+    }
 
 export default App;

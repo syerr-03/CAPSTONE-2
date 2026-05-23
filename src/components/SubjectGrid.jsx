@@ -62,10 +62,11 @@ const SubjectGrid = ({ onEnroll, subjects, learningLevel = "beginner" }) => {
   const normalizedLevel = (learningLevel || "beginner").toLowerCase();
 
   const courseList =
-    subjects ||
-    defaultSubjects.filter((subject) =>
-      allowedLevels[normalizedLevel]?.includes(subject.level)
-    );
+    subjects && Array.isArray(subjects)
+      ? subjects
+      : defaultSubjects.filter((subject) =>
+          allowedLevels[normalizedLevel]?.includes(subject.level)
+        );
 
   return (
     <div

@@ -18,11 +18,26 @@ function Login({ goToRegister, goToDashboard }) {
     setError("");
     setSuccess("");
 
+    // ===== ADMIN LOGIN (no registration) =====
+    if (username === "Admin" && password === "Admin@123") {
+      localStorage.setItem("name", "Admin");
+      localStorage.setItem("role", "admin");
+      localStorage.setItem("isLoggedIn", "true");
+      localStorage.setItem("welcomeType", "returning");
+
+      setSuccess("Login Successful!");
+      setTimeout(() => {
+        goToDashboard();
+      }, 500);
+      return;
+    }
+
     try {
       const q = query(
         collection(db, "users"),
         where("username", "==", username)
       );
+
 
       const querySnapshot = await getDocs(q);
 
@@ -34,16 +49,31 @@ function Login({ goToRegister, goToDashboard }) {
       const userData = querySnapshot.docs[0].data();
       const email = userData.email;
 
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
+  const userCredential = await signInWithEmailAndPassword(
+    auth,
+    email,
+    password
+  );
+
+  const user = userCredential.user;
 
       await updateLoginStreak(userCredential.user.uid);
 
       // 🔥 Simpan nama user
       localStorage.setItem("name", userData.name);
+      localStorage.setItem("userEmail", userData.email);
+      
+      if (userData.createdAt) {
+        const createdDate = userData.createdAt.toDate();
+
+        const formattedDate = createdDate.toLocaleDateString("en-GB", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        });
+
+        localStorage.setItem("memberSince", formattedDate);
+      }  
 
       // 🔥 Check user baru ke tak
       const justRegistered = localStorage.getItem("justRegistered") === "true";
@@ -57,15 +87,17 @@ function Login({ goToRegister, goToDashboard }) {
       // Login success
       setSuccess("Login Successful!");
       localStorage.setItem("isLoggedIn", "true");
+      localStorage.setItem("role", "student");
+      localStorage.setItem("loggedInUser", username);
 
-            setTimeout(() => {
-              goToDashboard();
-            }, 1000);
-          } catch (error) {
-              console.log("LOGIN ERROR:", error.code, error.message);
-              setError(error.code);
-            }
-        };
+       setTimeout(() => {
+       goToDashboard();
+        }, 1000);
+    } catch (error) {
+      console.log("LOGIN ERROR:", error.code, error.message);
+      setError(error.code);
+    }
+  };
 
   return (
     <div

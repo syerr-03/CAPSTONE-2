@@ -5,6 +5,8 @@ import "../App.css";
 function Drawer({
   drawerOpen,
   closeDrawer,
+  activeTab,
+  setActiveTab,
   openSchedule,
   openGoals,
   openProgress,
@@ -81,18 +83,27 @@ function Drawer({
         </button>
       </div>
 
-      <button className="drawer-link">
-        <span>Account</span>
-        <span>›</span>
-      </button>
+      <button
+      className="drawer-link"
+      onClick={() => {
+        setActiveTab("account");
+        closeDrawer();
+      }}
+    >
+      <span>Account</span>
+      <span>›</span>
+    </button>
 
       <button
         ref={subscriptionRef}
-        className={`drawer-link ${openMenu === "subscriptions" ? "active" : ""}`}
-        onClick={() => toggleMenu("subscriptions", subscriptionRef)}
+        className={`drawer-link ${activeTab === "subscriptions" ? "active" : ""}`}
+        onClick={() => {
+          setActiveTab("subscriptions");
+          closeDrawer();
+        }}
       >
         <span>Subscriptions</span>
-        <span>{openMenu === "subscriptions" ? "⌃" : "›"}</span>
+        <span>›</span>
       </button>
 
       {openMenu === "subscriptions" && (

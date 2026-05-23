@@ -14,7 +14,34 @@ import LeaderboardPage from "./LeaderboardPage.jsx";
 function PerformancePage({ studentData, leaderboard, learningLevel }) {
   const [selectedMetric, setSelectedMetric] = useState("quiz");
   const [mainTab, setMainTab] = useState("performance");
+  const studentName =
+  localStorage.getItem("name") ||
+  localStorage.getItem("username") ||
+  "Student";
+const level = learningLevel || "beginner";
+const scoreKey = `quizScores_${studentName}_${level}`;
+const attemptKey = `quizAttempts_${studentName}_${level}`;
+const savedQuizScores = JSON.parse(localStorage.getItem(scoreKey)) || {};
+const savedAttempts = JSON.parse(localStorage.getItem(attemptKey)) || {};
+const quizSource =
+  Object.keys(savedQuizScores).length > 0 ? savedQuizScores : savedAttempts;
 
+const quizNameMap = {
+  dataScience: "Data Science Quiz",
+  artificialIntelligence: "Artificial Intelligence Quiz",
+  machineLearning: "Machine Learning Quiz",
+  pythonBasics: "Python Programming Quiz"
+};
+
+const quizScoreList = Object.entries(quizSource).map(([key, value]) => ({
+  ...value,
+  quizTitle:
+    value.quizTitle ||
+    value.subject ||
+    value.quizId ||
+    quizNameMap[key] ||
+    "Unknown Quiz"
+}));
   const quiz = studentData?.quizScore ?? 0;
   const practical = studentData?.practicalScore ?? 0;
   const average = Math.round((quiz + practical) / 2);
@@ -80,18 +107,50 @@ function PerformancePage({ studentData, leaderboard, learningLevel }) {
             }}
           >
             <button
-              className="module-card"
-              style={{
-                border: selectedMetric === "quiz" ? "2px solid #7C3AED" : "none",
-                cursor: "pointer",
-              }}
-              onClick={() => setSelectedMetric("quiz")}
-            >
-              <h3 className="section-title">Quiz Score</h3>
-              <p className="main-title" style={{ fontSize: "32px" }}>
-                {quiz}%
-              </p>
-            </button>
+  className="module-card"
+  style={{
+    border: selectedMetric === "quiz" ? "2px solid #7C3AED" : "none",
+    cursor: "pointer",
+    textAlign: "left"
+  }}
+  onClick={() => setSelectedMetric("quiz")}
+>
+  <h3 className="section-title" style={{ textAlign: "center" }}>
+    Quiz Score Details
+  </h3>
+
+  {quizScoreList.length === 0 ? (
+    <p style={{ textAlign: "center", color: "#6b7280" }}>
+      No quiz records yet.
+    </p>
+  ) : (
+    <div style={{ display: "grid", gap: "10px" }}>
+      {quizScoreList.map((item) => (
+        <div
+          key={item.quizTitle}
+          style={{
+            background: "#F5F3FF",
+            borderRadius: "14px",
+            padding: "12px",
+            border: "1px solid #E9D5FF"
+          }}
+        >
+          <strong style={{ color: "#4C1D95", display: "block", marginBottom: "6px" }}>
+          {item.quizTitle || item.subject || item.quizId || "Unknown Quiz"}
+        </strong>
+
+          <p style={{ margin: "6px 0 0" }}>
+            Highest: <strong>{item.bestScore}%</strong>
+          </p>
+
+          <p style={{ margin: "4px 0 0", color: "#6b7280" }}>
+            Last attempt: {item.lastScore}%
+          </p>
+        </div>
+      ))}
+    </div>
+  )}
+</button>
 
             <button
               className="module-card"
@@ -127,27 +186,52 @@ function PerformancePage({ studentData, leaderboard, learningLevel }) {
               </p>
             </button>
           </div>
-
+              
           <div className="module-card" style={{ marginBottom: "30px" }}>
             <h3 className="section-title">
+    
               {selectedMetric.toUpperCase()} Details
             </h3>
 
             <hr style={{ opacity: 0.1, margin: "15px 0" }} />
 
+              <h3 className="section-title">
+               Quiz History
+          </h3>
+
             {selectedMetric === "quiz" && (
-              <div>
-                <p>
-                  <strong>Correct:</strong> {derivedCorrectAnswers} / 3
-                </p>
-                <p>
-                  <strong>Wrong:</strong> {derivedWrongAnswers} / 3
-                </p>
-                <p style={{ marginTop: "8px", color: "#6b7280" }}>
-                  Latest quiz score: <strong>{quiz}%</strong>
-                </p>
-              </div>
-            )}
+        <div>
+          {quizScoreList.length === 0 ? (
+            <p style={{ color: "#6b7280" }}>No quiz records yet.</p>
+          ) : (
+            <div style={{ display: "grid", gap: "14px", marginTop: "10px" }}>
+              {quizScoreList.map((item) => (
+                <div
+                  key={item.quizTitle}
+                  style={{
+                    padding: "16px",
+                    borderRadius: "16px",
+                    background: "#F5F3FF",
+                    border: "1px solid #E9D5FF"
+                  }}
+          >
+            <h4 style={{ margin: "0 0 8px", color: "#4C1D95" }}>
+              {item.quizTitle}
+            </h4>
+
+            <p>
+              <strong>Highest Score:</strong> {item.bestScore}%
+            </p>
+
+            <p>
+              <strong>Last Attempt:</strong> {item.lastScore}%
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
             {selectedMetric === "practical" && (
               <p>
