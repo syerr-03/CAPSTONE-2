@@ -62,6 +62,8 @@ function Register({ goToLogin }) {
         name,
         email,
         username,
+        phone: "",
+        profilePic: "",
         role: "student",
         createdAt: new Date()
       });
@@ -69,9 +71,17 @@ function Register({ goToLogin }) {
       localStorage.setItem("justRegistered", "true");
       localStorage.setItem("name", name);
 
+      localStorage.setItem("userName", name);
+      localStorage.setItem("userEmail", email);
+
+      localStorage.setItem("uid", user.uid);
+      localStorage.setItem("phone", "");
+      localStorage.setItem("profilePic", "");
+
       alert("Account created successfully!");
       goToLogin();
-    } catch (error) {
+    } 
+    catch (error) {
       alert(error.message);
     }
   };

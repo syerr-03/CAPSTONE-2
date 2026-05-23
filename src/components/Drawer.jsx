@@ -5,14 +5,21 @@ import "../App.css";
 function Drawer({
   drawerOpen,
   closeDrawer,
+  activeTab,
+  setActiveTab,
   openSchedule,
   openGoals,
   openProgress,
   openAchievement,
   openForum,
   openSettings,
+  openFeedback,
+  onStandardPlan,
+  onPremiumPlan,
+  onInstitutionalPlan,
   handleLogout,
 }) {
+  
   const [openMenu, setOpenMenu] = useState(null);
   const [popupPosition, setPopupPosition] = useState({ top: 0, left: 0 });
   const [showHelp, setShowHelp] = useState(false);
@@ -20,6 +27,7 @@ function Drawer({
   const learningRef = useRef(null);
   const downloadRef = useRef(null);
   const moreSettingsRef = useRef(null);
+  const [showFeedbackForm, setShowFeedbackForm] = useState(false);
 
   const toggleMenu = (menuName, buttonRef) => {
     if (openMenu === menuName) {
@@ -75,29 +83,64 @@ function Drawer({
         </button>
       </div>
 
-      <button className="drawer-link">
-        <span>Account</span>
-        <span>›</span>
-      </button>
+      <button
+      className="drawer-link"
+      onClick={() => {
+        setActiveTab("account");
+        closeDrawer();
+      }}
+    >
+      <span>Account</span>
+      <span>›</span>
+    </button>
 
       <button
         ref={subscriptionRef}
-        className={`drawer-link ${openMenu === "subscriptions" ? "active" : ""}`}
-        onClick={() => toggleMenu("subscriptions", subscriptionRef)}
+        className={`drawer-link ${activeTab === "subscriptions" ? "active" : ""}`}
+        onClick={() => {
+          setActiveTab("subscriptions");
+          closeDrawer();
+        }}
       >
         <span>Subscriptions</span>
-        <span>{openMenu === "subscriptions" ? "⌃" : "›"}</span>
+        <span>›</span>
       </button>
 
       {openMenu === "subscriptions" && (
         <div className="drawer-popup subscription-popup" style={popupStyle}>
-          <button className="drawer-popup-link" onClick={() => {}}>
+          <button
+            className="drawer-popup-link"
+            onClick={() => {
+              if (onStandardPlan) onStandardPlan();
+              setOpenMenu(null);
+              closeDrawer();
+            }}
+          >
             <span>Standard</span>
             <span>›</span>
           </button>
 
-          <button className="drawer-popup-link" onClick={() => {}}>
+          <button
+            className="drawer-popup-link"
+            onClick={() => {
+              if (onPremiumPlan) onPremiumPlan();
+              setOpenMenu(null);
+              closeDrawer();
+            }}
+          >
             <span>Premium</span>
+            <span>›</span>
+          </button>
+
+          <button
+            className="drawer-popup-link"
+            onClick={() => {
+              if (onInstitutionalPlan) onInstitutionalPlan();
+              setOpenMenu(null);
+              closeDrawer();
+            }}
+          >
+            <span>Institutional</span>
             <span>›</span>
           </button>
         </div>
@@ -194,6 +237,15 @@ function Drawer({
 
           <button className="drawer-popup-link" onClick={() => {}}>
             <span>Language</span>
+            <span>›</span>
+          </button>
+
+          {/* FEEDBACK FORM */}
+          <button
+            className="drawer-popup-link"
+            onClick={openFeedback}
+          >
+            <span>Feedback Form</span>
             <span>›</span>
           </button>
         </div>
