@@ -1,7 +1,12 @@
 import React from "react";
 import "../App.css";
 
-const SubjectGrid = ({ onEnroll, subjects, learningLevel = "beginner" }) => {
+const SubjectGrid = ({
+  onEnroll,
+  subjects,
+  learningLevel = "beginner",
+  userPlan = "standard",
+}) => {
   const defaultSubjects = [
     {
       id: 1,
@@ -62,7 +67,7 @@ const SubjectGrid = ({ onEnroll, subjects, learningLevel = "beginner" }) => {
   const normalizedLevel = (learningLevel || "beginner").toLowerCase();
 
   const courseList =
-    subjects && Array.isArray(subjects)
+    subjects && Array.isArray(subjects) && subjects.length > 0
       ? subjects
       : defaultSubjects.filter((subject) =>
           allowedLevels[normalizedLevel]?.includes(subject.level)
@@ -77,54 +82,91 @@ const SubjectGrid = ({ onEnroll, subjects, learningLevel = "beginner" }) => {
         padding: "20px"
       }}
     >
-      {courseList.map((subject) => (
-        <div
-          className="module-card"
-          key={subject.id}
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "space-between",
-            transition: "transform 0.2s",
-            cursor: "default"
-          }}
-        >
-          <div>
-            <div style={{ fontSize: "40px", marginBottom: "15px" }}>
-              {subject.icon}
-            </div>
+      {courseList.map((subject) => {
+        const isLocked =
+          userPlan === "standard" &&
+          (subject.level === "intermediate" || subject.level === "advanced");
 
-            <h3 className="section-title" style={{ marginBottom: "10px" }}>
-              {subject.title}
-            </h3>
-
-            {subject.level && (
-              <span className="course-level-badge">
-                {subject.level.toUpperCase()}
-              </span>
+        return (
+          <div
+            className="module-card"
+            key={subject.id}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+              transition: "transform 0.2s",
+              cursor: isLocked ? "not-allowed" : "default",
+              opacity: isLocked ? 0.55 : 1,
+              filter: isLocked ? "grayscale(80%)" : "none",
+              position: "relative"
+            }}
+          >
+            {isLocked && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "15px",
+                  right: "15px",
+                  background: "#111827",
+                  color: "white",
+                  padding: "6px 10px",
+                  borderRadius: "999px",
+                  fontSize: "12px",
+                  fontWeight: "700"
+                }}
+              >
+                🔒 Locked
+              </div>
             )}
 
-            <p
-              className="hero-subtitle"
+            <div>
+              <div style={{ fontSize: "40px", marginBottom: "15px" }}>
+                {subject.icon}
+              </div>
+
+              <h3 className="section-title" style={{ marginBottom: "10px" }}>
+                {subject.title}
+              </h3>
+
+              {subject.level && (
+                <span className="course-level-badge">
+                  {subject.level.toUpperCase()}
+                </span>
+              )}
+
+              <p
+                className="hero-subtitle"
+                style={{
+                  fontSize: "14px",
+                  textAlign: "left",
+                  lineHeight: "1.5"
+                }}
+              >
+                {subject.description}
+              </p>
+            </div>
+
+            <button
+              className="hero-button"
               style={{
-                fontSize: "14px",
-                textAlign: "left",
-                lineHeight: "1.5"
+                width: "100%",
+                marginTop: "20px",
+                padding: "10px",
+                background: isLocked ? "#9CA3AF" : undefined,
+                cursor: isLocked ? "not-allowed" : "pointer"
+              }}
+              disabled={isLocked}
+              onClick={() => {
+                if (isLocked) return;
+                onEnroll && onEnroll(subject);
               }}
             >
-              {subject.description}
-            </p>
+              {isLocked ? "🔒 Premium Only" : "Enroll Now"}
+            </button>
           </div>
-
-          <button
-            className="hero-button"
-            style={{ width: "100%", marginTop: "20px", padding: "10px" }}
-            onClick={() => onEnroll && onEnroll(subject)}
-          >
-            Enroll Now
-          </button>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 };

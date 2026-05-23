@@ -28,7 +28,10 @@ function Dashboard({
   handleLogout,
   learningLevel,
   showLevelPopup,
-  handleSelectLevel
+  handleSelectLevel,
+  userPlan,
+  onPremiumPlan,
+  onStandardPlan,
 }) {
 
   const [subjectsForLevel, setSubjectsForLevel] = useState([]);
@@ -1488,6 +1491,7 @@ useEffect(() => {
                 onEnroll={enrollSubject}
                 subjects={subjectsForLevel}
                 learningLevel={learningLevel}
+                userPlan={userPlan}
               />
             </section>
           )}
@@ -1496,7 +1500,10 @@ useEffect(() => {
           {activeTab === "content" && (
             <section className="dashboard-content-section">
               <h2 className="section-title">AI Learning Assistant & Notes</h2>
-              <AiChat />
+              <AiChat
+                userPlan={userPlan}
+                moduleId={module?.title || "general"}
+              />
               <Notes />
             </section>
           )}
@@ -1512,6 +1519,7 @@ useEffect(() => {
                 leaderboard={leaderboard}
                 updateLeaderboard={updateLeaderboard}
                 learningLevel={learningLevel}
+                userPlan={userPlan}
               />
             </section>
           )}
@@ -1776,7 +1784,13 @@ useEffect(() => {
                       <li>Limited AI Chatbot</li>
                       <li>Community support</li>
                     </ul>
-                    <button>Current Plan</button>
+                    <button
+                      onClick={onStandardPlan}
+                    >
+                      {userPlan === "standard"
+                        ? "Current Plan"
+                        : "Switch to Standard"}
+                    </button>
                   </div>
 
                   <div className="subscription-card premium-card">
@@ -1790,7 +1804,11 @@ useEffect(() => {
                       <li>Unlimited AI Chatbot</li>
                       <li>Priority support</li>
                     </ul>
-                    <button>Upgrade to Premium</button>
+                    <button onClick={onPremiumPlan}>
+                      {userPlan === "premium"
+                        ? "Premium Active"
+                        : "Upgrade to Premium"}
+                    </button>
                   </div>
 
                   <div className="subscription-card institutional-card">

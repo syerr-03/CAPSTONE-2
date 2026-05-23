@@ -45,6 +45,25 @@ function App() {
     localStorage.getItem("learningLevel") || "beginner"
   );
 
+  const [userPlan, setUserPlan] = useState(
+  localStorage.getItem("userPlan") || "standard"
+);
+
+  const handleUpgradePremium = () => {
+    localStorage.setItem("userPlan", "premium");
+    setUserPlan("premium");
+    alert("Premium plan activated! All modules, quizzes and AI chatbot are now unlocked.");
+  };
+
+  const handleSwitchToStandard = () => {
+    localStorage.setItem("userPlan", "standard");
+    setUserPlan("standard");
+
+    alert(
+      "You are now using the Standard Plan. Some modules, quizzes, and AI chatbot features are limited."
+    );
+  };
+
   const totalLearningItems = 8;
   const studentKey = localStorage.getItem("name") || "guest";
   const progressKey = `progress_${studentKey}`;
@@ -224,23 +243,28 @@ const saveSubjectProgress = (updatedProgress) => {
       {activePage === "admin" && <AdminDashboard />}
 
       {activePage === "dashboard" && (
+
       <Dashboard
-  handleEnroll={handleEnroll}
-  studentData={studentData}
-  leaderboard={leaderboard}
-  updateLeaderboard={updateLeaderboard}
-  setQuizScore={setQuizScore}
-  setActivePage={setActivePage}
-  handleLogout={handleLogout}
-  learningLevel={learningLevel}
-  showLevelPopup={false}
-  handleSelectLevel={handleSelectLevel}
-/>
+        handleEnroll={handleEnroll}
+        studentData={studentData}
+        leaderboard={leaderboard}
+        updateLeaderboard={updateLeaderboard}
+        setQuizScore={setQuizScore}
+        setActivePage={setActivePage}
+        handleLogout={handleLogout}
+        learningLevel={learningLevel}
+        showLevelPopup={false}
+        handleSelectLevel={handleSelectLevel}
+        userPlan={userPlan}
+        onPremiumPlan={handleUpgradePremium}
+        onStandardPlan={handleSwitchToStandard}
+      />
 )}
 
 {activePage === "learning-content" && selectedSubject && (
   <NewQuizSystem
     module={selectedSubject}
+    userPlan={userPlan}
     onBack={() => setActivePage("dashboard")}
 
     setQuizScore={(score) => {
