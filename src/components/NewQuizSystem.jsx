@@ -10,8 +10,7 @@ function NewQuizSystem({
   updateAdaptiveLevel,
   completedItems = [],
   setCompletedItems,
-  updateLeaderboard,
-  leaderboard
+  
 }) {
   const topic = module?.title || "What is Data Science?";
   const currentLevel = localStorage.getItem("learningLevel") || "beginner";
@@ -968,10 +967,6 @@ const getAdminItemContent = (item) => {
 
     if (typeof setQuizScore === "function") setQuizScore(percent);
 
-    if (typeof updateLeaderboard === "function") {
-      const studentName = localStorage.getItem("username") || "Student";
-      updateLeaderboard(studentName, percent, currentLevel);
-    }
 
     if (typeof updateAdaptiveLevel === "function") {
       updateAdaptiveLevel(percent, null);
@@ -1244,6 +1239,8 @@ const getAdminItemContent = (item) => {
                   %)
                 </p>
               </div>
+
+
             </>
           )}
 
