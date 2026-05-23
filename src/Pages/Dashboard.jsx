@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-import { useState } from "react";
-=======
 import React, { useEffect, useState } from "react";
->>>>>>> 934bd9a50387c8d18a8ed5ac2f026b6c6392c663
 import SubjectGrid from "../components/SubjectGrid.jsx";
 import QuizPage from "../components/QuizPage.jsx";
 import Drawer from "../components/Drawer.jsx";
@@ -15,8 +11,6 @@ import AiChat from "../components/aiChat.jsx";
 import Notes from "../components/Notes.jsx";
 import QuickHelpModal from "../components/QuickHelpModal";
 
-<<<<<<< HEAD
-=======
 import "../App.css";
 import jsPDF from "jspdf";
 
@@ -24,7 +18,6 @@ import {Copy, Mail, MessageCircle, X} from "lucide-react";
 import { doc, getDoc, updateDoc} from "firebase/firestore";
 import { auth, db } from "../firebase";
 
->>>>>>> 934bd9a50387c8d18a8ed5ac2f026b6c6392c663
 function Dashboard({
   handleEnroll,
   studentData,
@@ -41,8 +34,6 @@ function Dashboard({
   onStandardPlan,
   onPremiumPaymentSuccess,
 }) {
-<<<<<<< HEAD
-=======
 
   const [subjectsForLevel, setSubjectsForLevel] = useState([]);
 
@@ -151,7 +142,6 @@ setSubjectsForLevel(allowed[level] || allowed.beginner);
   }, []);
 
 
->>>>>>> 934bd9a50387c8d18a8ed5ac2f026b6c6392c663
   const studentName = localStorage.getItem("name") || "Student";
   const welcomeType = localStorage.getItem("welcomeType");
 
@@ -575,8 +565,6 @@ useEffect(() => {
     }
   };
 
-<<<<<<< HEAD
-=======
   
   const saveSelectedLevel = (level) => {
     localStorage.setItem("learningLevel", level);
@@ -606,7 +594,6 @@ useEffect(() => {
     days.includes(todayName) &&
     !completedToday;
 
->>>>>>> 934bd9a50387c8d18a8ed5ac2f026b6c6392c663
   const streakDays = [
     { day: "Mon", active: true },
     { day: "Tue", active: true },
@@ -617,8 +604,6 @@ useEffect(() => {
     { day: "Sun", active: false }
   ];
 
-<<<<<<< HEAD
-=======
   const allCourses = [
     {
       id: 1,
@@ -720,7 +705,6 @@ useEffect(() => {
     }
   };
 
->>>>>>> 934bd9a50387c8d18a8ed5ac2f026b6c6392c663
   return (
     <div className="dashboard-page">
       <div className={`dashboard-layout-single ${drawerOpen ? "drawer-open" : ""}`}>
@@ -1276,9 +1260,6 @@ useEffect(() => {
                 </div>
               </section>
 
-<<<<<<< HEAD
-              {/* STREAK */}
-=======
               {shouldShowScheduleReminder && (
               <section
                 className="compact-streak-card"
@@ -1322,7 +1303,6 @@ useEffect(() => {
             )}
                           
 
->>>>>>> 934bd9a50387c8d18a8ed5ac2f026b6c6392c663
               <section className="compact-streak-card">
                 <div className="compact-streak-info">
                   <div className="main-fire-circle">
@@ -1353,12 +1333,9 @@ useEffect(() => {
                 </div>
               </section>
 
-<<<<<<< HEAD
               {/* CERTIFICATE SECTION */}
-=======
               
 
->>>>>>> 934bd9a50387c8d18a8ed5ac2f026b6c6392c663
               <section className="certificate-dashboard-card">
                 <div className="certificate-visual">
                   <div className="certificate-paper">
@@ -1381,13 +1358,6 @@ useEffect(() => {
                     </span>
                   </div>
 
-<<<<<<< HEAD
-                  <p>
-                    Complete the requirements below to unlock your professional certificate.
-                  </p>
-
-=======
->>>>>>> 934bd9a50387c8d18a8ed5ac2f026b6c6392c663
                   <ul className="certificate-requirements">
                     <li className={certificateMemory.beginner ? "done" : ""}>
                       <span>{certificateMemory.beginner ? "✓" : ""}</span>
@@ -1467,28 +1437,18 @@ useEffect(() => {
           )}
 
           {/* CONTENT TAB */}
-<<<<<<< HEAD
-{activeTab === "content" && (
-  <section className="dashboard-content-section">
-    <h2 className="section-title">AI Learning Assistant & Notes</h2>
-
-    <AiChat />
-    <Notes />
-  </section>
-)}
-
-=======
           {activeTab === "content" && (
             <section className="dashboard-content-section">
               <h2 className="section-title">AI Learning Assistant & Notes</h2>
-              <AiChat
+
+              {/* <AiChat
                 userPlan={userPlan}
-                moduleId={module?.title || "general"}
-              />
+                moduleId="general"
+              /> */}
+
               <Notes />
             </section>
           )}
->>>>>>> 934bd9a50387c8d18a8ed5ac2f026b6c6392c663
 
           {/* QUIZ TAB */}
           {activeTab === "quiz" && (
@@ -1540,27 +1500,7 @@ useEffect(() => {
 
           {/* ACHIEVEMENT TAB */}
           {activeTab === "achievement" && (
-<<<<<<< HEAD
             <section className="dashboard-content-section">
-=======
-            <>
-              <div
-                style={{
-                  width: "100%",
-                  display: "flex",
-                  justifyContent: "flex-start",
-                  paddingLeft: "90px",
-                  marginBottom: "20px"
-                }}
-              >
-                <button
-                  className="back-btn"
-                  onClick={() => goToTab("dashboard")}
-                >
-                  ← Back
-                </button>
-              </div>
->>>>>>> 934bd9a50387c8d18a8ed5ac2f026b6c6392c663
 
               <button className="back-btn" onClick={() => goToTab("dashboard")}>
                 ← Back
@@ -1583,9 +1523,6 @@ useEffect(() => {
 
             </section>
           )}
-<<<<<<< HEAD
-          {/* SETTINGS TAB */}
-=======
 
           {/* FEEDBACK TAB */}
           {activeTab === "feedback" && (
@@ -1952,7 +1889,6 @@ useEffect(() => {
           )}
 
          {/* SETTINGS TAB */}
->>>>>>> 934bd9a50387c8d18a8ed5ac2f026b6c6392c663
           {activeTab === "settings" && (
             <section className="dashboard-content-section">
               <button className="back-btn" onClick={() => goToTab("dashboard")}>
