@@ -49,19 +49,25 @@ function App() {
     advanced: [5, 6]
   };
 
-  const handleUpgradePremium = () => {
-    localStorage.setItem(userPlanKey, "premium");
-    setUserPlan("premium");
-    alert("Premium plan activated! All modules, quizzes and AI chatbot are now unlocked.");
+  const handleOpenPremiumUpgrade = () => {
+    setDashboardTargetTab("subscriptions");
+    setActivePage("dashboard");
   };
 
   const handleSwitchToStandard = () => {
     localStorage.setItem(userPlanKey, "standard");
     setUserPlan("standard");
-
+    
     alert(
       "You are now using the Standard Plan. Some modules, quizzes, and AI chatbot features are limited."
     );
+  };
+
+  const handlePremiumPaymentSuccess = () => {
+    // Called from Dashboard after successful premium payment
+    localStorage.setItem("userSubscriptionPlan", "premium");
+    setUserSubscriptionPlan("premium");
+    alert("Premium plan activated! All modules, quizzes and AI chatbot are now unlocked.");
   };
 
   const totalLearningItems = 8;
@@ -313,9 +319,12 @@ const [leaderboard, setLeaderboard] = useState([]);
         showLevelPopup={false}
         handleSelectLevel={handleSelectLevel}
         userPlan={userPlan}
-        onPremiumPlan={handleUpgradePremium}
-        onStandardPlan={handleSwitchToStandard}        dashboardTargetTab={dashboardTargetTab}
-        setDashboardTargetTab={setDashboardTargetTab}      />
+        onPremiumPlan={handleOpenPremiumUpgrade}
+        onStandardPlan={handleSwitchToStandard}
+        onPremiumPaymentSuccess={handlePremiumPaymentSuccess}
+        dashboardTargetTab={dashboardTargetTab}
+        setDashboardTargetTab={setDashboardTargetTab}
+      />
 )}
 
 {activePage === "learning-content" && selectedSubject && (

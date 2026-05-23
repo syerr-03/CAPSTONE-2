@@ -34,6 +34,7 @@ function Dashboard({
   onStandardPlan,
   dashboardTargetTab,
   setDashboardTargetTab,
+  onPremiumPaymentSuccess,
 }) {
 
   const [subjectsForLevel, setSubjectsForLevel] = useState([]);
@@ -387,7 +388,11 @@ const getCurrentTimeSlot = () => {
     setSubscriptionPaymentError("");
     setShowSubscriptionPaymentModal(false);
     setShowSubscriptionPaymentSuccess(true);
-    // TODO: Activate premium subscription after payment success when subscription logic is ready.
+    
+    // Activate premium subscription after payment success
+    if (onPremiumPaymentSuccess) {
+      onPremiumPaymentSuccess();
+    }
   };
 
   const handleCloseSubscriptionSuccess = () => {
@@ -814,9 +819,10 @@ useEffect(() => {
               <div>
                 <div className="subscription-modal-section-title">Includes</div>
                 <ul className="subscription-modal-include-list">
-                  <li>Access to premium learning content</li>
+                  <li>Access all subjects</li>
                   <li>Unlimited quizzes</li>
                   <li>Unlimited AI ChatBot</li>
+                  <li>Priority support</li>
                 </ul>
               </div>
 
@@ -1834,7 +1840,7 @@ useEffect(() => {
                       <li>Unlimited AI Chatbot</li>
                       <li>Priority support</li>
                     </ul>
-                    <button onClick={onPremiumPlan}>
+                    <button onClick={openPremiumPlanModal}>
                       {userPlan === "premium"
                         ? "Premium Active"
                         : "Upgrade to Premium"}
