@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import SubjectGrid from "../components/SubjectGrid.jsx";
 import QuizPage from "../components/QuizPage.jsx";
 import Drawer from "../components/Drawer.jsx";
@@ -10,8 +10,10 @@ import LeaderboardPage from "../ProgressManagement/LeaderboardPage.jsx";
 import AiChat from "../components/aiChat.jsx";
 import Notes from "../components/Notes.jsx";
 import QuickHelpModal from "../components/QuickHelpModal";
+
 import "../App.css";
 
+import {Copy, Mail, MessageCircle, X} from "lucide-react";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../firebase";
 
@@ -139,20 +141,44 @@ setSubjectsForLevel(allowed[level] || allowed.beginner);
   const welcomeType = localStorage.getItem("welcomeType");
 
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [showContactPopup, setShowContactPopup] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [levelMessage, setLevelMessage] = useState("");
 
   const [showHelp, setShowHelp] = useState(false);
 
   // ===== SCHEDULE STATES =====
-  const [step, setStep] = useState(0);
-  const [days, setDays] = useState([]);
-  const [time, setTime] = useState([]);
-  const [duration, setDuration] = useState([]);
-  const [scheduleReminder, setScheduleReminder] = useState(
+const [step, setStep] = useState(0);
+const [days, setDays] = useState([]);
+const [time, setTime] = useState([]);
+const [duration, setDuration] = useState([]);
+
+const [scheduleReminder, setScheduleReminder] = useState(
   localStorage.getItem("scheduleReminder") || ""
 );
 
+const currentUser = localStorage.getItem("loggedInUser");
+const scheduleKey = `schedule_${currentUser}`;
+
+const getCurrentTimeSlot = () => {
+  const now = new Date();
+  const hour = now.getHours();
+  const minute = now.getMinutes();
+
+  const currentTime = hour + minute / 60;
+
+  if (currentTime >= 8 && currentTime < 12) {
+    return "Morning";
+  } else if (currentTime >= 12 && currentTime <= 14) {
+    return "Afternoon";
+  } else if (currentTime > 14 && currentTime <= 19) {
+    return "Evening";
+  } else if (currentTime > 19 && currentTime <= 24) {
+    return "Night";
+  }
+
+  return "";
+};
   // ===== GOALS STATES =====
   const [goalStep, setGoalStep] = useState(0);
   const [goalType, setGoalType] = useState("");
@@ -207,18 +233,41 @@ setSubjectsForLevel(allowed[level] || allowed.beginner);
     setDrawerOpen(false);
   };
 
-  const handleSaveSchedule = () => {
+ const handleSaveSchedule = () => {
   const reminderText = "Reminder: Complete one module today.";
+  const currentUser = localStorage.getItem("loggedInUser");
 
-  localStorage.setItem("scheduleReminder", reminderText);
+  localStorage.setItem(`scheduleReminder_${currentUser}`, reminderText);
+
   localStorage.setItem(
-    "studentSchedule",
+    `studentSchedule_${currentUser}`,
     JSON.stringify({ days, time, duration })
   );
 
   setScheduleReminder(reminderText);
   setStep(4);
 };
+
+// ===== CHECK REMINDER BASED ON USER + TIME =====
+const checkScheduleReminder = () => {
+  const currentUser = localStorage.getItem("loggedInUser");
+
+  const savedSchedule = JSON.parse(
+    localStorage.getItem(`studentSchedule_${currentUser}`)
+  );
+
+  if (!savedSchedule) return;
+
+  const currentSlot = getCurrentTimeSlot();
+
+  if (savedSchedule.time.includes(currentSlot)) {
+    alert("Reminder: It's your scheduled study time today!");
+  }
+};
+
+useEffect(() => {
+  checkScheduleReminder();
+}, []);
 
   const enrollSubject = (subject) => {
     if (handleEnroll) {
@@ -333,18 +382,20 @@ setSubjectsForLevel(allowed[level] || allowed.beginner);
       <div className={`dashboard-layout-single ${drawerOpen ? "drawer-open" : ""}`}>
         {/* DRAWER */}
         {drawerOpen && (
-          <Drawer
-            drawerOpen={drawerOpen}
-            closeDrawer={() => setDrawerOpen(false)}
-            openSchedule={openSchedule}
-            openGoals={openGoals}
-            openProgress={() => goToTab("progress")}
-            openAchievement={() => goToTab("achievement")}
-            openForum={() => goToTab("forum")}
-            openSettings={() => goToTab("settings")}
-            openFeedback={() => goToTab("feedback")}
-            handleLogout={handleLogout}
-          />
+         <Drawer
+          drawerOpen={drawerOpen}
+          closeDrawer={() => setDrawerOpen(false)}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          openSchedule={openSchedule}
+          openGoals={openGoals}
+          openProgress={() => goToTab("progress")}
+          openAchievement={() => goToTab("achievement")}
+          openForum={() => goToTab("forum")}
+          openSettings={() => goToTab("settings")}
+          openFeedback={() => goToTab("feedback")}
+          handleLogout={handleLogout}
+        />
         )}
 
         {/* MAIN CONTENT */}
@@ -816,6 +867,158 @@ setSubjectsForLevel(allowed[level] || allowed.beginner);
                 </button>
               </div>
             </section>
+          )}
+
+          {/* SUBSCRIPTIONS TAB */}
+          {activeTab === "subscriptions" && (
+            <>
+              <section className="subscription-page">
+                <button
+                  className="subscription-back-btn"
+                  onClick={() => setActiveTab("dashboard")}
+                >
+                  ← Back
+                </button>
+
+                <div className="subscription-header">
+                  <h1>Subscriptions</h1>
+                  <p>Choose the plan that best suits your learning needs.</p>
+                </div>
+
+                <div className="subscription-grid">
+                  <div className="subscription-card standard-card">
+                    <div className="plan-icon">🌱</div>
+                    <h2>Standard</h2>
+                    <span>Free Plan</span>
+                    <p>Access essential learning materials and basic features.</p>
+                    <ul>
+                      <li>Access to basic subjects</li>
+                      <li>Limited quizzes</li>
+                      <li>Limited AI Chatbot</li>
+                      <li>Community support</li>
+                    </ul>
+                    <button>Current Plan</button>
+                  </div>
+
+                  <div className="subscription-card premium-card">
+                    <div className="plan-icon">💎</div>
+                    <h2>Premium</h2>
+                    <span>RM200/month</span>
+                    <p>Unlock more content and advanced learning features.</p>
+                    <ul>
+                      <li>Access all subjects</li>
+                      <li>Unlimited quizzes</li>
+                      <li>Unlimited AI Chatbot</li>
+                      <li>Priority support</li>
+                    </ul>
+                    <button>Upgrade to Premium</button>
+                  </div>
+
+                  <div className="subscription-card institutional-card">
+                    <div className="plan-icon">🏛️</div>
+                    <h2>Institutional</h2>
+                    <span>Institutional Plan</span>
+                    <p>Designed for schools, universities and organizations.</p>
+                    <ul>
+                      <li>All Premium features</li>
+                      <li>Institutional analytics</li>
+                      <li>User & role management</li>
+                      <li>Dedicated account manager</li>
+                    </ul>
+                    <button onClick={() => setShowContactPopup(true)}>
+                      Contact Us
+                    </button>
+                  </div>
+                </div>
+              </section>
+
+              {showContactPopup && (
+                <div className="contact-popup-overlay">
+                  <div className="contact-popup">
+                    <button
+                      className="contact-close-btn"
+                      onClick={() => setShowContactPopup(false)}
+                    >
+                      <X size={20} />
+                    </button>
+
+                    <h2>Contact Us</h2>
+                    <p>Reach us for Institutional subscription inquiries.</p>
+
+                    <div className="contact-item">
+                      <div className="contact-left">
+                        <div className="contact-icon">
+                          <MessageCircle size={28} />
+                        </div>
+
+                        <div className="contact-text">
+                          <h4>WhatsApp Support</h4>
+
+                          <p
+                            onClick={() =>
+                              window.open("https://wa.me/60133152376", "_blank")
+                            }
+                            style={{
+                              cursor: "pointer",
+                              textDecoration: "underline",
+                            }}
+                          >
+                            +60 13-315 2376
+                          </p>
+                        </div>
+                      </div>
+
+                      <button
+                        className="copy-btn"
+                        onClick={() => {
+                          navigator.clipboard.writeText("+60 13-315 2376");
+                          alert("Phone number copied!");
+                        }}
+                      >
+                        <Copy size={26} />
+                      </button>
+                    </div>
+
+                    <div className="contact-item">
+                      <div className="contact-left">
+                        <div className="contact-icon email-icon">
+                          <Mail size={28} />
+                        </div>
+
+                        <div className="contact-text">
+                          <h4>Email Us</h4>
+
+                          <p
+                            onClick={() =>
+                              window.open(
+                                "mailto:syarifahnaniey@gmail.com",
+                                "_blank"
+                              )
+                            }
+                            style={{
+                              cursor: "pointer",
+                              textDecoration: "underline",
+                            }}
+                          >
+                            syarifahnaniey@gmail.com
+                          </p>
+                        </div>
+                      </div>
+
+                      <button
+                        className="copy-btn email-copy"
+                        onClick={() => {
+                          navigator.clipboard.writeText("syarifahnaniey@gmail.com");
+                          alert("Email copied!");
+                        }}
+                      >
+                        <Copy size={26} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
           )}
 
          {/* SETTINGS TAB */}
