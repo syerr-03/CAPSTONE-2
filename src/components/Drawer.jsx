@@ -27,6 +27,8 @@ function Drawer({
   const learningRef = useRef(null);
   const downloadRef = useRef(null);
   const moreSettingsRef = useRef(null);
+  const drawerRef = useRef(null);
+  const touchStartYRef = useRef(0);
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
 
   const toggleMenu = (menuName, buttonRef) => {
@@ -50,11 +52,58 @@ function Drawer({
     left: `${popupPosition.left}px`,
   };
 
+  const handleDrawerWheel = (event) => {
+    const container = drawerRef.current;
+    if (!container) return;
+
+    const deltaY = event.deltaY;
+    const maxScroll = container.scrollHeight - container.clientHeight;
+
+    const isAtTop = container.scrollTop <= 0;
+    const isAtBottom = container.scrollTop >= maxScroll - 1;
+
+    if ((deltaY < 0 && isAtTop) || (deltaY > 0 && isAtBottom)) {
+      event.preventDefault();
+    }
+
+    event.stopPropagation();
+  };
+
+  const handleTouchStart = (event) => {
+    touchStartYRef.current = event.touches[0]?.clientY || 0;
+  };
+
+  const handleTouchMove = (event) => {
+    const container = drawerRef.current;
+    if (!container) return;
+
+    const touchY = event.touches[0]?.clientY || 0;
+    const deltaY = touchStartYRef.current - touchY;
+    const maxScroll = container.scrollHeight - container.clientHeight;
+
+    const isAtTop = container.scrollTop <= 0;
+    const isAtBottom = container.scrollTop >= maxScroll - 1;
+    const isScrollingDown = deltaY > 0;
+    const isScrollingUp = deltaY < 0;
+
+    if ((isScrollingDown && isAtBottom) || (isScrollingUp && isAtTop)) {
+      event.preventDefault();
+    }
+
+    event.stopPropagation();
+  };
+
   return (
     <>
     <aside
       className={`drawer-panel ${drawerOpen ? "open" : ""}`}
+      ref={drawerRef}
       onScroll={() => setOpenMenu(null)}
+      onWheelCapture={handleDrawerWheel}
+      onWheel={handleDrawerWheel}
+      onTouchStart={handleTouchStart}
+      onTouchMoveCapture={handleTouchMove}
+      onTouchMove={handleTouchMove}
     >
       <div className="drawer-header-area">
         <div style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}>
@@ -181,11 +230,6 @@ function Drawer({
 
       <button className="drawer-link" onClick={openAchievement}>
         <span>Achievement</span>
-        <span>›</span>
-      </button>
-
-      <button className="drawer-link" onClick={openForum}>
-        <span>Forum</span>
         <span>›</span>
       </button>
 

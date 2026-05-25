@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import "../App.css";
-import LeaderboardPage from "../ProgressManagement/LeaderboardPage.jsx";
 import FloatingAiChat from "./FloatingAiChat.jsx";
 
 function NewQuizSystem({
@@ -1246,9 +1245,6 @@ const getAdminItemContent = (item) => {
                 </p>
               </div>
 
-              <div style={{ marginTop: "30px" }}>
-                <LeaderboardPage leaderboard={leaderboard} />
-              </div>
             </>
           )}
 

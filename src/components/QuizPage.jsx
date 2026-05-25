@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import "../App.css";
-import LeaderboardPage from "../ProgressManagement/LeaderboardPage.jsx";
 import { useEffect } from "react";
 
 import { auth, db } from "../firebase";
@@ -841,12 +840,6 @@ await addDoc(collection(db, "performanceHistory"), {
               Retake Quiz to Improve Score
             </button>
 
-            {/* ✅ LEADERBOARD */}
-            <LeaderboardPage
-              learningLevel={learningLevel || "beginner"}
-              selectedQuiz={selectedQuiz}
-              showLeaderboard={true}
-            />
           </>
         )}
       </div>

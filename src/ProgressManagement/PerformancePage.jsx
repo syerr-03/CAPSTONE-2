@@ -107,52 +107,6 @@ const quizScoreList = Object.entries(quizSource).map(([key, value]) => ({
             }}
           >
             <button
-  className="module-card"
-  style={{
-    border: selectedMetric === "quiz" ? "2px solid #7C3AED" : "none",
-    cursor: "pointer",
-    textAlign: "left"
-  }}
-  onClick={() => setSelectedMetric("quiz")}
->
-  <h3 className="section-title" style={{ textAlign: "center" }}>
-    Quiz Score Details
-  </h3>
-
-  {quizScoreList.length === 0 ? (
-    <p style={{ textAlign: "center", color: "#6b7280" }}>
-      No quiz records yet.
-    </p>
-  ) : (
-    <div style={{ display: "grid", gap: "10px" }}>
-      {quizScoreList.map((item) => (
-        <div
-          key={item.quizTitle}
-          style={{
-            background: "#F5F3FF",
-            borderRadius: "14px",
-            padding: "12px",
-            border: "1px solid #E9D5FF"
-          }}
-        >
-          <strong style={{ color: "#4C1D95", display: "block", marginBottom: "6px" }}>
-          {item.quizTitle || item.subject || item.quizId || "Unknown Quiz"}
-        </strong>
-
-          <p style={{ margin: "6px 0 0" }}>
-            Highest: <strong>{item.bestScore}%</strong>
-          </p>
-
-          <p style={{ margin: "4px 0 0", color: "#6b7280" }}>
-            Last attempt: {item.lastScore}%
-          </p>
-        </div>
-      ))}
-    </div>
-  )}
-</button>
-
-            <button
               className="module-card"
               style={{
                 border:

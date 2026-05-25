@@ -32,6 +32,8 @@ function Dashboard({
   userPlan,
   onPremiumPlan,
   onStandardPlan,
+  dashboardTargetTab,
+  setDashboardTargetTab,
 }) {
 
   const [subjectsForLevel, setSubjectsForLevel] = useState([]);
@@ -145,6 +147,16 @@ setSubjectsForLevel(allowed[level] || allowed.beginner);
   const welcomeType = localStorage.getItem("welcomeType");
 
   const [activeTab, setActiveTab] = useState("dashboard");
+
+  useEffect(() => {
+    if (!dashboardTargetTab) return;
+
+    setActiveTab(dashboardTargetTab);
+    if (typeof setDashboardTargetTab === "function") {
+      setDashboardTargetTab(null);
+    }
+  }, [dashboardTargetTab, setDashboardTargetTab]);
+
   const [editName, setEditName] = useState(
     localStorage.getItem("name") || ""
   );
@@ -162,6 +174,31 @@ setSubjectsForLevel(allowed[level] || allowed.beginner);
   const [levelMessage, setLevelMessage] = useState("");
 
   const [showHelp, setShowHelp] = useState(false);
+
+  useEffect(() => {
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+
+    if (drawerOpen) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+      if (scrollbarWidth > 0) {
+        document.body.style.paddingRight = `${scrollbarWidth}px`;
+        document.documentElement.style.paddingRight = `${scrollbarWidth}px`;
+      }
+    } else {
+      document.body.style.overflow = "";
+      document.body.style.paddingRight = "";
+      document.documentElement.style.overflow = "";
+      document.documentElement.style.paddingRight = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+      document.body.style.paddingRight = "";
+      document.documentElement.style.overflow = "";
+      document.documentElement.style.paddingRight = "";
+    };
+  }, [drawerOpen]);
   const [showStandardModal, setShowStandardModal] = useState(false);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [showInstitutionalModal, setShowInstitutionalModal] = useState(false);
@@ -667,15 +704,12 @@ useEffect(() => {
     try {
       const uid = localStorage.getItem("uid");
 
-      if (!uid) {
-        alert("User ID not found. Please login again.");
-        return;
+      if (uid) {
+        await updateDoc(doc(db, "users", uid), {
+          name: editName,
+          phone: editPhone,
+        });
       }
-
-      await updateDoc(doc(db, "users", uid), {
-        name: editName,
-        phone: editPhone,
-      });
 
       localStorage.setItem("name", editName);
       localStorage.setItem("phone", editPhone);
@@ -1176,7 +1210,19 @@ useEffect(() => {
         )}
 
         {/* MAIN CONTENT */}
-        <main className="dashboard-main-single">
+        <main
+          className="dashboard-main-single"
+          onWheel={(event) => {
+            if (drawerOpen) {
+              setDrawerOpen(false);
+            }
+          }}
+          onTouchMove={(event) => {
+            if (drawerOpen) {
+              setDrawerOpen(false);
+            }
+          }}
+        >
           {/* MENU BAR */}
           <header className="simple-menu-bar">
             <button
@@ -1256,7 +1302,7 @@ useEffect(() => {
                 style={{ flexShrink: 0 }}
                 onClick={() => goToTab("content")}
               >
-                Content
+                Forum
               </button>
 
               <button
@@ -1496,15 +1542,10 @@ useEffect(() => {
             </section>
           )}
 
-          {/* CONTENT TAB */}
+          {/* FORUM PAGE */}
           {activeTab === "content" && (
             <section className="dashboard-content-section">
-              <h2 className="section-title">AI Learning Assistant & Notes</h2>
-              <AiChat
-                userPlan={userPlan}
-                moduleId={module?.title || "general"}
-              />
-              <Notes />
+              <ForumPage />
             </section>
           )}
 
@@ -1593,17 +1634,6 @@ useEffect(() => {
                 <AchievementPage studentData={performanceData} />
               </section>
             </>
-          )}
-
-          {/* FORUM TAB */}
-          {activeTab === "forum" && (
-            <section className="dashboard-content-section">
-              <button className="back-btn" onClick={() => goToTab("dashboard")}>
-                ← Back
-              </button>
-
-              <ForumPage />
-            </section>
           )}
 
           {/* FEEDBACK TAB */}

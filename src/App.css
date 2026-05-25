@@ -197,7 +197,7 @@ body {
 
 .dashboard-main-single {
   min-width: 0;
-  padding: 28px 0 70px;
+  padding: 0 0 70px;
   width: 100%;
   position: relative;
   z-index: 1;
@@ -208,21 +208,26 @@ body {
 ========================= */
 
 .drawer-panel {
-  width: 280px;
-  height: 100vh;
+  width: min(320px, 100%);
+  max-width: 320px;
+  min-width: 280px;
+  height: calc(100vh - 24px);
   background: #ffffff;
   border-right: 1px solid #eee7ff;
   box-shadow: 16px 0 40px rgba(17, 24, 39, 0.06);
+  border-radius: 0 24px 24px 0;
   padding: 30px 24px;
-
   overflow-y: auto;
-  overflow-x: visible;
+  overflow-x: hidden;
+  background-clip: padding-box;
 
   position: fixed;
-  top: 0;
-  left: 40;
+  top: 24px;
+  left: 165px;
   z-index: 100;
+  box-sizing: border-box;
 }
+
 
 .drawer-header-area {
   display: flex;
@@ -306,7 +311,7 @@ body {
 ========================= */
 
 .simple-menu-bar {
-  width: min(1050px, calc(100% - 80px));
+  width: min(1180px, calc(100% - 80px));
   height: 72px;
   margin: 0 auto 34px;
   padding: 0 18px;
@@ -3234,4 +3239,101 @@ input {
   justify-content: flex-start;
 
   transform: translateY(60px);
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* Remove any possible side borders/margins coming from layout containers */
+body {
+  margin: 0;
+  padding: 0;
+  border-left: 0;
+  border-right: 0;
+}
+
+.dashboard-page {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.dashboard-layout-single {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+
+.app-container,
+.dashboard-page,
+.dashboard-wrapper,
+.main-dashboard {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.dashboard-main-content {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 32px 48px;
+  box-sizing: border-box;
+}
+
+body {
+  background: #faf7ff !important;
+}
+
+.dashboard-container,
+.dashboard-content,
+.dashboard-layout,
+.dashboard-home,
+.dashboard-section {
+  width: 100% !important;
+  max-width: none !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+.dashboard-card,
+.welcome-card,
+.streak-card,
+.certificate-card {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+.dashboard-page {
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: #faf7ff !important;
+  overflow-x: hidden !important;
+}
+
+.dashboard-layout-single {
+  width: 100% !important;
+  margin: 0 auto !important;
+  padding: 24px !important;
+  box-sizing: border-box !important;
+}
+
+.dashboard-layout-single > :not(.drawer-panel) {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+body {
+  overflow-x: hidden;
 }

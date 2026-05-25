@@ -156,7 +156,8 @@ const saveSubjectProgress = (updatedProgress) => {
   setSubjectProgress(updatedProgress);
   localStorage.setItem(subjectProgressKey, JSON.stringify(updatedProgress));
 };
-  const saveProgress = (newCompletedItems, newQuizScore, newPracticalScore) => {
+
+const saveProgress = (newCompletedItems, newQuizScore, newPracticalScore) => {
   localStorage.setItem(
     progressKey,
     JSON.stringify({
@@ -166,10 +167,21 @@ const saveSubjectProgress = (updatedProgress) => {
     })
   );
 };
-  const [leaderboard, setLeaderboard] = useState([]);
-  const [difficultyLevel, setDifficultyLevel] = useState("Medium");
 
+useEffect(() => {
+  saveProgress(completedItems, quizScore, practicalScore);
+}, [completedItems, quizScore, practicalScore, progressKey]);
+
+const [leaderboard, setLeaderboard] = useState([]);
+  const [difficultyLevel, setDifficultyLevel] = useState("Medium");
+  const [dashboardTargetTab, setDashboardTargetTab] = useState(null);
   const totalModules = 8;
+
+  const certificateProgress = Math.round(
+    (Object.values(certificateProgressMemory).filter(Boolean).length /
+      Object.keys(certificateProgressMemory).length) *
+      100
+  );
 
   const studentData = {
     completedModules: completedItems.length,
@@ -186,6 +198,8 @@ const saveSubjectProgress = (updatedProgress) => {
     streak: 7,
     weakTopics: [],
     subjectProgress,
+    certificateProgressMemory,
+    certificateProgress,
   };
 
   const goToDashboard = () => {
@@ -257,36 +271,35 @@ const saveSubjectProgress = (updatedProgress) => {
         handleSelectLevel={handleSelectLevel}
         userPlan={userPlan}
         onPremiumPlan={handleUpgradePremium}
-        onStandardPlan={handleSwitchToStandard}
-      />
+        onStandardPlan={handleSwitchToStandard}        dashboardTargetTab={dashboardTargetTab}
+        setDashboardTargetTab={setDashboardTargetTab}      />
 )}
 
 {activePage === "learning-content" && selectedSubject && (
   <NewQuizSystem
     module={selectedSubject}
     userPlan={userPlan}
-    onBack={() => setActivePage("dashboard")}
+    onBack={() => {
+      setDashboardTargetTab("subjects");
+      setActivePage("dashboard");
+    }}
 
     setQuizScore={(score) => {
       setQuizScore(score);
-      saveProgress(completedItems, score, practicalScore);
     }}
 
     setPracticalScore={(score) => {
       setPracticalScore(score);
-      saveProgress(completedItems, quizScore, score);
     }}
 
     completedItems={completedItems}
 
     setCompletedItems={(itemsOrFunction) => {
-      const newItems =
-        typeof itemsOrFunction === "function"
-          ? itemsOrFunction(completedItems)
-          : itemsOrFunction;
-
-      setCompletedItems(newItems);
-      saveProgress(newItems, quizScore, practicalScore);
+      if (typeof itemsOrFunction === "function") {
+        setCompletedItems((prev) => itemsOrFunction(prev));
+      } else {
+        setCompletedItems(itemsOrFunction);
+      }
     }}
 
     updateAdaptiveLevel={updateAdaptiveLevel}
