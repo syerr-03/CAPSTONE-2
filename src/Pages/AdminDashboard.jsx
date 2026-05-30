@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { db } from "../firebase";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp, getDoc } from "firebase/firestore";
 import "../App.css";
 
 const defaultSubjectsByLevel = {
@@ -199,18 +199,44 @@ function AdminDashboard() {
   };
 
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem("bbSubjectsByLevel"));
+    const loadSubjects = async () => {
+      try {
+        const docRef = doc(db, "config", "bbSubjectsByLevel");
+        const docSnap = await getDoc(docRef);
+        
+        if (docSnap.exists()) {
+          const firestoreData = docSnap.data().subjectsByLevel;
+          console.log("Loading subjects from Firestore:", firestoreData);
+          setSubjectsByLevel(firestoreData);
+          localStorage.setItem("bbSubjectsByLevel", JSON.stringify(firestoreData));
+        } else {
+          const saved = JSON.parse(localStorage.getItem("bbSubjectsByLevel"));
+          console.log("Loading subjects from localStorage:", saved);
+          if (saved) {
+            setSubjectsByLevel(saved);
+          } else {
+            localStorage.setItem(
+              "bbSubjectsByLevel",
+              JSON.stringify(defaultSubjectsByLevel)
+            );
+          }
+        }
+      } catch (e) {
+        console.warn("Failed to load subjects from Firestore, falling back to localStorage", e);
+        const saved = JSON.parse(localStorage.getItem("bbSubjectsByLevel"));
+        console.log("Loading subjects from localStorage:", saved);
+        if (saved) {
+          setSubjectsByLevel(saved);
+        } else {
+          localStorage.setItem(
+            "bbSubjectsByLevel",
+            JSON.stringify(defaultSubjectsByLevel)
+          );
+        }
+      }
+    };
 
-    console.log("Loading subjects from localStorage:", saved);
-
-    if (saved) {
-      setSubjectsByLevel(saved);
-    } else {
-      localStorage.setItem(
-        "bbSubjectsByLevel",
-        JSON.stringify(defaultSubjectsByLevel)
-      );
-    }
+    loadSubjects();
 
     const handleSubjectsUpdate = () => {
       const updated = JSON.parse(localStorage.getItem("bbSubjectsByLevel"));
