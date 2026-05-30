@@ -13,6 +13,8 @@ function AdminDashboard() {
   const [selectedLevel, setSelectedLevel] = useState("beginner");
   const [viewMode, setViewMode] = useState("manage"); // 'manage' | 'list' | 'listQuizzes' | 'manageQuizContents'
   const [subjectsByLevel, setSubjectsByLevel] = useState(defaultSubjectsByLevel);
+  const [showSelectLevel, setShowSelectLevel] = useState(false);
+  const [showAddSubjectForm, setShowAddSubjectForm] = useState(false);
 
   const [subjectTitle, setSubjectTitle] = useState("");
   const [subjectDesc, setSubjectDesc] = useState("");
@@ -199,6 +201,8 @@ function AdminDashboard() {
   useEffect(() => {
     const saved = JSON.parse(localStorage.getItem("bbSubjectsByLevel"));
 
+    console.log("Loading subjects from localStorage:", saved);
+
     if (saved) {
       setSubjectsByLevel(saved);
     } else {
@@ -207,14 +211,42 @@ function AdminDashboard() {
         JSON.stringify(defaultSubjectsByLevel)
       );
     }
+
+    const handleSubjectsUpdate = () => {
+      const updated = JSON.parse(localStorage.getItem("bbSubjectsByLevel"));
+      console.log("Subjects updated event:", updated);
+      if (updated) {
+        setSubjectsByLevel(updated);
+      }
+    };
+
+    window.addEventListener("bbSubjectsUpdated", handleSubjectsUpdate);
+
+    return () => {
+      window.removeEventListener("bbSubjectsUpdated", handleSubjectsUpdate);
+    };
   }, []);
 
-  const saveSubjects = (updated) => {
+  const saveSubjects = async (updated) => {
+    console.log("Saving subjects:", updated);
     setSubjectsByLevel(updated);
     localStorage.setItem("bbSubjectsByLevel", JSON.stringify(updated));
+    try {
+      await setDoc(doc(db, "config", "bbSubjectsByLevel"), { subjectsByLevel: updated, updatedAt: serverTimestamp() });
+    } catch (e) {
+      console.warn("Failed to persist subjects to Firestore", e);
+    }
+    try {
+      window.dispatchEvent(new Event("bbSubjectsUpdated"));
+    } catch (e) {
+      // ignore
+    }
   };
 
   const currentSubjects = subjectsByLevel[selectedLevel] || [];
+
+  console.log("Current subjects for", selectedLevel, ":", currentSubjects);
+  console.log("All subjects by level:", subjectsByLevel);
 
   const inputStyle = {
     width: "100%",
@@ -311,6 +343,7 @@ function AdminDashboard() {
 
     saveSubjects(updated);
     resetForm();
+    setViewMode("list");
   };
 
   const editSubject = (id, level = selectedLevel) => {
@@ -556,7 +589,7 @@ function AdminDashboard() {
             </h1>
           </div>
 
-          <button className="hero-button" onClick={logout} style={{ marginTop: "18px" }}>
+          <button className="hero-button" onClick={logout} style={{ marginTop: "18px", background: "#ef4444" }}>
             Logout
           </button>
         </header>
@@ -566,7 +599,7 @@ function AdminDashboard() {
           <div style={{ display: "flex", gap: 12, justifyContent: "center", marginBottom: 18 }}>
             <button
               className={"hero-button"}
-              onClick={() => setViewMode("list")}
+              onClick={() => setViewMode(viewMode === "list" ? null : "list")}
               style={{ background: viewMode === "list" ? "#7C3AED" : undefined }}
             >
               List Subjects
@@ -574,15 +607,7 @@ function AdminDashboard() {
 
             <button
               className={"hero-button"}
-              onClick={() => setViewMode("manage")}
-              style={{ background: viewMode === "manage" ? "#7C3AED" : undefined }}
-            >
-              Manage Learning Content
-            </button>
-
-            <button
-              className={"hero-button"}
-              onClick={() => setViewMode("listQuizzes")}
+              onClick={() => setViewMode(viewMode === "listQuizzes" ? null : "listQuizzes")}
               style={{ background: viewMode === "listQuizzes" ? "#7C3AED" : undefined }}
             >
               List Quizzes
@@ -590,153 +615,167 @@ function AdminDashboard() {
 
             <button
               className={"hero-button"}
-              onClick={() => setViewMode("manageQuizContents")}
-              style={{ background: viewMode === "manageQuizContents" ? "#7C3AED" : undefined }}
+              onClick={() => {
+                if (viewMode === "manage") {
+                  setViewMode(null);
+                  setShowSelectLevel(false);
+                  setShowAddSubjectForm(false);
+                } else {
+                  setViewMode("manage");
+                  setShowSelectLevel(true);
+                  setShowAddSubjectForm(true);
+                }
+              }}
+              style={{ background: viewMode === "manage" ? "#7C3AED" : undefined }}
             >
-              Manage Quiz Contents
+              Manage Learning Content
             </button>
           </div>
 
-          <div
-            className="module-card"
-            style={{
-              marginBottom: "25px",
-              padding: "30px",
-              borderRadius: "24px",
-              background: "#ffffff",
-              boxShadow: "0 8px 20px rgba(124,58,237,0.08)"
-            }}
-          >
-            <h3>Select Level First</h3>
-
-            <div style={{ display: "flex", gap: 12, justifyContent: "center", marginBottom: 12 }}>
-              <button
-                className="hero-button"
-                onClick={() => {
-                  const el = document.getElementById("add-subject-form");
-                  if (el) el.scrollIntoView({ behavior: "smooth" });
-                }}
-              >
-                Add Subject
-              </button>
-
-              <button
-                className="hero-button"
-                onClick={() => setShowAddQuiz((s) => !s)}
-              >
-                {showAddQuiz ? "Cancel" : "Add Quiz"}
-              </button>
-            </div>
-
-            {showAddQuiz && (
-              <div style={{ marginBottom: 12 }}>
-                <input
-                  className="search-input"
-                  placeholder="Quiz title"
-                  value={quizTitleStandalone}
-                  onChange={(e) => setQuizTitleStandalone(e.target.value)}
-                  style={inputStyle}
-                />
-
-                <input
-                  className="search-input"
-                  placeholder="Short description"
-                  value={quizDescStandalone}
-                  onChange={(e) => setQuizDescStandalone(e.target.value)}
-                  style={inputStyle}
-                />
-
-                <select
-                  className="search-input"
-                  value={quizLevelStandalone}
-                  onChange={(e) => setQuizLevelStandalone(e.target.value)}
-                  style={{ ...inputStyle, maxWidth: 260 }}
-                >
-                  <option value="beginner">Beginner</option>
-                  <option value="intermediate">Intermediate</option>
-                  <option value="advanced">Advanced</option>
-                </select>
-
-                <div style={{ marginTop: 8 }}>
-                  <button className="hero-button" onClick={saveStandaloneQuiz}>
-                    Save Quiz
-                  </button>
-                </div>
-              </div>
-            )}
-
-            <select
-              className="search-input"
-              value={selectedLevel}
-              onChange={(e) => setSelectedLevel(e.target.value)}
-              style={{ marginBottom: "15px", maxWidth: "300px" }}
+          {viewMode === "manage" && showSelectLevel && (
+            <div
+              className="module-card"
+              style={{
+                marginBottom: "25px",
+                padding: "30px",
+                borderRadius: "24px",
+                background: "#ffffff",
+                boxShadow: "0 8px 20px rgba(124,58,237,0.08)"
+              }}
             >
-              <option value="beginner">Beginner</option>
-              <option value="intermediate">Intermediate</option>
-              <option value="advanced">Advanced</option>
-            </select>
+              <h3>Select Level First</h3>
 
-            <p>
-              You are editing: <b>{selectedLevel.toUpperCase()}</b>
-            </p>
-          </div>
-
-          <div
-            id="add-subject-form"
-            className="module-card"
-            style={{
-              marginBottom: "25px",
-              padding: "35px",
-              borderRadius: "24px",
-              background: "#ffffff",
-              boxShadow: "0 8px 20px rgba(124,58,237,0.08)"
-            }}
-          >
-            <h3>Add Subject for {selectedLevel}</h3>
-
-            <input
-              className="search-input"
-              placeholder="Subject title"
-              value={subjectTitle}
-              onChange={(e) => setSubjectTitle(e.target.value)}
-              style={inputStyle}
-            />
-
-            <input
-              className="search-input"
-              placeholder="Subject description"
-              value={subjectDesc}
-              onChange={(e) => setSubjectDesc(e.target.value)}
-              style={inputStyle}
-            />
-
-            <input
-              className="search-input"
-              placeholder="Icon"
-              value={subjectIcon}
-              onChange={(e) => setSubjectIcon(e.target.value)}
-              style={inputStyle}
-            />
-
-            {subjectTitle.trim() !== "" && (
-              <>
-                {moduleForms.map((module, index) => renderModuleForm(module, index))}
+              <div style={{ display: "flex", gap: 12, justifyContent: "center", marginBottom: 12 }}>
+                <button
+                  className="hero-button"
+                  onClick={() => {
+                    const el = document.getElementById("add-subject-form");
+                    if (el) el.scrollIntoView({ behavior: "smooth" });
+                  }}
+                >
+                  Add Subject
+                </button>
 
                 <button
-                  type="button"
                   className="hero-button"
-                  style={{ marginTop: "16px", background: "#7C3AED" }}
-                  onClick={addModuleForm}
+                  onClick={() => setShowAddQuiz((s) => !s)}
                 >
-                  + Add Module
+                  {showAddQuiz ? "Cancel" : "Add Quiz"}
                 </button>
-              </>
-            )}
+              </div>
 
-            <button className="hero-button" onClick={addSubject}>
-              Add Subject
-            </button>
-          </div>
+              {showAddQuiz && (
+                <div style={{ marginBottom: 12 }}>
+                  <input
+                    className="search-input"
+                    placeholder="Quiz title"
+                    value={quizTitleStandalone}
+                    onChange={(e) => setQuizTitleStandalone(e.target.value)}
+                    style={inputStyle}
+                  />
+
+                  <input
+                    className="search-input"
+                    placeholder="Short description"
+                    value={quizDescStandalone}
+                    onChange={(e) => setQuizDescStandalone(e.target.value)}
+                    style={inputStyle}
+                  />
+
+                  <select
+                    className="search-input"
+                    value={quizLevelStandalone}
+                    onChange={(e) => setQuizLevelStandalone(e.target.value)}
+                    style={{ ...inputStyle, maxWidth: 260 }}
+                  >
+                    <option value="beginner">Beginner</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="advanced">Advanced</option>
+                  </select>
+
+                  <div style={{ marginTop: 8 }}>
+                    <button className="hero-button" onClick={saveStandaloneQuiz}>
+                      Save Quiz
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <select
+                className="search-input"
+                value={selectedLevel}
+                onChange={(e) => setSelectedLevel(e.target.value)}
+                style={{ marginBottom: "15px", maxWidth: "300px" }}
+              >
+                <option value="beginner">Beginner</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advanced">Advanced</option>
+              </select>
+
+              <p>
+                You are editing: <b>{selectedLevel.toUpperCase()}</b>
+              </p>
+            </div>
+          )}
+
+          {viewMode === "manage" && showAddSubjectForm && (
+            <div
+              id="add-subject-form"
+              className="module-card"
+              style={{
+                marginBottom: "25px",
+                padding: "35px",
+                borderRadius: "24px",
+                background: "#ffffff",
+                boxShadow: "0 8px 20px rgba(124,58,237,0.08)"
+              }}
+            >
+              <h3>Add Subject for {selectedLevel}</h3>
+
+              <input
+                className="search-input"
+                placeholder="Subject title"
+                value={subjectTitle}
+                onChange={(e) => setSubjectTitle(e.target.value)}
+                style={inputStyle}
+              />
+
+              <input
+                className="search-input"
+                placeholder="Subject description"
+                value={subjectDesc}
+                onChange={(e) => setSubjectDesc(e.target.value)}
+                style={inputStyle}
+              />
+
+              <input
+                className="search-input"
+                placeholder="Icon"
+                value={subjectIcon}
+                onChange={(e) => setSubjectIcon(e.target.value)}
+                style={inputStyle}
+              />
+
+              {subjectTitle.trim() !== "" && (
+                <>
+                  {moduleForms.map((module, index) => renderModuleForm(module, index))}
+
+                  <button
+                    type="button"
+                    className="hero-button"
+                    style={{ marginTop: "16px", background: "#7C3AED" }}
+                    onClick={addModuleForm}
+                  >
+                    + Add Module
+                  </button>
+                </>
+              )}
+
+              <button className="hero-button" onClick={addSubject}>
+                Add Subject
+              </button>
+            </div>
+          )}
 
           {viewMode === "manage" ? (
             currentSubjects.map((subject) => (
@@ -921,42 +960,6 @@ function AdminDashboard() {
                 ))}
               </div>
             ))
-          ) : viewMode === "manageQuizContents" ? (
-            // Manage Quiz Contents form
-            <div className="module-card" style={{ padding: 24 }}>
-              <h3>{editingQuiz ? "Edit Quiz" : "Create Standalone Quiz"}</h3>
-
-              <input className="search-input" placeholder="Quiz title" value={quizFormTitle} onChange={(e) => setQuizFormTitle(e.target.value)} style={inputStyle} />
-              <input className="search-input" placeholder="Short description" value={quizFormDesc} onChange={(e) => setQuizFormDesc(e.target.value)} style={inputStyle} />
-              <select className="search-input" value={quizFormLevel} onChange={(e) => setQuizFormLevel(e.target.value)} style={{ ...inputStyle, maxWidth: 260 }}>
-                <option value="beginner">Beginner</option>
-                <option value="intermediate">Intermediate</option>
-                <option value="advanced">Advanced</option>
-              </select>
-
-              <div style={{ marginTop: 12 }}>
-                <h4>Questions</h4>
-                {quizFormQuestions.map((q, idx) => (
-                  <div key={q.id} style={{ background: "#FAF7FF", padding: 12, borderRadius: 12, marginBottom: 8 }}>
-                    <input className="search-input" placeholder={`Question ${idx + 1}`} value={q.question} onChange={(e) => updateQuizQuestionField(idx, "question", e.target.value)} style={inputStyle} />
-                    <input className="search-input" placeholder="Option 1" value={q.option1} onChange={(e) => updateQuizQuestionField(idx, "option1", e.target.value)} style={inputStyle} />
-                    <input className="search-input" placeholder="Option 2" value={q.option2} onChange={(e) => updateQuizQuestionField(idx, "option2", e.target.value)} style={inputStyle} />
-                    <input className="search-input" placeholder="Option 3" value={q.option3} onChange={(e) => updateQuizQuestionField(idx, "option3", e.target.value)} style={inputStyle} />
-                    <input className="search-input" placeholder="Option 4" value={q.option4} onChange={(e) => updateQuizQuestionField(idx, "option4", e.target.value)} style={inputStyle} />
-                    <input className="search-input" placeholder="Correct Answer (exact text)" value={q.correctAnswer} onChange={(e) => updateQuizQuestionField(idx, "correctAnswer", e.target.value)} style={inputStyle} />
-                  </div>
-                ))}
-
-                <div style={{ marginTop: 8 }}>
-                  <button className="hero-button" onClick={addQuizQuestionForm}>+ Add More Question</button>
-                </div>
-
-                <div style={{ marginTop: 12 }}>
-                  <button className="hero-button" onClick={saveQuizFromForm}>{editingQuiz ? "Save Quiz" : "Create Quiz"}</button>
-                  <button className="hero-button" style={{ marginLeft: 8 }} onClick={() => { setEditingQuiz(null); setViewMode("listQuizzes"); }}>Cancel</button>
-                </div>
-              </div>
-            </div>
           ) : (
             <p>Invalid view mode</p>
           )}
