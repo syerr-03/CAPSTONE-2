@@ -10,6 +10,7 @@ import {
   serverTimestamp,
   doc,
   setDoc,
+  onSnapshot,
   getDoc
 } from "firebase/firestore";
 
@@ -22,9 +23,61 @@ function QuizPage({
   learningLevel = "beginner"
 }) {
   const [selectedQuiz, setSelectedQuiz] = useState(null);
+  const [customQuizzes, setCustomQuizzes] = useState([]);
     useEffect(() => {
     setSelectedQuiz(null);
   }, [learningLevel]);
+
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("bbQuizzes")) || [];
+      setCustomQuizzes(Array.isArray(saved) ? saved : []);
+    } catch (e) {
+      setCustomQuizzes([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    // realtime listener from Firestore doc 'config/bbQuizzes'
+    try {
+      const qDoc = doc(db, "config", "bbQuizzes");
+      const unsub = onSnapshot(qDoc, (snap) => {
+        if (snap.exists()) {
+          const data = snap.data()?.quizzes || [];
+          setCustomQuizzes(Array.isArray(data) ? data : []);
+        }
+      });
+
+      return () => unsub();
+    } catch (e) {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    const handler = (e) => {
+      try {
+        if (e?.type === "storage") {
+          if (e.key === "bbQuizzes") {
+            const saved = JSON.parse(e.newValue) || [];
+            setCustomQuizzes(Array.isArray(saved) ? saved : []);
+          }
+        } else if (e?.type === "bbQuizzesUpdated") {
+          const saved = JSON.parse(localStorage.getItem("bbQuizzes")) || [];
+          setCustomQuizzes(Array.isArray(saved) ? saved : []);
+        }
+      } catch {
+        setCustomQuizzes([]);
+      }
+    };
+
+    window.addEventListener("storage", handler);
+    window.addEventListener("bbQuizzesUpdated", handler);
+    return () => {
+      window.removeEventListener("storage", handler);
+      window.removeEventListener("bbQuizzesUpdated", handler);
+    };
+  }, []);
 
   const [quizAnswers, setQuizAnswers] = useState({});
   const [quizSubmitted, setQuizSubmitted] = useState(false);
@@ -331,9 +384,17 @@ function QuizPage({
   }
 };
   const activeQuiz = selectedQuiz ? quizCategories[selectedQuiz] : null;
+    // support for custom quizzes saved by admin (id prefixed with custom_)
+    const activeCustomQuiz = selectedQuiz && selectedQuiz.startsWith("custom_")
+      ? customQuizzes.find((q) => `custom_${q.id}` === selectedQuiz)
+      : null;
+
+    const finalActiveQuiz = activeCustomQuiz
+      ? { title: activeCustomQuiz.title, description: activeCustomQuiz.description, questions: activeCustomQuiz.questions || [] }
+      : activeQuiz;
   
-  const activeQuestions = activeQuiz
-    ? activeQuiz.questions.filter((q) =>
+  const activeQuestions = finalActiveQuiz && Array.isArray(finalActiveQuiz.questions)
+    ? finalActiveQuiz.questions.filter((q) =>
         allowedLevels[learningLevel || "beginner"]?.includes(q.level)
       )
     : [];
@@ -609,22 +670,22 @@ await addDoc(collection(db, "performanceHistory"), {
       }}
     >
       <span
-  style={{
-    width: "56px",
-    height: "56px",
-    borderRadius: "18px",
-    background: "white",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "26px"
-  }}
->
-  {key === "dataScience" && "📊"}
-  {key === "artificialIntelligence" && "🤖"}
-  {key === "machineLearning" && "🧠"}
-  {key === "pythonBasics" && "🐍"}
-</span>
+        style={{
+          width: "56px",
+          height: "56px",
+          borderRadius: "18px",
+          background: "white",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "26px"
+        }}
+      >
+        {key === "dataScience" && "📊"}
+        {key === "artificialIntelligence" && "🤖"}
+        {key === "machineLearning" && "🧠"}
+        {key === "pythonBasics" && "🐍"}
+      </span>
 
       <div style={{ flex: 1 }}>
         <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "800" }}>
@@ -647,6 +708,58 @@ await addDoc(collection(db, "performanceHistory"), {
       <span style={{ fontSize: "30px", fontWeight: "800", color: "#8b5cf6" }}>
         ›
       </span>
+    </button>
+  ))}
+
+  {/* custom quizzes */}
+  {customQuizzes.filter(q => allowedLevels[learningLevel || "beginner"].includes(q.level)).map((q) => (
+    <button
+      key={`custom_${q.id}`}
+      onClick={() => {
+        setSelectedQuiz(`custom_${q.id}`);
+        setQuizAnswers({});
+        setQuizSubmitted(false);
+      }}
+      style={{
+        border: "2px solid #e9d5ff",
+        borderRadius: "24px",
+        padding: "24px",
+        background: "linear-gradient(135deg, #fffaf0, #fff7ed)",
+        boxShadow: "0 12px 28px rgba(124, 58, 237, 0.08)",
+        display: "flex",
+        alignItems: "center",
+        gap: "16px",
+        textAlign: "left",
+        cursor: "pointer",
+        color: "#2f235f"
+      }}
+    >
+      <span
+        style={{
+          width: "56px",
+          height: "56px",
+          borderRadius: "18px",
+          background: "white",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "26px"
+        }}
+      >
+        🎯
+      </span>
+
+      <div style={{ flex: 1 }}>
+        <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "800" }}>{q.title}</h3>
+        <p style={{ margin: "6px 0 0", color: "#7c6aa8", fontSize: "14px" }}>{q.description}</p>
+        {q.questions && q.questions.length > 0 ? (
+          <p style={{ margin: "6px 0 0", color: "#7c6aa8", fontSize: "14px" }}>{q.questions.length} questions • Custom Quiz</p>
+        ) : (
+          <p style={{ margin: "6px 0 0", color: "#ff6b6b", fontSize: "14px" }}>Quiz not ready (no questions)</p>
+        )}
+      </div>
+
+      <span style={{ fontSize: "30px", fontWeight: "800", color: "#8b5cf6" }}>›</span>
     </button>
   ))}
 </div>

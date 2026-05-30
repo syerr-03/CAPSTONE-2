@@ -51,7 +51,7 @@ function ProgressPage({ studentData = {}, onBack }) {
         </div>
 
         <p className="small-text">
-          {studentData.completedModules || 0} of {studentData.totalModules || 0} learning items completed
+          {studentData.completedModules || 0} of {studentData.totalModules || 0} subjects completed
         </p>
       </div>
 

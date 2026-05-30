@@ -808,6 +808,16 @@ const getAdminItemContent = (item) => {
   };
 
   const allItems = moduleSections.flatMap((section) => section.items);
+  const practicalItemIds = allItems
+    .filter((item) => item.type === "Practical Assignment")
+    .map((item) => item.id);
+
+  const getPracticalCompletionPercent = (completedIds) => {
+    const completedCount = practicalItemIds.filter((id) => completedIds.includes(id)).length;
+    return practicalItemIds.length
+      ? Math.round((completedCount / practicalItemIds.length) * 100)
+      : 0;
+  };
 
   const markItemCompleted = (itemId) => {
   const todayKey = new Date().toISOString().split("T")[0];
@@ -980,9 +990,14 @@ const getAdminItemContent = (item) => {
 
   const handlePracticalSubmit = () => {
     setPracticalSubmitted(true);
+
+    const completedNow = safeCompletedItems.includes(activeItem.id)
+      ? safeCompletedItems
+      : [...safeCompletedItems, activeItem.id];
+
     markItemCompleted(activeItem.id);
 
-    const percent = practicalText.trim().length > 10 ? 80 : 40;
+    const percent = getPracticalCompletionPercent(completedNow);
 
     if (typeof setPracticalScore === "function") setPracticalScore(percent);
 

@@ -136,7 +136,9 @@ const quizScoreList = Object.entries(quizSource).map(([key, value]) => ({
             >
               <h3 className="section-title">Level</h3>
               <p className="main-title" style={{ fontSize: "32px" }}>
-                {studentData?.difficultyLevel || "Medium"}
+                {learningLevel
+                  ? learningLevel.charAt(0).toUpperCase() + learningLevel.slice(1)
+                  : "Beginner"}
               </p>
             </button>
           </div>
@@ -196,8 +198,12 @@ const quizScoreList = Object.entries(quizSource).map(([key, value]) => ({
 
             {selectedMetric === "difficulty" && (
               <p>
-                Current system adaptive level:{" "}
-                <strong>{studentData?.difficultyLevel || "Medium"}</strong>
+                Current learning level: {" "}
+                <strong>
+                  {learningLevel
+                    ? learningLevel.charAt(0).toUpperCase() + learningLevel.slice(1)
+                    : "Beginner"}
+                </strong>
               </p>
             )}
           </div>

@@ -7,7 +7,7 @@ import { db, auth } from "../firebase";
 
 import "../App.css";
 
-function Login({ goToRegister, goToDashboard }) {
+function Login({ goToRegister, goToDashboard, setCurrentUser }) {
   const [showPassword, setShowPassword] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -61,7 +61,12 @@ function Login({ goToRegister, goToDashboard }) {
 
       // 🔥 Simpan nama user
       localStorage.setItem("name", userData.name);
+      localStorage.setItem("username", username);
+      localStorage.setItem("loggedInUser", username);
       localStorage.setItem("userEmail", userData.email);
+      if (typeof setCurrentUser === "function") {
+        setCurrentUser(username);
+      }
       
       if (userData.createdAt) {
         const createdDate = userData.createdAt.toDate();

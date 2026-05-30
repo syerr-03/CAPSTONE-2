@@ -70,10 +70,8 @@ function Register({ goToLogin }) {
 
       localStorage.setItem("justRegistered", "true");
       localStorage.setItem("name", name);
-
-      localStorage.setItem("userName", name);
+      localStorage.setItem("username", username);
       localStorage.setItem("userEmail", email);
-
       localStorage.setItem("uid", user.uid);
       localStorage.setItem("phone", "");
       localStorage.setItem("profilePic", "");
