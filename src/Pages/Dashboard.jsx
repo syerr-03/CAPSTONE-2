@@ -1266,18 +1266,11 @@ useEffect(() => {
 </button>
 
 <button
-  className={`simple-menu-tab ${activeTab === "content" ? "active" : ""}`}
-  onClick={() => goToTab("content")}
->
-  Content
-</button>
-
-<button
   className={`simple-menu-tab ${
-    activeTab === "content" ? "active" : ""
+    activeTab === "forum" ? "active" : ""
   }`}
   style={{ flexShrink: 0 }}
-  onClick={() => goToTab("content")}
+  onClick={() => goToTab("forum")}
 >
   Forum
 </button>
@@ -1294,6 +1287,15 @@ useEffect(() => {
   onClick={() => goToTab("performance")}
 >
   Performance
+</button>
+
+<button
+  className={`simple-menu-tab ${
+    activeTab === "notes" ? "active" : ""
+  }`}
+  onClick={() => goToTab("notes")}
+>
+  Notes
 </button>
             </nav>
           </header>
@@ -1489,13 +1491,6 @@ useEffect(() => {
             </section>
           )}
 
-          {/* FORUM PAGE */}
-          {activeTab === "content" && (
-            <section className="dashboard-content-section">
-              <ForumPage />
-            </section>
-          )}
-
           {/* QUIZ TAB */}
           {activeTab === "quiz" && (
             <section className="dashboard-content-section">
@@ -1521,6 +1516,12 @@ useEffect(() => {
                 leaderboard={leaderboard}
                 learningLevel={learningLevel}
               />
+            </section>
+          )}
+
+          {activeTab === "notes" && (
+            <section className="dashboard-content-section">
+              <Notes />
             </section>
           )}
 
