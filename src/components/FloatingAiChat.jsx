@@ -3,6 +3,19 @@ import { useState } from "react";
 function FloatingAiChat() {
   const [isOpen, setIsOpen] = useState(false);
   const [question, setQuestion] = useState("");
+  const userName = localStorage.getItem("name") || "Student";
+  const moduleName = localStorage.getItem("currentModule") || "defaultModule";
+
+  const premiumKey = `premium_${userName}`;
+  const chatLimitKey = `chatCount_${userName}_${moduleName}`;
+
+  const [isPremium, setIsPremium] = useState(
+    localStorage.getItem(premiumKey) === "true"
+  );
+
+  const [chatCount, setChatCount] = useState(
+    Number(localStorage.getItem(chatLimitKey)) || 0
+  );
   const [messages, setMessages] = useState (() => {
     const savedMessages = localStorage.getItem("aiChatMessanges");
     return savedMessages
@@ -47,22 +60,59 @@ function FloatingAiChat() {
   };
 
   const askAI = () => {
-    if (!question.trim()) return;
+  if (!question.trim()) return;
 
-    const userQuestion = question.trim();
-    const aiAnswer = generateAnswer(userQuestion);
-
-    const newMessages = [
+  if (!isPremium && chatCount >= 3) {
+    const limitMessage = [
       ...messages,
-      { sender: "user", text: userQuestion },
-      { sender: "ai", text: aiAnswer },
+      {
+        sender: "ai",
+        text: "You have reached the free limit of 3 AI questions for this module. Subscribe to Premium for unlimited AI questions."
+      }
     ];
 
-    setMessages(newMessages);
-    localStorage.setItem("aiChatMessanges", JSON.stringify(newMessages));
-
+    setMessages(limitMessage);
+    localStorage.setItem("aiChatMessanges", JSON.stringify(limitMessage));
     setQuestion("");
-  };
+    return;
+  }
+
+  const userQuestion = question.trim();
+  const aiAnswer = generateAnswer(userQuestion);
+
+  const newMessages = [
+    ...messages,
+    { sender: "user", text: userQuestion },
+    { sender: "ai", text: aiAnswer },
+  ];
+
+  setMessages(newMessages);
+  localStorage.setItem("aiChatMessanges", JSON.stringify(newMessages));
+
+  if (!isPremium) {
+    const newCount = chatCount + 1;
+    setChatCount(newCount);
+    localStorage.setItem(chatLimitKey, newCount);
+  }
+
+  setQuestion("");
+};
+
+const handleSubscribePremium = () => {
+  localStorage.setItem(premiumKey, "true");
+  setIsPremium(true);
+
+  const premiumMessage = [
+    ...messages,
+    {
+      sender: "ai",
+      text: "Premium activated! You can now ask unlimited AI questions."
+    }
+  ];
+
+  setMessages(premiumMessage);
+  localStorage.setItem("aiChatMessanges", JSON.stringify(premiumMessage));
+};
 
   return (
     <>
@@ -187,6 +237,55 @@ function FloatingAiChat() {
               gap: "10px",
             }}
           >
+            {!isPremium && (
+              <div
+                style={{
+                  padding: "10px 14px",
+                  background: "#F5F3FF",
+                  borderTop: "1px solid #EEE8FF",
+                  fontSize: "13px",
+                  color: "#5B21B6",
+                  textAlign: "center",
+                  fontWeight: "600"
+                }}
+              >
+                Free questions left: {Math.max(0, 3 - chatCount)} / 3
+                {chatCount >= 3 && (
+                  <button
+                    onClick={handleSubscribePremium}
+                    style={{
+                      marginLeft: "10px",
+                      padding: "8px 12px",
+                      borderRadius: "999px",
+                      border: "none",
+                      background: "#7C3AED",
+                      color: "white",
+                      cursor: "pointer",
+                      fontWeight: "700"
+                    }}
+                  >
+                    Subscribe Premium
+                  </button>
+                )}
+              </div>
+            )}
+
+            {isPremium && (
+              <div
+                style={{
+                  padding: "10px 14px",
+                  background: "#ECFDF5",
+                  borderTop: "1px solid #BBF7D0",
+                  fontSize: "13px",
+                  color: "#166534",
+                  textAlign: "center",
+                  fontWeight: "700"
+                }}
+              >
+                ⭐ Premium Active — Unlimited AI questions
+              </div>
+            )}
+            
             <input
               type="text"
               placeholder="Type your question..."
