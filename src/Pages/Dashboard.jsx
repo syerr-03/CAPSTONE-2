@@ -640,102 +640,70 @@ useEffect(() => {
   ];
 
   const allCourses = [
-    {
-      id: 1,
-      title: "What is Data Science?",
-      description: "Start with the basic meaning, purpose, and use of data science.",
-      icon: "📊",
-      level: "Beginner",
-      topic: "Data Science Basics"
-    },
-    {
-      id: 2,
-      title: "Python for Data Science",
-      description: "Learn basic Python syntax, variables, and simple coding skills.",
-      icon: "🐍",
-      level: "Beginner",
-      topic: "Python Basics"
-    },
-    {
-      id: 3,
-      title: "Statistics Fundamentals",
-      description: "Improve your understanding of probability, mean, and data analysis.",
-      icon: "📈",
-      level: "Intermediate",
-      topic: "Statistics"
-    },
-    {
-      id: 4,
-      title: "Exploratory Data Analysis",
-      description: "Learn how to inspect, clean, and understand datasets.",
-      icon: "🔍",
-      level: "Intermediate",
-      topic: "EDA"
-    },
-    {
-      id: 5,
-      title: "Machine Learning Basics",
-      description: "Understand model training, prediction, and evaluation.",
-      icon: "🤖",
-      level: "Advanced",
-      topic: "Machine Learning"
-    },
-    {
-      id: 6,
-      title: "Data Visualization",
-      description: "Learn advanced ways to present insights using charts and dashboards.",
-      icon: "🎨",
-      level: "Advanced",
-      topic: "Data Visualization"
-    }
-  ];
+  {
+    id: 1,
+    title: "What is Data Science?",
+    description: "Start with the basic meaning, purpose, and use of data science.",
+    icon: "📊",
+    level: "Beginner",
+    topic: "Data Science Basics",
+    quizId: "dataScience"
+  },
+  {
+    id: 2,
+    title: "Python for Data Science",
+    description: "Learn basic Python syntax, variables, and simple coding skills.",
+    icon: "🐍",
+    level: "Beginner",
+    topic: "Python Basics",
+    quizId: "pythonBasics"
+  },
+  {
+    id: 3,
+    title: "Statistics Fundamentals",
+    description: "Improve your understanding of probability, mean, and data analysis.",
+    icon: "📈",
+    level: "Intermediate",
+    topic: "Statistics",
+    quizId: "dataScience"
+  },
+  {
+    id: 4,
+    title: "Exploratory Data Analysis",
+    description: "Learn how to inspect, clean, and understand datasets.",
+    icon: "🔍",
+    level: "Intermediate",
+    topic: "EDA",
+    quizId: "dataScience"
+  },
+  {
+    id: 5,
+    title: "Machine Learning Basics",
+    description: "Understand model training, prediction, and evaluation.",
+    icon: "🤖",
+    level: "Advanced",
+    topic: "Machine Learning",
+    quizId: "machineLearning"
+  },
+  {
+    id: 6,
+    title: "Artificial Intelligence Fundamentals",
+    description: "Understand AI concepts, applications, and ethical AI.",
+    icon: "🧠",
+    level: "Advanced",
+    topic: "Artificial Intelligence",
+    quizId: "artificialIntelligence"
+  }
+];
 
-  const quizScores = JSON.parse(localStorage.getItem("quizScores") || "{}");
+ const weakQuizId = localStorage.getItem("weakQuizId");
 
-  const weaknessMap = {
-    dataScience: "Data Science Basics",
-    artificialIntelligence: "Machine Learning",
-    machineLearning: "Machine Learning",
-    pythonProgramming: "Python Basics",
-    statistics: "Statistics",
-    eda: "EDA",
-    dataVisualization: "Data Visualization"
-  };
-
-  const weakTopics = Object.entries(quizScores)
-    .filter(([quizId, score]) => Number(score) < 60)
-    .map(([quizId]) => weaknessMap[quizId])
-    .filter(Boolean);
-
-  const recommendedCourses =
-    weakTopics.length > 0
-      ? allCourses.filter((course) => weakTopics.includes(course.topic))
-      : allCourses.filter(
-          (course) =>
-            course.level.toLowerCase() === learningLevel.toLowerCase()
-        );
-
-  const handleSaveProfile = async () => {
-    try {
-      const uid = localStorage.getItem("uid");
-
-      if (uid) {
-        await updateDoc(doc(db, "users", uid), {
-          name: editName,
-          phone: editPhone,
-        });
-      }
-
-      localStorage.setItem("name", editName);
-      localStorage.setItem("phone", editPhone);
-      localStorage.setItem("profilePic", editProfilePic);
-
-      alert("Profile updated successfully!");
-      setActiveTab("account");
-    } catch (error) {
-      alert(error.message);
-    }
-  };
+const recommendedCourses = weakQuizId
+  ? allCourses.filter((course) => course.quizId === weakQuizId)
+  : allCourses.filter(
+      (course) =>
+        course.level.toLowerCase() === learningLevel.toLowerCase()
+    );
 
   return (
     <div className="dashboard-page">
@@ -1472,8 +1440,13 @@ useEffect(() => {
 
               {/* MY COURSES */}
               <section className="dashboard-content-section">
-                <h2 className="section-title">My Courses</h2>
-                <SubjectGrid onEnroll={enrollSubject} learningLevel={learningLevel} />
+                <h2 className="section-title">Recommended Courses</h2>
+                <SubjectGrid
+                subjects={recommendedCourses}
+                onEnroll={enrollSubject}
+                learningLevel={learningLevel}
+                userPlan={userPlan}
+              />
               </section>
             </>
           )}
@@ -1481,13 +1454,14 @@ useEffect(() => {
           {/* SUBJECTS TAB */}
           {activeTab === "subjects" && (
             <section className="dashboard-content-section">
-              <h2 className="section-title">Available Subjects</h2>
+              <h2 className="section-title">Recommended Courses</h2>
+
               <SubjectGrid
-                onEnroll={enrollSubject}
-                subjects={subjectsForLevel}
-                learningLevel={learningLevel}
-                userPlan={userPlan}
-              />
+            subjects={subjectsForLevel}
+            onEnroll={enrollSubject}
+            learningLevel={learningLevel}
+            userPlan={userPlan}
+          />
             </section>
           )}
 
@@ -1693,29 +1667,7 @@ useEffect(() => {
                 </div>
               </div>
 
-              <h3 className="account-section-title">Security</h3>
 
-              <div className="security-card">
-                <div className="security-row">
-                  <div className="security-icon">🔒</div>
-                  <div>
-                    <h4>Change Password</h4>
-                    <p>Update your password regularly for better security.</p>
-                  </div>
-                  <button>Change</button>
-                </div>
-
-                <hr />
-
-                <div className="security-row">
-                  <div className="security-icon">🛡️</div>
-                  <div>
-                    <h4>Two-Factor Authentication (2FA)</h4>
-                    <p>Add an extra layer of security to your account.</p>
-                  </div>
-                  <button>Manage</button>
-                </div>
-              </div>
             </section>
           )}
 
@@ -1938,7 +1890,7 @@ useEffect(() => {
             <section className="dashboard-content-section">
 
               <button className="back-btn" onClick={() => goToTab("dashboard")}>
-                ← Back
+             ← Back
               </button>
 
               <ForumPage />

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "../App.css";
+import LeaderboardPage from "../ProgressManagement/LeaderboardPage.jsx";
 import { useEffect } from "react";
 
 import { auth, db } from "../firebase";
@@ -10,7 +11,6 @@ import {
   serverTimestamp,
   doc,
   setDoc,
-  onSnapshot,
   getDoc
 } from "firebase/firestore";
 
@@ -20,64 +20,14 @@ function QuizPage({
   leaderboard = [],
   updateLeaderboard,
   onSubmitQuiz,
-  learningLevel = "beginner"
+  learningLevel = "beginner",
+  userPlan = "standard"
 }) {
+
   const [selectedQuiz, setSelectedQuiz] = useState(null);
-  const [customQuizzes, setCustomQuizzes] = useState([]);
     useEffect(() => {
     setSelectedQuiz(null);
   }, [learningLevel]);
-
-  useEffect(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem("bbQuizzes")) || [];
-      setCustomQuizzes(Array.isArray(saved) ? saved : []);
-    } catch (e) {
-      setCustomQuizzes([]);
-    }
-  }, []);
-
-  useEffect(() => {
-    // realtime listener from Firestore doc 'config/bbQuizzes'
-    try {
-      const qDoc = doc(db, "config", "bbQuizzes");
-      const unsub = onSnapshot(qDoc, (snap) => {
-        if (snap.exists()) {
-          const data = snap.data()?.quizzes || [];
-          setCustomQuizzes(Array.isArray(data) ? data : []);
-        }
-      });
-
-      return () => unsub();
-    } catch (e) {
-      // ignore
-    }
-  }, []);
-
-  useEffect(() => {
-    const handler = (e) => {
-      try {
-        if (e?.type === "storage") {
-          if (e.key === "bbQuizzes") {
-            const saved = JSON.parse(e.newValue) || [];
-            setCustomQuizzes(Array.isArray(saved) ? saved : []);
-          }
-        } else if (e?.type === "bbQuizzesUpdated") {
-          const saved = JSON.parse(localStorage.getItem("bbQuizzes")) || [];
-          setCustomQuizzes(Array.isArray(saved) ? saved : []);
-        }
-      } catch {
-        setCustomQuizzes([]);
-      }
-    };
-
-    window.addEventListener("storage", handler);
-    window.addEventListener("bbQuizzesUpdated", handler);
-    return () => {
-      window.removeEventListener("storage", handler);
-      window.removeEventListener("bbQuizzesUpdated", handler);
-    };
-  }, []);
 
   const [quizAnswers, setQuizAnswers] = useState({});
   const [quizSubmitted, setQuizSubmitted] = useState(false);
@@ -93,7 +43,20 @@ function QuizPage({
     intermediate: ["beginner", "intermediate"],
     advanced: ["beginner", "intermediate", "advanced"]
   };
-  
+ const freeQuizIds = ["dataScience", "pythonBasics"];
+ const adminQuizzes = JSON.parse(localStorage.getItem("bbAdminQuizzes")) || [];
+
+const dynamicQuizzes = {};
+
+adminQuizzes.forEach((quiz) => {
+  dynamicQuizzes[quiz.id] = {
+    title: quiz.title,
+    description: "Admin released quiz.",
+    premium: quiz.premium,
+    questions: quiz.questions
+  };
+});
+
  const quizCategories = {
   dataScience: {
     title: "Data Science Quiz",
@@ -383,18 +346,15 @@ function QuizPage({
     ]
   }
 };
-  const activeQuiz = selectedQuiz ? quizCategories[selectedQuiz] : null;
-    // support for custom quizzes saved by admin (id prefixed with custom_)
-    const activeCustomQuiz = selectedQuiz && selectedQuiz.startsWith("custom_")
-      ? customQuizzes.find((q) => `custom_${q.id}` === selectedQuiz)
-      : null;
+  const allQuizzes = {
+  ...quizCategories,
+  ...dynamicQuizzes
+};
 
-    const finalActiveQuiz = activeCustomQuiz
-      ? { title: activeCustomQuiz.title, description: activeCustomQuiz.description, questions: activeCustomQuiz.questions || [] }
-      : activeQuiz;
+const activeQuiz = selectedQuiz ? allQuizzes[selectedQuiz] : null;
   
-  const activeQuestions = finalActiveQuiz && Array.isArray(finalActiveQuiz.questions)
-    ? finalActiveQuiz.questions.filter((q) =>
+  const activeQuestions = activeQuiz
+    ? activeQuiz.questions.filter((q) =>
         allowedLevels[learningLevel || "beginner"]?.includes(q.level)
       )
     : [];
@@ -556,6 +516,18 @@ const weaknessStatus =
     ? "Moderate"
     : "Weak";
 
+const weakTopic = activeQuiz?.title || selectedQuiz;
+
+if (percent < 80) {
+  localStorage.setItem("weakTopic", weakTopic);
+  localStorage.setItem("weakQuizId", selectedQuiz);
+  localStorage.setItem("weaknessStatus", weaknessStatus);
+} else {
+  localStorage.removeItem("weakTopic");
+  localStorage.removeItem("weakQuizId");
+  localStorage.removeItem("weaknessStatus");
+}
+
 const recommendation =
   percent >= 80
     ? "You are doing well. Try a higher level quiz."
@@ -647,14 +619,26 @@ await addDoc(collection(db, "performanceHistory"), {
     padding: "0 20px"
   }}
 >
-  {Object.keys(quizCategories).map((key) => (
+  {Object.keys(allQuizzes).map((key) => {
+  const isPremiumQuiz =
+  userPlan !== "premium" &&
+  (allQuizzes[key]?.premium || !freeQuizIds.includes(key));
+
+  return (
     <button
       key={key}
       onClick={() => {
+        if (isPremiumQuiz) {
+          alert("This quiz is locked. Please upgrade to Premium to access all quizzes.");
+          return;
+        }
+
         setSelectedQuiz(key);
         setQuizAnswers({});
         setQuizSubmitted(false);
       }}
+
+
       style={{
         border: "2px solid #e9d5ff",
         borderRadius: "24px",
@@ -665,35 +649,55 @@ await addDoc(collection(db, "performanceHistory"), {
         alignItems: "center",
         gap: "16px",
         textAlign: "left",
-        cursor: "pointer",
-        color: "#2f235f"
+        cursor: isPremiumQuiz ? "not-allowed" : "pointer",
+        color: "#2f235f",
+        opacity: isPremiumQuiz ? 0.55 : 1,
+        filter: isPremiumQuiz ? "grayscale(80%)" : "none",
+        position: "relative"
       }}
     >
+      {isPremiumQuiz && (
+  <span
+    style={{
+      position: "absolute",
+      top: "12px",
+      right: "12px",
+      background: "#111827",
+      color: "white",
+      padding: "6px 10px",
+      borderRadius: "999px",
+      fontSize: "12px",
+      fontWeight: "700"
+    }}
+  >
+    🔒 Premium
+  </span>
+)}
       <span
-        style={{
-          width: "56px",
-          height: "56px",
-          borderRadius: "18px",
-          background: "white",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: "26px"
-        }}
-      >
-        {key === "dataScience" && "📊"}
-        {key === "artificialIntelligence" && "🤖"}
-        {key === "machineLearning" && "🧠"}
-        {key === "pythonBasics" && "🐍"}
-      </span>
+  style={{
+    width: "56px",
+    height: "56px",
+    borderRadius: "18px",
+    background: "white",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "26px"
+  }}
+>
+  {key === "dataScience" && "📊"}
+  {key === "artificialIntelligence" && "🤖"}
+  {key === "machineLearning" && "🧠"}
+  {key === "pythonBasics" && "🐍"}
+</span>
 
       <div style={{ flex: 1 }}>
         <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "800" }}>
-          {quizCategories[key].title}
+          {allQuizzes[key].title}
         </h3>
         <p style={{ margin: "6px 0 0", color: "#7c6aa8", fontSize: "14px" }}>
           {
-            quizCategories[key].questions.filter((q) =>
+            allQuizzes[key].questions.filter((q) =>
               allowedLevels[learningLevel || "beginner"]?.includes(q.level)
             ).length
           } questions • Test your skills
@@ -708,60 +712,9 @@ await addDoc(collection(db, "performanceHistory"), {
       <span style={{ fontSize: "30px", fontWeight: "800", color: "#8b5cf6" }}>
         ›
       </span>
-    </button>
-  ))}
-
-  {/* custom quizzes */}
-  {customQuizzes.filter(q => allowedLevels[learningLevel || "beginner"].includes(q.level)).map((q) => (
-    <button
-      key={`custom_${q.id}`}
-      onClick={() => {
-        setSelectedQuiz(`custom_${q.id}`);
-        setQuizAnswers({});
-        setQuizSubmitted(false);
-      }}
-      style={{
-        border: "2px solid #e9d5ff",
-        borderRadius: "24px",
-        padding: "24px",
-        background: "linear-gradient(135deg, #fffaf0, #fff7ed)",
-        boxShadow: "0 12px 28px rgba(124, 58, 237, 0.08)",
-        display: "flex",
-        alignItems: "center",
-        gap: "16px",
-        textAlign: "left",
-        cursor: "pointer",
-        color: "#2f235f"
-      }}
-    >
-      <span
-        style={{
-          width: "56px",
-          height: "56px",
-          borderRadius: "18px",
-          background: "white",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: "26px"
-        }}
-      >
-        🎯
-      </span>
-
-      <div style={{ flex: 1 }}>
-        <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "800" }}>{q.title}</h3>
-        <p style={{ margin: "6px 0 0", color: "#7c6aa8", fontSize: "14px" }}>{q.description}</p>
-        {q.questions && q.questions.length > 0 ? (
-          <p style={{ margin: "6px 0 0", color: "#7c6aa8", fontSize: "14px" }}>{q.questions.length} questions • Custom Quiz</p>
-        ) : (
-          <p style={{ margin: "6px 0 0", color: "#ff6b6b", fontSize: "14px" }}>Quiz not ready (no questions)</p>
-        )}
-      </div>
-
-      <span style={{ fontSize: "30px", fontWeight: "800", color: "#8b5cf6" }}>›</span>
-    </button>
-  ))}
+      </button>
+  );
+})}
 </div>
         </div>
       </div>
@@ -953,6 +906,12 @@ await addDoc(collection(db, "performanceHistory"), {
               Retake Quiz to Improve Score
             </button>
 
+            {/* ✅ LEADERBOARD */}
+            <LeaderboardPage
+              learningLevel={learningLevel || "beginner"}
+              selectedQuiz={selectedQuiz}
+              showLeaderboard={true}
+            />
           </>
         )}
       </div>

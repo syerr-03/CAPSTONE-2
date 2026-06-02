@@ -1,6 +1,4 @@
 import { useEffect, useState } from "react";
-import { db } from "../firebase";
-import { doc, setDoc, serverTimestamp, getDoc } from "firebase/firestore";
 import "../App.css";
 
 const defaultSubjectsByLevel = {
@@ -9,270 +7,92 @@ const defaultSubjectsByLevel = {
   advanced: []
 };
 
+const emptyQuizQuestions = [
+  { question: "", optionA: "", optionB: "", optionC: "", optionD: "", correctAnswer: "" },
+  { question: "", optionA: "", optionB: "", optionC: "", optionD: "", correctAnswer: "" },
+  { question: "", optionA: "", optionB: "", optionC: "", optionD: "", correctAnswer: "" },
+  { question: "", optionA: "", optionB: "", optionC: "", optionD: "", correctAnswer: "" },
+  { question: "", optionA: "", optionB: "", optionC: "", optionD: "", correctAnswer: "" }
+];
+
 function AdminDashboard() {
   const [selectedLevel, setSelectedLevel] = useState("beginner");
-  const [viewMode, setViewMode] = useState("manage"); // 'manage' | 'list' | 'listQuizzes' | 'manageQuizContents'
   const [subjectsByLevel, setSubjectsByLevel] = useState(defaultSubjectsByLevel);
-  const [showSelectLevel, setShowSelectLevel] = useState(false);
-  const [showAddSubjectForm, setShowAddSubjectForm] = useState(false);
+  const [showSubjectList, setShowSubjectList] = useState(false);
 
   const [subjectTitle, setSubjectTitle] = useState("");
   const [subjectDesc, setSubjectDesc] = useState("");
   const [subjectIcon, setSubjectIcon] = useState("📘");
 
-  const [moduleForms, setModuleForms] = useState([
-    {
-      id: 1,
-      heading: "Module 1",
-      readingTitle: "",
-      readingContent: "",
-      videoTitle: "",
-      videoLink: "",
-      quizTitle: "",
-      quizQuestion: "",
-      quizOption1: "",
-      quizOption2: "",
-      quizOption3: "",
-      quizOption4: "",
-      correctAnswer: "",
-      practicalTitle: "",
-      practicalInstruction: ""
-    }
-  ]);
+  const [showQuizList, setShowQuizList] = useState(false);
+  const [adminQuizzes, setAdminQuizzes] = useState([]);
 
-  const addModuleForm = () => {
-    setModuleForms((prev) => [
-      ...prev,
-      {
-        id: prev.length + 1,
-        heading: `Module ${prev.length + 1}`,
-        readingTitle: "",
-        readingContent: "",
-        videoTitle: "",
-        videoLink: "",
-        quizTitle: "",
-        quizQuestion: "",
-        quizOption1: "",
-        quizOption2: "",
-        quizOption3: "",
-        quizOption4: "",
-        correctAnswer: "",
-        practicalTitle: "",
-        practicalInstruction: ""
-      }
-    ]);
-  };
+  const [newQuizTitle, setNewQuizTitle] = useState("");
+  const [newQuizLevel, setNewQuizLevel] = useState("beginner");
+  const [newQuizPremium, setNewQuizPremium] = useState(false);
+  const [newQuizIcon, setNewQuizIcon] = useState("📝");
+  const [quizQuestions, setQuizQuestions] = useState(emptyQuizQuestions);
 
-  const updateModuleForm = (index, field, value) => {
-    setModuleForms((prev) =>
-      prev.map((module, idx) =>
-        idx === index ? { ...module, [field]: value } : module
-      )
-    );
-  };
+  // ===== MODULE 1 STATES =====
+  const [readingTitle, setReadingTitle] = useState("");
+  const [readingContent, setReadingContent] = useState("");
+  const [videoTitle, setVideoTitle] = useState("");
+  const [videoLink, setVideoLink] = useState("");
+  const [quizTitle, setQuizTitle] = useState("");
+  const [quizQuestion, setQuizQuestion] = useState("");
+  const [quizOption1, setQuizOption1] = useState("");
+  const [quizOption2, setQuizOption2] = useState("");
+  const [quizOption3, setQuizOption3] = useState("");
+  const [quizOption4, setQuizOption4] = useState("");
+  const [correctAnswer, setCorrectAnswer] = useState("");
+  const [practicalTitle, setPracticalTitle] = useState("");
+  const [practicalInstruction, setPracticalInstruction] = useState("");
 
-  const resetForm = () => {
-    setSubjectTitle("");
-    setSubjectDesc("");
-    setSubjectIcon("📘");
-    setModuleForms([
-      {
-        id: 1,
-        heading: "Module 1",
-        readingTitle: "",
-        readingContent: "",
-        videoTitle: "",
-        videoLink: "",
-        quizTitle: "",
-        quizQuestion: "",
-        quizOption1: "",
-        quizOption2: "",
-        quizOption3: "",
-        quizOption4: "",
-        correctAnswer: "",
-        practicalTitle: "",
-        practicalInstruction: ""
-      }
-    ]);
-  };
-
-  // Quiz (standalone) states
-  const [quizTitleStandalone, setQuizTitleStandalone] = useState("");
-  const [quizDescStandalone, setQuizDescStandalone] = useState("");
-  const [quizLevelStandalone, setQuizLevelStandalone] = useState("beginner");
-  const [showAddQuiz, setShowAddQuiz] = useState(false);
-  const [quizzes, setQuizzes] = useState([]);
-  const [editingQuiz, setEditingQuiz] = useState(null);
-  const [quizFormQuestions, setQuizFormQuestions] = useState([
-    { id: 1, question: "", option1: "", option2: "", option3: "", option4: "", correctAnswer: "" }
-  ]);
-  const [quizFormTitle, setQuizFormTitle] = useState("");
-  const [quizFormDesc, setQuizFormDesc] = useState("");
-  const [quizFormLevel, setQuizFormLevel] = useState("beginner");
+  // ===== MODULE 2 STATES =====
+  const [readingTitle2, setReadingTitle2] = useState("");
+  const [readingContent2, setReadingContent2] = useState("");
+  const [videoTitle2, setVideoTitle2] = useState("");
+  const [videoLink2, setVideoLink2] = useState("");
+  const [quizTitle2, setQuizTitle2] = useState("");
+  const [quizQuestion2, setQuizQuestion2] = useState("");
+  const [quizOption1_2, setQuizOption1_2] = useState("");
+  const [quizOption2_2, setQuizOption2_2] = useState("");
+  const [quizOption3_2, setQuizOption3_2] = useState("");
+  const [quizOption4_2, setQuizOption4_2] = useState("");
+  const [correctAnswer2, setCorrectAnswer2] = useState("");
+  const [practicalTitle2, setPracticalTitle2] = useState("");
+  const [practicalInstruction2, setPracticalInstruction2] = useState("");
 
   useEffect(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem("bbQuizzes")) || [];
-      setQuizzes(saved);
-    } catch (e) {
-      setQuizzes([]);
-    }
-  }, []);
+    const savedSubjects = JSON.parse(localStorage.getItem("bbSubjectsByLevel"));
 
-  const saveQuizzes = async (next) => {
-    setQuizzes(next);
-    localStorage.setItem("bbQuizzes", JSON.stringify(next));
-    try {
-      await setDoc(doc(db, "config", "bbQuizzes"), { quizzes: next, updatedAt: serverTimestamp() });
-    } catch (e) {
-      // ignore firestore write failures
-      console.warn("Failed to persist quizzes to Firestore", e);
-    }
-    try {
-      window.dispatchEvent(new Event("bbQuizzesUpdated"));
-    } catch (e) {
-      // ignore
-    }
-  };
-
-  const editQuiz = (id) => {
-    const q = quizzes.find((x) => x.id === id);
-    if (!q) return;
-    // open manage quiz contents with the quiz preloaded
-    setEditingQuiz(q);
-    setQuizFormTitle(q.title || "");
-    setQuizFormDesc(q.description || "");
-    setQuizFormLevel(q.level || "beginner");
-    setQuizFormQuestions(
-      (q.questions || []).map((ques, idx) => ({
-        id: idx + 1,
-        question: ques.question || "",
-        option1: ques.options?.[0] || "",
-        option2: ques.options?.[1] || "",
-        option3: ques.options?.[2] || "",
-        option4: ques.options?.[3] || "",
-        correctAnswer: ques.correctAnswer || ""
-      }))
-    );
-    setViewMode("manageQuizContents");
-  };
-
-  const deleteQuiz = (id) => {
-    if (!window.confirm("Delete this quiz?")) return;
-    const updated = quizzes.filter((x) => x.id !== id);
-    saveQuizzes(updated);
-  };
-
-  const addQuizQuestionForm = () => {
-    setQuizFormQuestions((prev) => [
-      ...prev,
-      { id: prev.length + 1, question: "", option1: "", option2: "", option3: "", option4: "", correctAnswer: "" }
-    ]);
-  };
-
-  const updateQuizQuestionField = (index, field, value) => {
-    setQuizFormQuestions((prev) => prev.map((q, i) => (i === index ? { ...q, [field]: value } : q)));
-  };
-
-  const saveQuizFromForm = () => {
-    if (!quizFormTitle.trim()) { alert("Please enter quiz title"); return; }
-    const questions = quizFormQuestions
-      .filter((q) => q.question.trim())
-      .map((q) => ({
-        id: Date.now() + Math.random(),
-        question: q.question,
-        options: [q.option1, q.option2, q.option3, q.option4].filter(Boolean),
-        correctAnswer: q.correctAnswer
-      }));
-
-    if (editingQuiz) {
-      const updated = quizzes.map((x) => (x.id === editingQuiz.id ? { ...x, title: quizFormTitle, description: quizFormDesc, level: quizFormLevel, questions } : x));
-      saveQuizzes(updated);
-      setEditingQuiz(null);
+    if (savedSubjects) {
+      setSubjectsByLevel(savedSubjects);
     } else {
-      const newQuiz = { id: Date.now(), title: quizFormTitle, description: quizFormDesc, level: quizFormLevel, questions };
-      saveQuizzes([...quizzes, newQuiz]);
+      localStorage.setItem("bbSubjectsByLevel", JSON.stringify(defaultSubjectsByLevel));
     }
 
-    setQuizFormTitle(""); setQuizFormDesc(""); setQuizFormLevel("beginner"); setQuizFormQuestions([{ id: 1, question: "", option1: "", option2: "", option3: "", option4: "", correctAnswer: "" }]);
-    setViewMode("listQuizzes");
-  };
-
-  useEffect(() => {
-    const loadSubjects = async () => {
-      try {
-        const docRef = doc(db, "config", "bbSubjectsByLevel");
-        const docSnap = await getDoc(docRef);
-        
-        if (docSnap.exists()) {
-          const firestoreData = docSnap.data().subjectsByLevel;
-          console.log("Loading subjects from Firestore:", firestoreData);
-          setSubjectsByLevel(firestoreData);
-          localStorage.setItem("bbSubjectsByLevel", JSON.stringify(firestoreData));
-        } else {
-          const saved = JSON.parse(localStorage.getItem("bbSubjectsByLevel"));
-          console.log("Loading subjects from localStorage:", saved);
-          if (saved) {
-            setSubjectsByLevel(saved);
-          } else {
-            localStorage.setItem(
-              "bbSubjectsByLevel",
-              JSON.stringify(defaultSubjectsByLevel)
-            );
-          }
-        }
-      } catch (e) {
-        console.warn("Failed to load subjects from Firestore, falling back to localStorage", e);
-        const saved = JSON.parse(localStorage.getItem("bbSubjectsByLevel"));
-        console.log("Loading subjects from localStorage:", saved);
-        if (saved) {
-          setSubjectsByLevel(saved);
-        } else {
-          localStorage.setItem(
-            "bbSubjectsByLevel",
-            JSON.stringify(defaultSubjectsByLevel)
-          );
-        }
-      }
-    };
-
-    loadSubjects();
-
-    const handleSubjectsUpdate = () => {
-      const updated = JSON.parse(localStorage.getItem("bbSubjectsByLevel"));
-      console.log("Subjects updated event:", updated);
-      if (updated) {
-        setSubjectsByLevel(updated);
-      }
-    };
-
-    window.addEventListener("bbSubjectsUpdated", handleSubjectsUpdate);
-
-    return () => {
-      window.removeEventListener("bbSubjectsUpdated", handleSubjectsUpdate);
-    };
+    const savedQuizzes = JSON.parse(localStorage.getItem("bbAdminQuizzes") || "[]");
+    setAdminQuizzes(savedQuizzes);
   }, []);
 
-  const saveSubjects = async (updated) => {
-    console.log("Saving subjects:", updated);
+  const saveSubjects = (updated) => {
     setSubjectsByLevel(updated);
     localStorage.setItem("bbSubjectsByLevel", JSON.stringify(updated));
-    try {
-      await setDoc(doc(db, "config", "bbSubjectsByLevel"), { subjectsByLevel: updated, updatedAt: serverTimestamp() });
-    } catch (e) {
-      console.warn("Failed to persist subjects to Firestore", e);
-    }
-    try {
-      window.dispatchEvent(new Event("bbSubjectsUpdated"));
-    } catch (e) {
-      // ignore
-    }
+  };
+
+  const saveQuizzes = (updated) => {
+    setAdminQuizzes(updated);
+    localStorage.setItem("bbAdminQuizzes", JSON.stringify(updated));
   };
 
   const currentSubjects = subjectsByLevel[selectedLevel] || [];
 
-  console.log("Current subjects for", selectedLevel, ":", currentSubjects);
-  console.log("All subjects by level:", subjectsByLevel);
+  const allSubjects = [
+    ...(subjectsByLevel.beginner || []),
+    ...(subjectsByLevel.intermediate || []),
+    ...(subjectsByLevel.advanced || [])
+  ];
 
   const inputStyle = {
     width: "100%",
@@ -298,68 +118,177 @@ function AdminDashboard() {
     resize: "vertical"
   };
 
+  const resetSubjectForm = () => {
+    setSubjectTitle("");
+    setSubjectDesc("");
+    setSubjectIcon("📘");
+
+    setReadingTitle("");
+    setReadingContent("");
+    setVideoTitle("");
+    setVideoLink("");
+    setQuizTitle("");
+    setQuizQuestion("");
+    setQuizOption1("");
+    setQuizOption2("");
+    setQuizOption3("");
+    setQuizOption4("");
+    setCorrectAnswer("");
+    setPracticalTitle("");
+    setPracticalInstruction("");
+
+    setReadingTitle2("");
+    setReadingContent2("");
+    setVideoTitle2("");
+    setVideoLink2("");
+    setQuizTitle2("");
+    setQuizQuestion2("");
+    setQuizOption1_2("");
+    setQuizOption2_2("");
+    setQuizOption3_2("");
+    setQuizOption4_2("");
+    setCorrectAnswer2("");
+    setPracticalTitle2("");
+    setPracticalInstruction2("");
+  };
+
+  const resetQuizForm = () => {
+    setNewQuizTitle("");
+    setNewQuizLevel("beginner");
+    setNewQuizPremium(false);
+    setNewQuizIcon("📝");
+    setQuizQuestions(emptyQuizQuestions);
+  };
+
+  const updateQuizQuestion = (index, field, value) => {
+    setQuizQuestions((prev) =>
+      prev.map((item, i) => (i === index ? { ...item, [field]: value } : item))
+    );
+  };
+
   const addSubject = () => {
-    if (!subjectTitle.trim()) {
-      alert("Please enter subject title first.");
+    if (!subjectTitle.trim() || !subjectDesc.trim()) {
+      alert("Please fill in subject title and description.");
       return;
     }
 
-    const subjectId = Date.now();
+    if (
+      !readingTitle.trim() ||
+      !readingContent.trim() ||
+      !videoTitle.trim() ||
+      !videoLink.trim() ||
+      !quizTitle.trim() ||
+      !quizQuestion.trim() ||
+      !quizOption1.trim() ||
+      !quizOption2.trim() ||
+      !quizOption3.trim() ||
+      !quizOption4.trim() ||
+      !correctAnswer.trim() ||
+      !practicalTitle.trim() ||
+      !practicalInstruction.trim() ||
+      !readingTitle2.trim() ||
+      !readingContent2.trim() ||
+      !videoTitle2.trim() ||
+      !videoLink2.trim() ||
+      !quizTitle2.trim() ||
+      !quizQuestion2.trim() ||
+      !quizOption1_2.trim() ||
+      !quizOption2_2.trim() ||
+      !quizOption3_2.trim() ||
+      !quizOption4_2.trim() ||
+      !correctAnswer2.trim() ||
+      !practicalTitle2.trim() ||
+      !practicalInstruction2.trim()
+    ) {
+      alert("Please complete all Module 1 and Module 2 details before releasing this subject.");
+      return;
+    }
+
+    const now = Date.now();
+
     const newSubject = {
-      id: subjectId,
+      id: now,
       title: subjectTitle,
       description: subjectDesc,
       icon: subjectIcon,
       level: selectedLevel,
-      modules: moduleForms.map((module, index) => ({
-        id: `module-${index + 1}-${subjectId}`,
-        heading: module.heading,
-        items: [
-          {
-            id: `reading-${index + 1}`,
-            type: "Reading",
-            title: module.readingTitle || "Reading Material",
-            content: module.readingContent
-          },
-          {
-            id: `video-${index + 1}`,
-            type: "Video",
-            title: module.videoTitle || "Video Lesson",
-            videoLink: module.videoLink
-          },
-          {
-            id: `quiz-${index + 1}`,
-            type: "Quiz",
-            title: module.quizTitle || "Module Quiz",
-            questions:
-              module.quizQuestion ||
-              module.quizOption1 ||
-              module.quizOption2 ||
-              module.quizOption3 ||
-              module.quizOption4
-                ? [
-                    {
-                      id: 1,
-                      question: module.quizQuestion,
-                      options: [
-                        module.quizOption1,
-                        module.quizOption2,
-                        module.quizOption3,
-                        module.quizOption4
-                      ].filter(Boolean),
-                      correctAnswer: module.correctAnswer
-                    }
-                  ]
-                : []
-          },
-          {
-            id: `practical-${index + 1}`,
-            type: "Practical Assignment",
-            title: module.practicalTitle || "Practical Task",
-            instruction: module.practicalInstruction
-          }
-        ]
-      }))
+      status: "Released",
+      modules: [
+        {
+          id: `module-1-${now}`,
+          heading: "Module 1",
+          items: [
+            {
+              id: `reading-1-${now}`,
+              type: "Reading",
+              title: readingTitle,
+              content: readingContent
+            },
+            {
+              id: `video-1-${now}`,
+              type: "Video",
+              title: videoTitle,
+              videoLink
+            },
+            {
+              id: `quiz-1-${now}`,
+              type: "Quiz",
+              title: quizTitle,
+              questions: [
+                {
+                  id: 1,
+                  question: quizQuestion,
+                  options: [quizOption1, quizOption2, quizOption3, quizOption4],
+                  correctAnswer
+                }
+              ]
+            },
+            {
+              id: `practical-1-${now}`,
+              type: "Practical Assignment",
+              title: practicalTitle,
+              instruction: practicalInstruction
+            }
+          ]
+        },
+        {
+          id: `module-2-${now}`,
+          heading: "Module 2",
+          items: [
+            {
+              id: `reading-2-${now}`,
+              type: "Reading",
+              title: readingTitle2,
+              content: readingContent2
+            },
+            {
+              id: `video-2-${now}`,
+              type: "Video",
+              title: videoTitle2,
+              videoLink: videoLink2
+            },
+            {
+              id: `quiz-2-${now}`,
+              type: "Quiz",
+              title: quizTitle2,
+              questions: [
+                {
+                  id: 1,
+                  question: quizQuestion2,
+                  options: [quizOption1_2, quizOption2_2, quizOption3_2, quizOption4_2],
+                  correctAnswer: correctAnswer2
+                }
+              ]
+            },
+            {
+              id: `practical-2-${now}`,
+              type: "Practical Assignment",
+              title: practicalTitle2,
+              instruction: practicalInstruction2
+            }
+          ]
+        }
+      ]
     };
 
     const updated = {
@@ -368,14 +297,77 @@ function AdminDashboard() {
     };
 
     saveSubjects(updated);
-    resetForm();
-    setViewMode("list");
+    resetSubjectForm();
+    alert("Subject released successfully and is now visible to students.");
   };
 
-  const editSubject = (id, level = selectedLevel) => {
-    const levelSubjects = subjectsByLevel[level] || [];
+  const releaseQuiz = () => {
+    if (!newQuizTitle.trim()) {
+      alert("Please enter quiz title.");
+      return;
+    }
+
+    const hasIncompleteQuestion = quizQuestions.some(
+      (q) =>
+        !q.question.trim() ||
+        !q.optionA.trim() ||
+        !q.optionB.trim() ||
+        !q.optionC.trim() ||
+        !q.optionD.trim() ||
+        !q.correctAnswer.trim()
+    );
+
+    if (hasIncompleteQuestion) {
+      alert("Please complete all 5 quiz questions before releasing.");
+      return;
+    }
+
+    const invalidAnswer = quizQuestions.some(
+      (q) => ![q.optionA, q.optionB, q.optionC, q.optionD].includes(q.correctAnswer)
+    );
+
+    if (invalidAnswer) {
+      alert("Correct answer must exactly match one of the option texts.");
+      return;
+    }
+
+    const newQuiz = {
+      id: `adminQuiz_${Date.now()}`,
+      title: newQuizTitle,
+      description: "Admin released quiz.",
+      level: newQuizLevel,
+      premium: newQuizPremium,
+      icon: newQuizIcon,
+      status: "Released",
+      questions: quizQuestions.map((q, index) => ({
+        id: index + 1,
+        level: newQuizLevel,
+        question: q.question,
+        options: [q.optionA, q.optionB, q.optionC, q.optionD],
+        correctAnswer: q.correctAnswer,
+        explanation: "This question was added by admin."
+      }))
+    };
+
+    const updatedQuizzes = [...adminQuizzes, newQuiz];
+
+    saveQuizzes(updatedQuizzes);
+    resetQuizForm();
+    alert("Quiz released successfully and is now visible on the Quiz Page.");
+  };
+
+  const deleteQuiz = (id) => {
+    if (!window.confirm("Delete this quiz?")) return;
+
+    const updatedQuizzes = adminQuizzes.filter((quiz) => quiz.id !== id);
+    saveQuizzes(updatedQuizzes);
+  };
+
+  const editSubject = (id, level) => {
     const newTitle = prompt("New subject title:");
     if (!newTitle) return;
+
+    const levelSubjects = subjectsByLevel[level] || [];
 
     const updatedSubjects = levelSubjects.map((subject) =>
       subject.id === id ? { ...subject, title: newTitle } : subject
@@ -387,10 +379,11 @@ function AdminDashboard() {
     });
   };
 
-  const deleteSubject = (id, level = selectedLevel) => {
+  const deleteSubject = (id, level) => {
     if (!window.confirm("Delete this subject?")) return;
 
     const levelSubjects = subjectsByLevel[level] || [];
+
     const updatedSubjects = levelSubjects.filter((subject) => subject.id !== id);
 
     saveSubjects({
@@ -399,11 +392,13 @@ function AdminDashboard() {
     });
   };
 
-  const addModule = (subjectId) => {
+  const addModule = (subjectId, level) => {
     const moduleName = prompt("Module name:");
     if (!moduleName) return;
 
-    const updatedSubjects = currentSubjects.map((subject) =>
+    const levelSubjects = subjectsByLevel[level] || [];
+
+    const updatedSubjects = levelSubjects.map((subject) =>
       subject.id === subjectId
         ? {
             ...subject,
@@ -421,7 +416,7 @@ function AdminDashboard() {
 
     saveSubjects({
       ...subjectsByLevel,
-      [selectedLevel]: updatedSubjects
+      [level]: updatedSubjects
     });
   };
 
@@ -432,33 +427,11 @@ function AdminDashboard() {
     window.location.href = "/";
   };
 
-  const saveStandaloneQuiz = () => {
-    if (!quizTitleStandalone.trim()) {
-      alert("Please enter quiz title");
-      return;
-    }
+  const renderModuleForm = (moduleNumber) => {
+    const isModule1 = moduleNumber === 1;
 
-    const stored = JSON.parse(localStorage.getItem("bbQuizzes")) || [];
-    const quiz = {
-      id: Date.now(),
-      title: quizTitleStandalone,
-      description: quizDescStandalone,
-      level: quizLevelStandalone
-    };
-
-    const updated = [...stored, quiz];
-    saveQuizzes(updated);
-    setQuizTitleStandalone("");
-    setQuizDescStandalone("");
-    setQuizLevelStandalone("beginner");
-    setShowAddQuiz(false);
-    alert("Quiz saved.");
-  };
-
-  const renderModuleForm = (module, index) => {
     return (
       <div
-        key={module.id}
         style={{
           marginTop: "22px",
           padding: "22px",
@@ -475,108 +448,136 @@ function AdminDashboard() {
             fontSize: "18px"
           }}
         >
-          Complete {module.heading} Details
+          Complete Module {moduleNumber} Details
         </p>
 
         <input
           className="search-input"
-          placeholder={`${module.heading} reading title`}
-          value={module.readingTitle}
-          onChange={(e) => updateModuleForm(index, "readingTitle", e.target.value)}
+          placeholder={`Module ${moduleNumber} reading title`}
+          value={isModule1 ? readingTitle : readingTitle2}
+          onChange={(e) =>
+            isModule1 ? setReadingTitle(e.target.value) : setReadingTitle2(e.target.value)
+          }
           style={inputStyle}
         />
 
         <textarea
-          placeholder={`${module.heading} reading content`}
-          value={module.readingContent}
-          onChange={(e) => updateModuleForm(index, "readingContent", e.target.value)}
+          placeholder={`Module ${moduleNumber} reading content`}
+          value={isModule1 ? readingContent : readingContent2}
+          onChange={(e) =>
+            isModule1 ? setReadingContent(e.target.value) : setReadingContent2(e.target.value)
+          }
           style={textareaStyle}
         />
 
         <input
           className="search-input"
-          placeholder={`${module.heading} video title`}
-          value={module.videoTitle}
-          onChange={(e) => updateModuleForm(index, "videoTitle", e.target.value)}
+          placeholder={`Module ${moduleNumber} video title`}
+          value={isModule1 ? videoTitle : videoTitle2}
+          onChange={(e) =>
+            isModule1 ? setVideoTitle(e.target.value) : setVideoTitle2(e.target.value)
+          }
           style={inputStyle}
         />
 
         <input
           className="search-input"
-          placeholder={`${module.heading} video link`}
-          value={module.videoLink}
-          onChange={(e) => updateModuleForm(index, "videoLink", e.target.value)}
+          placeholder={`Module ${moduleNumber} video link`}
+          value={isModule1 ? videoLink : videoLink2}
+          onChange={(e) =>
+            isModule1 ? setVideoLink(e.target.value) : setVideoLink2(e.target.value)
+          }
           style={inputStyle}
         />
 
         <input
           className="search-input"
-          placeholder={`${module.heading} quiz title`}
-          value={module.quizTitle}
-          onChange={(e) => updateModuleForm(index, "quizTitle", e.target.value)}
+          placeholder={`Module ${moduleNumber} quiz title`}
+          value={isModule1 ? quizTitle : quizTitle2}
+          onChange={(e) =>
+            isModule1 ? setQuizTitle(e.target.value) : setQuizTitle2(e.target.value)
+          }
           style={inputStyle}
         />
 
         <input
           className="search-input"
-          placeholder={`${module.heading} quiz question`}
-          value={module.quizQuestion}
-          onChange={(e) => updateModuleForm(index, "quizQuestion", e.target.value)}
+          placeholder={`Module ${moduleNumber} quiz question`}
+          value={isModule1 ? quizQuestion : quizQuestion2}
+          onChange={(e) =>
+            isModule1 ? setQuizQuestion(e.target.value) : setQuizQuestion2(e.target.value)
+          }
           style={inputStyle}
         />
 
         <input
           className="search-input"
           placeholder="Option 1"
-          value={module.quizOption1}
-          onChange={(e) => updateModuleForm(index, "quizOption1", e.target.value)}
+          value={isModule1 ? quizOption1 : quizOption1_2}
+          onChange={(e) =>
+            isModule1 ? setQuizOption1(e.target.value) : setQuizOption1_2(e.target.value)
+          }
           style={inputStyle}
         />
 
         <input
           className="search-input"
           placeholder="Option 2"
-          value={module.quizOption2}
-          onChange={(e) => updateModuleForm(index, "quizOption2", e.target.value)}
+          value={isModule1 ? quizOption2 : quizOption2_2}
+          onChange={(e) =>
+            isModule1 ? setQuizOption2(e.target.value) : setQuizOption2_2(e.target.value)
+          }
           style={inputStyle}
         />
 
         <input
           className="search-input"
           placeholder="Option 3"
-          value={module.quizOption3}
-          onChange={(e) => updateModuleForm(index, "quizOption3", e.target.value)}
+          value={isModule1 ? quizOption3 : quizOption3_2}
+          onChange={(e) =>
+            isModule1 ? setQuizOption3(e.target.value) : setQuizOption3_2(e.target.value)
+          }
           style={inputStyle}
         />
 
         <input
           className="search-input"
           placeholder="Option 4"
-          value={module.quizOption4}
-          onChange={(e) => updateModuleForm(index, "quizOption4", e.target.value)}
+          value={isModule1 ? quizOption4 : quizOption4_2}
+          onChange={(e) =>
+            isModule1 ? setQuizOption4(e.target.value) : setQuizOption4_2(e.target.value)
+          }
           style={inputStyle}
         />
 
         <input
           className="search-input"
           placeholder="Correct answer"
-          value={module.correctAnswer}
-          onChange={(e) => updateModuleForm(index, "correctAnswer", e.target.value)}
+          value={isModule1 ? correctAnswer : correctAnswer2}
+          onChange={(e) =>
+            isModule1 ? setCorrectAnswer(e.target.value) : setCorrectAnswer2(e.target.value)
+          }
           style={inputStyle}
         />
 
         <input
           className="search-input"
-          placeholder={`${module.heading} practical assignment title`}
-          value={module.practicalTitle}
-          onChange={(e) => updateModuleForm(index, "practicalTitle", e.target.value)}
+          placeholder={`Module ${moduleNumber} practical assignment title`}
+          value={isModule1 ? practicalTitle : practicalTitle2}
+          onChange={(e) =>
+            isModule1 ? setPracticalTitle(e.target.value) : setPracticalTitle2(e.target.value)
+          }
           style={inputStyle}
         />
 
         <textarea
-          placeholder={`${module.heading} practical instruction`}
-          value={module.practicalInstruction}
-          onChange={(e) => updateModuleForm(index, "practicalInstruction", e.target.value)}
+          placeholder={`Module ${moduleNumber} practical instruction`}
+          value={isModule1 ? practicalInstruction : practicalInstruction2}
+          onChange={(e) =>
+            isModule1
+              ? setPracticalInstruction(e.target.value)
+              : setPracticalInstruction2(e.target.value)
+          }
           style={textareaStyle}
         />
       </div>
@@ -615,196 +616,247 @@ function AdminDashboard() {
             </h1>
           </div>
 
-          <button className="hero-button" onClick={logout} style={{ marginTop: "18px", background: "#ef4444" }}>
+          <button className="hero-button" onClick={logout} style={{ marginTop: "18px" }}>
             Logout
           </button>
         </header>
 
         <section className="dashboard-content-section">
+          <h2 className="section-title">Manage Learning Content</h2>
 
-          <div style={{ display: "flex", gap: 12, justifyContent: "center", marginBottom: 18 }}>
-            <button
-              className={"hero-button"}
-              onClick={() => setViewMode(viewMode === "list" ? null : "list")}
-              style={{ background: viewMode === "list" ? "#7C3AED" : undefined }}
-            >
-              List Subjects
-            </button>
+          <div
+            className="module-card"
+            style={{
+              marginBottom: "25px",
+              padding: "30px",
+              borderRadius: "24px",
+              background: "#ffffff",
+              boxShadow: "0 8px 20px rgba(124,58,237,0.08)"
+            }}
+          >
+            <h3>Select Level First</h3>
 
-            <button
-              className={"hero-button"}
-              onClick={() => setViewMode(viewMode === "listQuizzes" ? null : "listQuizzes")}
-              style={{ background: viewMode === "listQuizzes" ? "#7C3AED" : undefined }}
+            <select
+              className="search-input"
+              value={selectedLevel}
+              onChange={(e) => setSelectedLevel(e.target.value)}
+              style={{ marginBottom: "15px", maxWidth: "300px" }}
             >
-              List Quizzes
-            </button>
+              <option value="beginner">Beginner</option>
+              <option value="intermediate">Intermediate</option>
+              <option value="advanced">Advanced</option>
+            </select>
 
-            <button
-              className={"hero-button"}
-              onClick={() => {
-                if (viewMode === "manage") {
-                  setViewMode(null);
-                  setShowSelectLevel(false);
-                  setShowAddSubjectForm(false);
-                } else {
-                  setViewMode("manage");
-                  setShowSelectLevel(true);
-                  setShowAddSubjectForm(true);
-                }
-              }}
-              style={{ background: viewMode === "manage" ? "#7C3AED" : undefined }}
-            >
-              Manage Learning Content
+            <p>
+              You are editing: <b>{selectedLevel.toUpperCase()}</b>
+            </p>
+          </div>
+
+          <div
+            className="module-card"
+            style={{
+              marginBottom: "25px",
+              padding: "35px",
+              borderRadius: "24px",
+              background: "#ffffff",
+              boxShadow: "0 8px 20px rgba(124,58,237,0.08)"
+            }}
+          >
+            <h3>Add Subject for {selectedLevel}</h3>
+
+            <input
+              className="search-input"
+              placeholder="Subject title"
+              value={subjectTitle}
+              onChange={(e) => setSubjectTitle(e.target.value)}
+              style={inputStyle}
+            />
+
+            <input
+              className="search-input"
+              placeholder="Subject description"
+              value={subjectDesc}
+              onChange={(e) => setSubjectDesc(e.target.value)}
+              style={inputStyle}
+            />
+
+            <input
+              className="search-input"
+              placeholder="Icon"
+              value={subjectIcon}
+              onChange={(e) => setSubjectIcon(e.target.value)}
+              style={inputStyle}
+            />
+
+            {subjectTitle.trim() !== "" && (
+              <>
+                {renderModuleForm(1)}
+                {renderModuleForm(2)}
+              </>
+            )}
+
+            <button className="hero-button" onClick={addSubject}>
+              Release Subject
             </button>
           </div>
 
-          {viewMode === "manage" && showSelectLevel && (
-            <div
-              className="module-card"
+          <div className="module-card" style={{ padding: "35px", marginBottom: "25px" }}>
+            <h3>Add Quiz</h3>
+
+            <input
+              placeholder="Quiz title"
+              value={newQuizTitle}
+              onChange={(e) => setNewQuizTitle(e.target.value)}
+              style={inputStyle}
+            />
+
+            <select
+              value={newQuizLevel}
+              onChange={(e) => setNewQuizLevel(e.target.value)}
+              style={inputStyle}
+            >
+              <option value="beginner">Beginner</option>
+              <option value="intermediate">Intermediate</option>
+              <option value="advanced">Advanced</option>
+            </select>
+
+            <input
+              placeholder="Quiz icon, example: 🧪"
+              value={newQuizIcon}
+              onChange={(e) => setNewQuizIcon(e.target.value)}
+              style={inputStyle}
+            />
+
+            <button
+              type="button"
+              onClick={() => setNewQuizPremium(!newQuizPremium)}
+              className="hero-button"
               style={{
-                marginBottom: "25px",
-                padding: "30px",
-                borderRadius: "24px",
-                background: "#ffffff",
-                boxShadow: "0 8px 20px rgba(124,58,237,0.08)"
+                marginBottom: "20px",
+                background: newQuizPremium
+                  ? "#7C3AED"
+                  : "#E9D5FF",
+                color: newQuizPremium
+                  ? "#fff"
+                  : "#7C3AED"
               }}
             >
-              <h3>Select Level First</h3>
+              {newQuizPremium
+                ? "💎 Premium Quiz"
+                : "🆓 Free Quiz"}
+            </button>
 
-              <div style={{ display: "flex", gap: 12, justifyContent: "center", marginBottom: 12 }}>
+                        {quizQuestions.map((item, index) => (
+              <div
+                key={index}
+                style={{
+                  marginTop: "20px",
+                  padding: "20px",
+                  borderRadius: "18px",
+                  background: "#FAF7FF",
+                  border: "1px solid #E9D5FF"
+                }}
+              >
+                <h4>Question {index + 1}</h4>
+
+                <input
+                  placeholder={`Question ${index + 1}`}
+                  value={item.question}
+                  onChange={(e) => updateQuizQuestion(index, "question", e.target.value)}
+                  style={inputStyle}
+                />
+
+                <input
+                  placeholder="Option A"
+                  value={item.optionA}
+                  onChange={(e) => updateQuizQuestion(index, "optionA", e.target.value)}
+                  style={inputStyle}
+                />
+
+                <input
+                  placeholder="Option B"
+                  value={item.optionB}
+                  onChange={(e) => updateQuizQuestion(index, "optionB", e.target.value)}
+                  style={inputStyle}
+                />
+
+                <input
+                  placeholder="Option C"
+                  value={item.optionC}
+                  onChange={(e) => updateQuizQuestion(index, "optionC", e.target.value)}
+                  style={inputStyle}
+                />
+
+                <input
+                  placeholder="Option D"
+                  value={item.optionD}
+                  onChange={(e) => updateQuizQuestion(index, "optionD", e.target.value)}
+                  style={inputStyle}
+                />
+
+                <input
+                  placeholder="Correct answer must match option text"
+                  value={item.correctAnswer}
+                  onChange={(e) => updateQuizQuestion(index, "correctAnswer", e.target.value)}
+                  style={inputStyle}
+                />
+              </div>
+            ))}
+
+            <button className="hero-button" onClick={releaseQuiz}>
+              Release Quiz
+            </button>
+          </div>
+
+          <button
+            className="hero-button"
+            onClick={() => setShowQuizList(!showQuizList)}
+            style={{ marginBottom: "20px", marginRight: "12px" }}
+          >
+            {showQuizList ? "Hide Quiz List" : "List of Added Quizzes"}
+          </button>
+
+          <button
+            className="hero-button"
+            onClick={() => setShowSubjectList(!showSubjectList)}
+            style={{ marginBottom: "20px" }}
+          >
+            {showSubjectList ? "Hide Added Subjects" : "List of Added Subjects"}
+          </button>
+
+          {showQuizList &&
+            adminQuizzes.map((quiz) => (
+              <div
+                className="module-card"
+                key={quiz.id}
+                style={{
+                  marginBottom: "20px",
+                  textAlign: "center",
+                  padding: "30px",
+                  borderRadius: "24px"
+                }}
+              >
+                <h3>
+                  {quiz.icon || "📝"} {quiz.title}
+                </h3>
+                <p>
+                  Level: {quiz.level.toUpperCase()} | Status: {quiz.status || "Released"}
+                </p>
+                <p>{quiz.premium ? "🔒 Premium" : "✅ Free"}</p>
+                <p>{quiz.questions?.length || 0} questions added</p>
+
                 <button
                   className="hero-button"
-                  onClick={() => {
-                    const el = document.getElementById("add-subject-form");
-                    if (el) el.scrollIntoView({ behavior: "smooth" });
-                  }}
+                  style={{ background: "#ef4444", marginTop: "15px" }}
+                  onClick={() => deleteQuiz(quiz.id)}
                 >
-                  Add Subject
-                </button>
-
-                <button
-                  className="hero-button"
-                  onClick={() => setShowAddQuiz((s) => !s)}
-                >
-                  {showAddQuiz ? "Cancel" : "Add Quiz"}
+                  Delete Quiz
                 </button>
               </div>
+            ))}
 
-              {showAddQuiz && (
-                <div style={{ marginBottom: 12 }}>
-                  <input
-                    className="search-input"
-                    placeholder="Quiz title"
-                    value={quizTitleStandalone}
-                    onChange={(e) => setQuizTitleStandalone(e.target.value)}
-                    style={inputStyle}
-                  />
-
-                  <input
-                    className="search-input"
-                    placeholder="Short description"
-                    value={quizDescStandalone}
-                    onChange={(e) => setQuizDescStandalone(e.target.value)}
-                    style={inputStyle}
-                  />
-
-                  <select
-                    className="search-input"
-                    value={quizLevelStandalone}
-                    onChange={(e) => setQuizLevelStandalone(e.target.value)}
-                    style={{ ...inputStyle, maxWidth: 260 }}
-                  >
-                    <option value="beginner">Beginner</option>
-                    <option value="intermediate">Intermediate</option>
-                    <option value="advanced">Advanced</option>
-                  </select>
-
-                  <div style={{ marginTop: 8 }}>
-                    <button className="hero-button" onClick={saveStandaloneQuiz}>
-                      Save Quiz
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              <select
-                className="search-input"
-                value={selectedLevel}
-                onChange={(e) => setSelectedLevel(e.target.value)}
-                style={{ marginBottom: "15px", maxWidth: "300px" }}
-              >
-                <option value="beginner">Beginner</option>
-                <option value="intermediate">Intermediate</option>
-                <option value="advanced">Advanced</option>
-              </select>
-
-              <p>
-                You are editing: <b>{selectedLevel.toUpperCase()}</b>
-              </p>
-            </div>
-          )}
-
-          {viewMode === "manage" && showAddSubjectForm && (
-            <div
-              id="add-subject-form"
-              className="module-card"
-              style={{
-                marginBottom: "25px",
-                padding: "35px",
-                borderRadius: "24px",
-                background: "#ffffff",
-                boxShadow: "0 8px 20px rgba(124,58,237,0.08)"
-              }}
-            >
-              <h3>Add Subject for {selectedLevel}</h3>
-
-              <input
-                className="search-input"
-                placeholder="Subject title"
-                value={subjectTitle}
-                onChange={(e) => setSubjectTitle(e.target.value)}
-                style={inputStyle}
-              />
-
-              <input
-                className="search-input"
-                placeholder="Subject description"
-                value={subjectDesc}
-                onChange={(e) => setSubjectDesc(e.target.value)}
-                style={inputStyle}
-              />
-
-              <input
-                className="search-input"
-                placeholder="Icon"
-                value={subjectIcon}
-                onChange={(e) => setSubjectIcon(e.target.value)}
-                style={inputStyle}
-              />
-
-              {subjectTitle.trim() !== "" && (
-                <>
-                  {moduleForms.map((module, index) => renderModuleForm(module, index))}
-
-                  <button
-                    type="button"
-                    className="hero-button"
-                    style={{ marginTop: "16px", background: "#7C3AED" }}
-                    onClick={addModuleForm}
-                  >
-                    + Add Module
-                  </button>
-                </>
-              )}
-
-              <button className="hero-button" onClick={addSubject}>
-                Add Subject
-              </button>
-            </div>
-          )}
-
-          {viewMode === "manage" ? (
-            currentSubjects.map((subject) => (
+          {showSubjectList &&
+            allSubjects.map((subject) => (
               <div
                 className="module-card"
                 key={subject.id}
@@ -820,6 +872,9 @@ function AdminDashboard() {
                 </h3>
 
                 <p>{subject.description}</p>
+                <p style={{ color: "#7C3AED", fontWeight: "700" }}>
+                  Level: {subject.level.toUpperCase()} | Status: {subject.status || "Released"}
+                </p>
 
                 <div
                   style={{
@@ -831,24 +886,30 @@ function AdminDashboard() {
                     marginTop: "20px"
                   }}
                 >
-                  <button className="hero-button" onClick={() => editSubject(subject.id)}>
+                  <button
+                    className="hero-button"
+                    onClick={() => editSubject(subject.id, subject.level)}
+                  >
                     Edit Subject
                   </button>
 
                   <button
                     className="hero-button"
                     style={{ background: "#ef4444" }}
-                    onClick={() => deleteSubject(subject.id)}
+                    onClick={() => deleteSubject(subject.id, subject.level)}
                   >
                     Remove Subject
                   </button>
 
-                  <button className="hero-button" onClick={() => addModule(subject.id)}>
+                  <button
+                    className="hero-button"
+                    onClick={() => addModule(subject.id, subject.level)}
+                  >
                     Add Module
                   </button>
                 </div>
 
-                {subject.modules.map((module) => (
+                {subject.modules?.map((module) => (
                   <div
                     key={module.id}
                     style={{
@@ -867,7 +928,7 @@ function AdminDashboard() {
                         marginTop: "15px"
                       }}
                     >
-                      {module.items.map((item) => (
+                      {module.items?.map((item) => (
                         <div
                           key={item.id}
                           style={{
@@ -902,131 +963,7 @@ function AdminDashboard() {
                   </div>
                 ))}
               </div>
-            ))
-          ) : viewMode === "list" ? (
-            // existing list subjects view
-            ["beginner", "intermediate", "advanced"].map((lvl) => (
-              <div key={lvl} style={{ marginBottom: 18 }}>
-                <h3 style={{ textAlign: "left" }}>{lvl.toUpperCase()}</h3>
-                {(subjectsByLevel[lvl] || []).length === 0 && (
-                  <p style={{ color: "#666" }}>No subjects</p>
-                )}
-                {(subjectsByLevel[lvl] || []).map((subject) => (
-                  <div
-                    key={subject.id}
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      padding: "12px 16px",
-                      background: "#fff",
-                      border: "1px solid #eee",
-                      borderRadius: 12,
-                      marginBottom: 8
-                    }}
-                  >
-                    <div>
-                      <strong style={{ marginRight: 8 }}>{subject.icon}</strong>
-                      <strong>{subject.title}</strong>
-                      <div style={{ color: "#666" }}>{subject.description}</div>
-                    </div>
-
-                    <div style={{ display: "flex", gap: 8 }}>
-                      <button className="hero-button" onClick={() => editSubject(subject.id, lvl)}>
-                        Edit
-                      </button>
-                      <button
-                        className="hero-button"
-                        style={{ background: "#ef4444" }}
-                        onClick={() => deleteSubject(subject.id, lvl)}
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ))
-          ) : viewMode === "listQuizzes" ? (
-            // list quizzes grouped by level
-            ["beginner", "intermediate", "advanced"].map((lvl) => (
-              <div key={lvl} style={{ marginBottom: 18 }}>
-                <h3 style={{ textAlign: "left" }}>{lvl.toUpperCase()}</h3>
-                {(quizzes.filter((qq) => qq.level === lvl) || []).length === 0 && (
-                  <p style={{ color: "#666" }}>No quizzes</p>
-                )}
-                {(quizzes.filter((qq) => qq.level === lvl) || []).map((q) => (
-                  <div
-                    key={q.id}
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      padding: "12px 16px",
-                      background: "#fff",
-                      border: "1px solid #eee",
-                      borderRadius: 12,
-                      marginBottom: 8
-                    }}
-                  >
-                    <div>
-                      <strong>{q.title}</strong>
-                      <div style={{ color: "#666" }}>{q.description}</div>
-                    </div>
-
-                    <div style={{ display: "flex", gap: 8 }}>
-                      <button className="hero-button" onClick={() => editQuiz(q.id)}>
-                        Edit
-                      </button>
-                      <button className="hero-button" style={{ background: "#ef4444" }} onClick={() => deleteQuiz(q.id)}>
-                        Remove
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ))
-          ) : (
-            <p>Invalid view mode</p>
-          )}
-
-          {/* Standalone quizzes section (only in list mode) */}
-          {viewMode === "list" && (
-            <div style={{ marginTop: 24 }}>
-              <h3 style={{ textAlign: "left" }}>Standalone Quizzes</h3>
-              {quizzes.length === 0 && <p style={{ color: "#666" }}>No quizzes created</p>}
-              {quizzes.map((q) => (
-                <div
-                  key={q.id}
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    padding: "12px 16px",
-                    background: "#fff",
-                    border: "1px solid #eee",
-                    borderRadius: 12,
-                    marginBottom: 8
-                  }}
-                >
-                  <div>
-                    <strong>{q.title}</strong>
-                    <div style={{ color: "#666" }}>{q.description}</div>
-                    <div style={{ color: "#999", fontSize: 12 }}>Level: {q.level}</div>
-                  </div>
-
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <button className="hero-button" onClick={() => editQuiz(q.id)}>
-                      Edit
-                    </button>
-                    <button className="hero-button" style={{ background: "#ef4444" }} onClick={() => deleteQuiz(q.id)}>
-                      Remove
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+            ))}
         </section>
       </main>
     </div>

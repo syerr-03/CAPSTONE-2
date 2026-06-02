@@ -10,8 +10,7 @@ function NewQuizSystem({
   updateAdaptiveLevel,
   completedItems = [],
   setCompletedItems,
-  updateLeaderboard,
-  leaderboard
+  
 }) {
   const topic = module?.title || "What is Data Science?";
   const currentLevel = localStorage.getItem("learningLevel") || "beginner";
@@ -808,16 +807,6 @@ const getAdminItemContent = (item) => {
   };
 
   const allItems = moduleSections.flatMap((section) => section.items);
-  const practicalItemIds = allItems
-    .filter((item) => item.type === "Practical Assignment")
-    .map((item) => item.id);
-
-  const getPracticalCompletionPercent = (completedIds) => {
-    const completedCount = practicalItemIds.filter((id) => completedIds.includes(id)).length;
-    return practicalItemIds.length
-      ? Math.round((completedCount / practicalItemIds.length) * 100)
-      : 0;
-  };
 
   const markItemCompleted = (itemId) => {
   const todayKey = new Date().toISOString().split("T")[0];
@@ -978,10 +967,6 @@ const getAdminItemContent = (item) => {
 
     if (typeof setQuizScore === "function") setQuizScore(percent);
 
-    if (typeof updateLeaderboard === "function") {
-      const studentName = localStorage.getItem("username") || "Student";
-      updateLeaderboard(studentName, percent, currentLevel);
-    }
 
     if (typeof updateAdaptiveLevel === "function") {
       updateAdaptiveLevel(percent, null);
@@ -990,14 +975,9 @@ const getAdminItemContent = (item) => {
 
   const handlePracticalSubmit = () => {
     setPracticalSubmitted(true);
-
-    const completedNow = safeCompletedItems.includes(activeItem.id)
-      ? safeCompletedItems
-      : [...safeCompletedItems, activeItem.id];
-
     markItemCompleted(activeItem.id);
 
-    const percent = getPracticalCompletionPercent(completedNow);
+    const percent = practicalText.trim().length > 10 ? 80 : 40;
 
     if (typeof setPracticalScore === "function") setPracticalScore(percent);
 
@@ -1259,6 +1239,7 @@ const getAdminItemContent = (item) => {
                   %)
                 </p>
               </div>
+
 
             </>
           )}

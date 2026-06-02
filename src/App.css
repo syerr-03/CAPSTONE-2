@@ -81,7 +81,7 @@ body {
 .main-title {
   font-size: 32px;
   font-weight: 700;
-  color: #111827;
+  color: #7c3aed !important;
   line-height: 1.2;
   margin-bottom: 16px;
 }
@@ -197,7 +197,7 @@ body {
 
 .dashboard-main-single {
   min-width: 0;
-  padding: 0 0 70px;
+  padding: 28px 0 70px;
   width: 100%;
   position: relative;
   z-index: 1;
@@ -208,26 +208,21 @@ body {
 ========================= */
 
 .drawer-panel {
-  width: min(320px, 100%);
-  max-width: 320px;
-  min-width: 280px;
-  height: calc(100vh - 24px);
+  width: 280px;
+  height: 100vh;
   background: #ffffff;
   border-right: 1px solid #eee7ff;
   box-shadow: 16px 0 40px rgba(17, 24, 39, 0.06);
-  border-radius: 0 24px 24px 0;
   padding: 30px 24px;
+
   overflow-y: auto;
-  overflow-x: hidden;
-  background-clip: padding-box;
+  overflow-x: visible;
 
   position: fixed;
-  top: 24px;
-  left: 165px;
+  top: 0;
+  left: 40;
   z-index: 100;
-  box-sizing: border-box;
 }
-
 
 .drawer-header-area {
   display: flex;
@@ -311,17 +306,25 @@ body {
 ========================= */
 
 .simple-menu-bar {
-  width: min(1180px, calc(100% - 80px));
+  width: min(1050px, calc(100% - 80px));
   height: 72px;
+
   margin: 0 auto 34px;
   padding: 0 18px;
+
   background: rgba(255, 255, 255, 0.95);
   border: 1px solid #eee7ff;
   border-radius: 24px;
-  box-shadow: 0 14px 34px rgba(17, 24, 39, 0.07);
+
   display: flex;
   align-items: center;
   gap: 18px;
+
+  box-shadow: 0 14px 34px rgba(17, 24, 39, 0.07);
+
+  position: sticky;
+  top: 10px;
+  z-index: 9999;
 }
 
 .simple-menu-icon {
@@ -422,7 +425,7 @@ body {
 
 .compact-welcome-card h2 {
   margin: 0 0 10px;
-  color: #1f1746;
+  color: #7c3aed;;
   font-size: 38px;
   line-height: 1.1;
   font-weight: 800;
@@ -2274,31 +2277,34 @@ input {
   z-index: -1;
 }
 
-/* FORCE BACK BUTTON STYLE */
-.page-wrapper {
-  position: relative !important;
+/* UNIVERSAL BACK BUTTON */
+.back-btn {
+  width: 100px;
+  height: 42px;
+
+  background: #ede9fe;
+  color: #7c3aed;
+
+  border: none;
+  border-radius: 12px;
+
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 20px;
+
+  align-self: flex-start; /* FORCE LEFT */
 }
 
-.page-wrapper .back-btn {
-  position: absolute !important;
-  top: 30px !important;
-  left: 30px !important;
-
-  background: #f3eaff !important;
-  color: #7c3cff !important;
-
-  border: 1px solid #d9c6ff !important;
-  padding: 10px 18px !important;
-  border-radius: 14px !important;
-
-  font-size: 14px !important;
-  font-weight: 600 !important;
-  cursor: pointer !important;
-  z-index: 10 !important;
-}
-
-.page-wrapper .back-btn:hover {
-  background: #eadcff !important;
+.back-btn:hover {
+  background: #ddd6fe;
 }
 
 .custom-textarea {
@@ -2440,10 +2446,6 @@ input {
   font-weight: 700;
 }
 
-.quiz-page .back-btn {
-  position: relative;
-  left: -420px;
-}
 .drawer-section-title {
   margin: 16px 20px 4px;
   font-size: 15px;
@@ -2657,11 +2659,6 @@ input {
   text-shadow: none !important;
 }
 
-.dashboard-page h1,
-.dashboard-page h2 {
-  color: #111827 !important;
-  opacity: 1 !important;
-}
 
 .subscription-page {
   width: 100%;
@@ -3241,99 +3238,82 @@ input {
   transform: translateY(60px);
 }
 
-html,
-body,
-#root {
+.compact-welcome-card h2 {
+  color: #7c3aed !important;
+}
+.dashboard-page .compact-welcome-card h2 {
+  color: #7c3aed !important;
+}
+.main-title {
+  color: #7c3aed !important;
+}
+
+.logo-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.navbar-logo {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* FORCE ALL PAGE BACK BUTTONS TO LEFT */
+.back-btn-container {
   width: 100%;
-  min-height: 100%;
-  margin: 0;
-  padding: 0;
-  overflow-x: hidden;
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 20px;
 }
 
-/* Remove any possible side borders/margins coming from layout containers */
-body {
-  margin: 0;
-  padding: 0;
-  border-left: 0;
-  border-right: 0;
-}
+/* REAL APP FIXED TOP NAVBAR */
+.simple-menu-bar {
+  position: fixed !important;
+  top: 16px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
 
-.dashboard-page {
-  margin-left: 0 !important;
-  margin-right: 0 !important;
-  padding-left: 0 !important;
-  padding-right: 0 !important;
-}
+  width: min(1050px, calc(100% - 80px)) !important;
+  height: 72px !important;
 
-.dashboard-layout-single {
-  width: 100% !important;
-  max-width: none !important;
-}
-
-
-.app-container,
-.dashboard-page,
-.dashboard-wrapper,
-.main-dashboard {
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  padding: 0;
-  border: none;
-}
-
-.dashboard-main-content {
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  padding: 32px 48px;
-  box-sizing: border-box;
-}
-
-body {
-  background: #faf7ff !important;
-}
-
-.dashboard-container,
-.dashboard-content,
-.dashboard-layout,
-.dashboard-home,
-.dashboard-section {
-  width: 100% !important;
-  max-width: none !important;
-  margin-left: 0 !important;
-  margin-right: 0 !important;
-}
-
-.dashboard-card,
-.welcome-card,
-.streak-card,
-.certificate-card {
-  width: 100% !important;
-  max-width: none !important;
-}
-
-.dashboard-page {
-  width: 100% !important;
   margin: 0 !important;
-  padding: 0 !important;
-  background: #faf7ff !important;
-  overflow-x: hidden !important;
+  z-index: 9999 !important;
+
+  background: #ffffff !important;
+  border: 1px solid #eee7ff !important;
+  border-radius: 24px !important;
+  box-shadow: 0 14px 34px rgba(17, 24, 39, 0.12) !important;
 }
 
-.dashboard-layout-single {
-  width: 100% !important;
-  margin: 0 auto !important;
-  padding: 24px !important;
-  box-sizing: border-box !important;
+/* WHITE AREA BEHIND NAVBAR SO CONTENT DOES NOT SHOW THROUGH */
+.dashboard-main-single::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 115px;
+  background: #fbfaff;
+  z-index: 9998;
 }
 
-.dashboard-layout-single > :not(.drawer-panel) {
-  width: 100% !important;
-  max-width: 100% !important;
+/* PUSH CONTENT BELOW FIXED NAVBAR */
+.dashboard-main-single {
+  padding-top: 125px !important;
 }
 
-body {
-  overflow-x: hidden;
+/* FORCE ALL BACK BUTTONS TO FAR LEFT LIKE SUBSCRIPTION */
+.back-btn {
+  position: relative !important;
+  left: -390px !important;
+  transform: none !important;
+}
+
+.subscription-back-btn {
+  position: relative !important;
+  left: -390px !important;
+  transform: none !important;
 }

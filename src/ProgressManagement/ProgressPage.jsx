@@ -28,10 +28,6 @@ function ProgressPage({ studentData = {}, onBack }) {
 
   return (
     <div className="page-wrapper">
-      <button className="back-btn" onClick={onBack}>
-        ← Back
-      </button>
-
       <div className="hero-section">
         <h2 className="main-title">Track Progress</h2>
         <p className="subtitle-text">Click any card below to view more details.</p>
@@ -51,7 +47,7 @@ function ProgressPage({ studentData = {}, onBack }) {
         </div>
 
         <p className="small-text">
-          {studentData.completedModules || 0} of {studentData.totalModules || 0} subjects completed
+          {studentData.completedModules || 0} of {studentData.totalModules || 0} learning items completed
         </p>
       </div>
 
