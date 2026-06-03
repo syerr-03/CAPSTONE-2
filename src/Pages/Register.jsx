@@ -75,8 +75,36 @@ function Register({ goToLogin }) {
       localStorage.setItem("uid", user.uid);
       localStorage.setItem("phone", "");
       localStorage.setItem("profilePic", "");
+            // Initialize new user's data
+      localStorage.setItem(
+        `progress_${username}`,
+        JSON.stringify({
+          completedItems: [],
+          quizScore: 0,
+          practicalScore: 0
+        })
+      );
 
-      alert("Account created successfully!");
+      localStorage.setItem(
+        `subjectProgress_${username}`,
+        JSON.stringify({})
+      );
+
+      localStorage.setItem(
+        `quizScores_${username}_beginner`,
+        JSON.stringify({})
+      );
+
+      localStorage.setItem(
+        `quizScores_${username}_intermediate`,
+        JSON.stringify({})
+      );
+
+      localStorage.setItem(
+        `quizScores_${username}_advanced`,
+        JSON.stringify({})
+      );
+            alert("Account created successfully!");
       goToLogin();
     } 
     catch (error) {

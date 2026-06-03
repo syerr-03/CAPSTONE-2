@@ -19,6 +19,8 @@ function PerformancePage({ studentData, leaderboard, learningLevel }) {
   localStorage.getItem("username") ||
   "Student";
 const level = learningLevel || "beginner";
+const displayLevel =
+  level.charAt(0).toUpperCase() + level.slice(1);
 const scoreKey = `quizScores_${studentName}_${level}`;
 const attemptKey = `quizAttempts_${studentName}_${level}`;
 const savedQuizScores = JSON.parse(localStorage.getItem(scoreKey)) || {};
@@ -117,9 +119,9 @@ const quizScoreList = Object.entries(quizSource).map(([key, value]) => ({
   onClick={() => setSelectedMetric("quiz")}
 >
   <h3 className="section-title">Quiz Score</h3>
-  <p className="main-title" style={{ fontSize: "32px" }}>
-    {quiz}%
-  </p>
+<p className="main-title" style={{ fontSize: "32px" }}>
+  {quiz}%
+</p>
 </button>
 
             <button
@@ -152,7 +154,7 @@ const quizScoreList = Object.entries(quizSource).map(([key, value]) => ({
             >
               <h3 className="section-title">Level</h3>
               <p className="main-title" style={{ fontSize: "32px" }}>
-                {studentData?.difficultyLevel || "Medium"}
+                {displayLevel}
               </p>
             </button>
           </div>
@@ -205,11 +207,11 @@ const quizScoreList = Object.entries(quizSource).map(([key, value]) => ({
             )}
 
             {selectedMetric === "difficulty" && (
-              <p>
-                Current system adaptive level:{" "}
-                <strong>{studentData?.difficultyLevel || "Medium"}</strong>
-              </p>
-            )}
+            <p>
+              Current learning level:
+              <strong> {displayLevel}</strong>
+            </p>
+          )}
           </div>
 
           <div className="module-card">

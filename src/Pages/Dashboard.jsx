@@ -38,6 +38,9 @@ function Dashboard({
 }) {
 
   const [subjectsForLevel, setSubjectsForLevel] = useState([]);
+  const [reminderShown, setReminderShown] = useState(
+  sessionStorage.getItem("reminderShown") === "true"
+);
 
   useEffect(() => {
     const raw = localStorage.getItem("bbSubjectsByLevel");
@@ -567,7 +570,7 @@ const getCurrentTimeSlot = () => {
     `studentSchedule_${currentUser}`,
     JSON.stringify({ days, time, duration })
   );
-
+  sessionStorage.removeItem(`reminderShown_${currentUser}`);
   setScheduleReminder(reminderText);
   setStep(4);
 };
@@ -582,13 +585,25 @@ const checkScheduleReminder = () => {
 
   if (!savedSchedule) return;
 
+  // NEW
+  const reminderShown = sessionStorage.getItem(
+    `reminderShown_${currentUser}`
+  );
+
+  if (reminderShown) return;
+
   const currentSlot = getCurrentTimeSlot();
 
   if (savedSchedule.time.includes(currentSlot)) {
     alert("Reminder: It's your scheduled study time today!");
+
+    // NEW
+    sessionStorage.setItem(
+      `reminderShown_${currentUser}`,
+      "true"
+    );
   }
 };
-
 useEffect(() => {
   checkScheduleReminder();
 }, []);
@@ -1514,7 +1529,10 @@ const recommendedCourses = weakQuizId
                 ← Back
               </button>
 
-              <ProgressPage studentData={performanceData} />
+            <ProgressPage
+            studentData={studentData}
+            learningLevel={learningLevel}
+          />
 
             </section>
           )}

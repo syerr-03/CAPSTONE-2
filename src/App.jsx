@@ -21,7 +21,11 @@ function App() {
     );
   });
 
-  const studentKey = currentUser || "guest";
+  const studentKey =
+  localStorage.getItem("loggedInUser") ||
+  localStorage.getItem("username") ||
+  localStorage.getItem("name") ||
+  "guest";
   const progressKey = `progress_${studentKey}`;
   const subjectProgressKey = `subjectProgress_${studentKey}`;
   const completedSubjectMemoryKey = `certificateSubjectCompletion_${studentKey}`;
@@ -267,10 +271,16 @@ const [leaderboard, setLeaderboard] = useState([]);
     setActivePage("login");
   };
 
-  const handleEnroll = (subject) => {
-    setSelectedSubject(subject);
-    setActivePage("learning-content");
-  };
+ const handleEnroll = (subject) => {
+
+  localStorage.setItem(
+    "currentModule",
+    subject.title
+  );
+
+  setSelectedSubject(subject);
+  setActivePage("learning-content");
+};
 
   const updateLeaderboard = (name, score) => {
     const newEntry = {

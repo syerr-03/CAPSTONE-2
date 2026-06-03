@@ -377,7 +377,6 @@ const activeQuiz = selectedQuiz ? allQuizzes[selectedQuiz] : null;
 
   const handleSubmit = async () => {
     const percent = Math.round((getScore() / activeQuestions.length) * 100);
-
     if (onSubmitQuiz) onSubmitQuiz(percent);
     const previousBest = quizAttempts[selectedQuiz]?.bestScore || 0;
     const bestScore = Math.max(previousBest, percent);
