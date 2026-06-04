@@ -11,34 +11,46 @@ const FeedbackPage = () => {
   const [message, setMessage] = useState("");
 
   const userName = useMemo(() => localStorage.getItem("name") || "", []);
+  const userEmail = useMemo(() => localStorage.getItem("email") || "", []);
+  const userId = useMemo(() => localStorage.getItem("uid") || "", []);
 
   const onSubmit = async () => {
+    alert("Button clicked");
+
     setMessage("");
 
     if (!rating) {
-      setMessage("Please rate with stars (1-5). ");
+      setMessage("Please rate with stars (1-5).");
       return;
     }
 
     if (!feedback.trim()) {
-      setMessage("Please write what you want to improve.");
+      setMessage("Please write your feedback.");
       return;
     }
 
     setSubmitting(true);
+
     try {
-      await addDoc(collection(db, "feedback"), {
-        rating,
+      alert("Saving to Firebase...");
+
+      await addDoc(collection(db, "feedbacks"), {
+        rating: rating,
         feedback: feedback.trim(),
         name: userName || "Anonymous",
+        email: userEmail,
+        userId: userId,
         createdAt: serverTimestamp(),
       });
+
+      alert("Saved successfully!");
 
       setRating(0);
       setFeedback("");
       setMessage("Feedback submitted successfully!");
-    } catch (e) {
-      console.error(e);
+    } catch (error) {
+      console.error("Error submitting feedback:", error);
+      alert(error.message);
       setMessage("Submit failed. Please try again.");
     } finally {
       setSubmitting(false);
@@ -52,10 +64,22 @@ const FeedbackPage = () => {
 
         <p>Share your feedback to help us improve BrainyBits.</p>
 
-        <div style={{ marginTop: 16, marginBottom: 16 }}>
-          <div style={{ marginBottom: 10, fontWeight: 700, color: "#4B5563" }}>
+        <div
+          style={{
+            marginTop: 16,
+            marginBottom: 16,
+          }}
+        >
+          <div
+            style={{
+              marginBottom: 10,
+              fontWeight: 700,
+              color: "#4B5563",
+            }}
+          >
             Rate our app
           </div>
+
           <StarRating rating={rating} onChange={setRating} />
         </div>
 
@@ -92,4 +116,3 @@ const FeedbackPage = () => {
 };
 
 export default FeedbackPage;
-
