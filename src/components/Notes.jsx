@@ -24,18 +24,32 @@ const Notes = ({ onBack }) => {
   const colors = ["#7C3AED", "#3B82F6", "#10B981", "#F59E0B", "#EF4444"];
 
   const getUserKey = () => {
-    const user = auth.currentUser;
-    return user?.uid || localStorage.getItem("email") || "guest";
+    return (
+      localStorage.getItem("loggedInUser") ||
+      localStorage.getItem("email") ||
+      "guest"
+    );
   };
 
   const notesStorageKey = `notes_${getUserKey()}`;
 
   const [notes, setNotes] = useState(() => {
     const savedNotes = localStorage.getItem(notesStorageKey);
+    const legacyNotes = localStorage.getItem("notes");
 
-    return savedNotes
-      ? JSON.parse(savedNotes)
-      : [
+    if (savedNotes) {
+      return JSON.parse(savedNotes);
+    }
+
+    if (legacyNotes) {
+      try {
+        return JSON.parse(legacyNotes);
+      } catch {
+        return [];
+      }
+    }
+
+    return [
           {
             id: "sample-1",
             level: "beginner",
@@ -71,7 +85,35 @@ const Notes = ({ onBack }) => {
 
   useEffect(() => {
     localStorage.setItem(notesStorageKey, JSON.stringify(notes));
-  }, [notes]);
+  }, [notes, notesStorageKey]);
+
+  useEffect(() => {
+    const refreshNotes = () => {
+      const savedNotes = localStorage.getItem(notesStorageKey);
+      if (savedNotes) {
+        try {
+          setNotes(JSON.parse(savedNotes));
+          console.log("Notes refreshed from storage:", JSON.parse(savedNotes));
+        } catch (error) {
+          console.error("Failed to parse notes storage on refresh:", error);
+        }
+      }
+    };
+
+    const onStorage = (event) => {
+      if (event.key === notesStorageKey || event.key === null) {
+        refreshNotes();
+      }
+    };
+
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("notesUpdated", refreshNotes);
+
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("notesUpdated", refreshNotes);
+    };
+  }, [notesStorageKey]);
 
   const addBullet = () => {
     setNoteContent((prev) => prev + (prev ? "\n• " : "• "));
@@ -240,9 +282,17 @@ const Notes = ({ onBack }) => {
   const advancedNotes = searchedNotes.filter(
     (note) => note.level === "advanced"
   );
-  const selfNotes = searchedNotes.filter(
-  (note) => note.level === "self"
-);
+
+  const selfNotes = searchedNotes.filter((note) => note.level === "self");
+
+  useEffect(() => {
+    console.log("Notes storage key:", notesStorageKey);
+    console.log("Notes loaded:", notes);
+    console.log("Filtered beginner notes:", beginnerNotes);
+    console.log("Filtered intermediate notes:", intermediateNotes);
+    console.log("Filtered advanced notes:", advancedNotes);
+    console.log("Filtered self notes:", selfNotes);
+  }, [notesStorageKey, notes, beginnerNotes, intermediateNotes, advancedNotes, selfNotes]);
 
   const getShortContent = (content) => {
     const cleanContent = (content || "").replace(/\n/g, " ");

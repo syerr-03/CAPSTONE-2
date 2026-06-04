@@ -63,14 +63,15 @@ function App() {
     setUserPlan("standard");
     
     alert(
-      "You are now using the Standard Plan. Some modules, quizzes, and AI chatbot features are limited."
+      "You are now using the Standard Plan. Some modules, quizzes and AI chatbot features are limited."
     );
   };
 
   const handlePremiumPaymentSuccess = () => {
     // Called from Dashboard after successful premium payment
+    localStorage.setItem(userPlanKey, "premium");
     localStorage.setItem("userSubscriptionPlan", "premium");
-    setUserSubscriptionPlan("premium");
+    setUserPlan("premium");
     alert("Premium plan activated! All modules, quizzes and AI chatbot are now unlocked.");
   };
 
@@ -116,14 +117,25 @@ function App() {
       setShowLevelPopup(true);
     }
 
-    setUserPlan(localStorage.getItem(userPlanKey) || "standard");
+    const savedPlan = localStorage.getItem(userPlanKey) || "standard";
+    setUserPlan(savedPlan);
   }, [studentKey]);
+
+  const getSubjectKey = (subject) => {
+    if (!subject) return null;
+
+    const normalizedLevel = subject.level
+      ? String(subject.level).toLowerCase()
+      : localStorage.getItem(learningLevelKey) || "beginner";
+
+    return subject.id != null ? `${subject.id}_${normalizedLevel}` : null;
+  };
 
   const updateCertificateProgressMemory = (newMemory) => {
     const normalizedMemory = {
-      beginner: Boolean(newMemory.beginner),
-      intermediate: Boolean(newMemory.intermediate),
-      advanced: Boolean(newMemory.advanced)
+      beginner: Boolean(newMemory["1_beginner"] && newMemory["2_beginner"]),
+      intermediate: Boolean(newMemory["3_intermediate"] && newMemory["4_intermediate"]),
+      advanced: Boolean(newMemory["5_advanced"] && newMemory["6_advanced"])
     };
 
     localStorage.setItem(
@@ -135,15 +147,15 @@ function App() {
 
   const getUpdatedCertificateMemory = (subjectCompletion) => {
     const nextMemory = {
-      beginner: certificateSubjectIdsByLevel.beginner.every(
-        (id) => subjectCompletion[id]
-      ),
-      intermediate: certificateSubjectIdsByLevel.intermediate.every(
-        (id) => subjectCompletion[id]
-      ),
-      advanced: certificateSubjectIdsByLevel.advanced.every(
-        (id) => subjectCompletion[id]
-      )
+      beginner:
+        Boolean(subjectCompletion["1_beginner"]) &&
+        Boolean(subjectCompletion["2_beginner"]),
+      intermediate:
+        Boolean(subjectCompletion["3_intermediate"]) &&
+        Boolean(subjectCompletion["4_intermediate"]),
+      advanced:
+        Boolean(subjectCompletion["5_advanced"]) &&
+        Boolean(subjectCompletion["6_advanced"])
     };
 
     return nextMemory;
@@ -160,27 +172,33 @@ function App() {
     }
   }, [completedSubjectMemory, certificateProgressMemory]);
 
-  useEffect(() => {
-    if (!selectedSubject || !Array.isArray(completedItems)) return;
+  const handleSelectLevel = (level) => {
+    setLearningLevel(level);
+    localStorage.setItem(learningLevelKey, level);
+    setShowLevelPopup(false);
+  };
 
-    const subjectId = selectedSubject.id;
-    if (!subjectId) return;
+const saveSubjectProgress = (subjectKey, progressData) => {
+  if (!subjectKey || typeof progressData !== "object") return;
 
-    const subjectItemIds = selectedSubject?.modules
-      ? selectedSubject.modules.flatMap((mod) => (Array.isArray(mod.items) ? mod.items.map((item) => item.id) : []))
-      : null;
+  const existingProgress = subjectProgress[subjectKey] || {};
+  const updatedEntry = {
+    ...existingProgress,
+    ...progressData
+  };
 
-    if (subjectItemIds) {
-      if (!subjectItemIds.every((id) => completedItems.includes(id))) return;
-    } else {
-      if (completedItems.length < totalLearningItems) return;
-    }
+  const updatedProgress = {
+    ...subjectProgress,
+    [subjectKey]: updatedEntry
+  };
 
-    if (completedSubjectMemory[subjectId]) return;
+  localStorage.setItem(subjectProgressKey, JSON.stringify(updatedProgress));
+  setSubjectProgress(updatedProgress);
 
+  if (updatedEntry.completed && !completedSubjectMemory[subjectKey]) {
     const updatedSubjectMemory = {
       ...completedSubjectMemory,
-      [subjectId]: true
+      [subjectKey]: true
     };
 
     localStorage.setItem(
@@ -191,17 +209,7 @@ function App() {
 
     const newCertificateMemory = getUpdatedCertificateMemory(updatedSubjectMemory);
     updateCertificateProgressMemory(newCertificateMemory);
-  }, [completedItems, selectedSubject, completedSubjectMemory]);
-
-  const handleSelectLevel = (level) => {
-    setLearningLevel(level);
-    localStorage.setItem(learningLevelKey, level);
-    setShowLevelPopup(false);
-  };
-
-const saveSubjectProgress = (updatedProgress) => {
-  setSubjectProgress(updatedProgress);
-  localStorage.setItem(subjectProgressKey, JSON.stringify(updatedProgress));
+  }
 };
 
 const saveProgress = (newCompletedItems, newQuizScore, newPracticalScore) => {

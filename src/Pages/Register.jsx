@@ -75,7 +75,8 @@ function Register({ goToLogin }) {
       localStorage.setItem("uid", user.uid);
       localStorage.setItem("phone", "");
       localStorage.setItem("profilePic", "");
-            // Initialize new user's data
+      localStorage.setItem(`userPlan_${username}`, "standard");
+      // Initialize new user's data
       localStorage.setItem(
         `progress_${username}`,
         JSON.stringify({

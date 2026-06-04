@@ -1672,7 +1672,10 @@ const recommendedCourses = weakQuizId
                   <div className="account-detail-icon">👑</div>
                   <div>
                     <h4>Current Plan</h4>
-                    <p>Standard Plan</p>
+                    <p>{userPlan === "premium" ? "Premium Plan" : "Standard Plan"}</p>
+                    {userPlan === "premium" && (
+                      <span className="premium-status-badge">💎 Premium Active</span>
+                    )}
                   </div>
                 </div>
 
@@ -1718,7 +1721,12 @@ const recommendedCourses = weakQuizId
                       <li>Community support</li>
                     </ul>
                     <button
-                      onClick={onStandardPlan}
+                      onClick={userPlan === "standard" ? undefined : onStandardPlan}
+                      disabled={userPlan === "standard"}
+                      style={{
+                        cursor: userPlan === "standard" ? "not-allowed" : "pointer",
+                        opacity: userPlan === "standard" ? 0.65 : 1
+                      }}
                     >
                       {userPlan === "standard"
                         ? "Current Plan"
@@ -1737,7 +1745,14 @@ const recommendedCourses = weakQuizId
                       <li>Unlimited AI Chatbot</li>
                       <li>Priority support</li>
                     </ul>
-                    <button onClick={openPremiumPlanModal}>
+                    <button
+                      onClick={userPlan === "premium" ? undefined : openPremiumPlanModal}
+                      disabled={userPlan === "premium"}
+                      style={{
+                        cursor: userPlan === "premium" ? "not-allowed" : "pointer",
+                        opacity: userPlan === "premium" ? 0.65 : 1
+                      }}
+                    >
                       {userPlan === "premium"
                         ? "Premium Active"
                         : "Upgrade to Premium"}

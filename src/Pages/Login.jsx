@@ -89,6 +89,7 @@ function Login({ goToRegister, goToDashboard }) {
       localStorage.setItem("isLoggedIn", "true");
       localStorage.setItem("role", "student");
       localStorage.setItem("loggedInUser", username);
+      localStorage.setItem(`userPlan_${username}`, localStorage.getItem(`userPlan_${username}`) || "standard");
 
        setTimeout(() => {
        goToDashboard();

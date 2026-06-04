@@ -3,16 +3,22 @@ import { useState } from "react";
 function FloatingAiChat() {
   const [isOpen, setIsOpen] = useState(false);
   const [question, setQuestion] = useState("");
-  const userName = localStorage.getItem("name") || "Student";
+  const userName =
+    localStorage.getItem("loggedInUser") ||
+    localStorage.getItem("name") ||
+    "Student";
   const moduleName = localStorage.getItem("currentModule") || "defaultModule";
   const messageKey = `aiChatMessages_${userName}_${moduleName}`;
 
   const premiumKey = `premium_${userName}`;
+  const userPlanKey = `userPlan_${userName}`;
   const chatLimitKey = `chatCount_${userName}_${moduleName}`;
 
-  const [isPremium, setIsPremium] = useState(
-    localStorage.getItem(premiumKey) === "true"
-  );
+  const initialPlan =
+    localStorage.getItem(userPlanKey) ||
+    (localStorage.getItem(premiumKey) === "true" ? "premium" : "standard");
+
+  const [isPremium, setIsPremium] = useState(initialPlan === "premium");
 
   const [chatCount, setChatCount] = useState(
     Number(localStorage.getItem(chatLimitKey)) || 0
@@ -100,6 +106,7 @@ function FloatingAiChat() {
 };
 
 const handleSubscribePremium = () => {
+  localStorage.setItem(userPlanKey, "premium");
   localStorage.setItem(premiumKey, "true");
   setIsPremium(true);
 

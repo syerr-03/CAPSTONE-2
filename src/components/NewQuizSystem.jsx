@@ -10,11 +10,30 @@ function NewQuizSystem({
   updateAdaptiveLevel,
   completedItems = [],
   setCompletedItems,
-  
+  saveSubjectProgress,
 }) {
   const topic = module?.title || "What is Data Science?";
   const currentLevel = localStorage.getItem("learningLevel") || "beginner";
   const safeCompletedItems = Array.isArray(completedItems) ? completedItems : [];
+
+  const getSubjectKey = () => {
+    const normalizedLevel = currentLevel.toLowerCase();
+
+    if (module?.id != null && module?.level) {
+      return `${module.id}_${module.level.toLowerCase()}`;
+    }
+
+    const normalizedTitle = topic
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "");
+
+    return `${normalizedTitle}_${normalizedLevel}`;
+  };
+
+  const getSubjectPrefix = () => `${getSubjectKey()}`;
+
+  const resolveBaseId = (item) => item.baseId || item.id;
 
   const [activeItem, setActiveItem] = useState(null);
   const [activeSection, setActiveSection] = useState(null);
@@ -32,17 +51,7 @@ function NewQuizSystem({
   const [practicalText, setPracticalText] = useState("");
   const [practicalSubmitted, setPracticalSubmitted] = useState(false);
   const [apiModuleContent, setApiModuleContent] = useState(null);
-const [apiLoading, setApiLoading] = useState(false);
-
-const getSubjectKey = () => {
-  const normalizedTopic = topic.toLowerCase().replace("?", "").trim();
-
-  if (normalizedTopic.includes("python")) {
-    return "pythonForDataScience";
-  }
-
-  return "whatIsDataScience";
-};
+  const [apiLoading, setApiLoading] = useState(false);
 
 useEffect(() => {
   if (currentLevel !== "beginner" || !activeModuleNumber) {
@@ -94,72 +103,104 @@ const getAdminItemContent = (item) => {
 };
 
   const moduleSections = useMemo(() => {
+  const subjectPrefix = getSubjectPrefix();
+
   if (isAdminCreatedSubject) {
     return module.modules.map((mod, index) => ({
       id: mod.id || `admin-module-${index + 1}`,
       moduleNumber: index + 1,
       heading: mod.heading || `Module ${index + 1}`,
-      items: mod.items || []
+      items: (mod.items || []).map((item, itemIndex) => ({
+        ...item,
+        id: `${subjectPrefix}_${item.id || `item-${itemIndex + 1}`}`,
+        baseId: item.id || `item-${itemIndex + 1}`
+      }))
     }));
   }
 
   return [
     {
-      id: "module1",
+      id: `${subjectPrefix}_module1`,
       moduleNumber: 1,
       heading: "Fundamentals",
       items: [
         {
-          id: "reading-1",
+          id: `${subjectPrefix}_reading-1`,
+          baseId: "reading-1",
           type: "Reading",
           title: `Master the Basics: What is ${topic}?`
         },
         {
-          id: "video-1",
+          id: `${subjectPrefix}_video-1`,
+          baseId: "video-1",
           type: "Video",
           title: `Watch and Learn: ${topic} Overview`
         },
         {
-          id: "quiz-1",
+          id: `${subjectPrefix}_quiz-1`,
+          baseId: "quiz-1",
           type: "Quiz",
           title: "Test Your Knowledge: Fundamentals Quiz"
         },
         {
-          id: "practical-1",
+          id: `${subjectPrefix}_practical-1`,
+          baseId: "practical-1",
           type: "Practical Assignment",
           title: "Practical Assignment: Basic Data Exploration"
         }
       ]
     },
     {
-      id: "module2",
+      id: `${subjectPrefix}_module2`,
       moduleNumber: 2,
       heading: "Programming Basics",
       items: [
         {
-          id: "reading-2",
+          id: `${subjectPrefix}_reading-2`,
+          baseId: "reading-2",
           type: "Reading",
           title: "Core Concepts of Data Science"
         },
         {
-          id: "video-2",
+          id: `${subjectPrefix}_video-2`,
+          baseId: "video-2",
           type: "Video",
           title: "Data Science Concepts and Techniques"
         },
         {
-          id: "quiz-2",
+          id: `${subjectPrefix}_quiz-2`,
+          baseId: "quiz-2",
           type: "Quiz",
           title: "Check Your Understanding"
         },
         {
-          id: "practical-2",
+          id: `${subjectPrefix}_practical-2`,
+          baseId: "practical-2",
           type: "Practical Assignment",
           title: "Mini Exercise"
         }
       ]
     }
   ];
-}, [isAdminCreatedSubject, module, topic]);
+}, [isAdminCreatedSubject, module, topic, currentLevel]);
+
+  useEffect(() => {
+    if (typeof saveSubjectProgress !== "function") return;
+
+    const subjectKey = getSubjectKey();
+    if (!subjectKey) return;
+
+    const currentModuleItemIds = moduleSections.flatMap((section) =>
+      section.items.map((item) => item.id)
+    );
+
+    if (
+      currentModuleItemIds.length > 0 &&
+      currentModuleItemIds.every((id) => safeCompletedItems.includes(id))
+    ) {
+      saveSubjectProgress(subjectKey, { completed: true, percentage: 100 });
+    }
+  }, [safeCompletedItems, moduleSections, saveSubjectProgress]);
 
   const moduleContent = {
   "reading-1": {
@@ -226,9 +267,22 @@ const getAdminItemContent = (item) => {
   }
 };
 
+  const getUserKey = () =>
+    localStorage.getItem("loggedInUser") ||
+    localStorage.getItem("email") ||
+    "guest";
+
+  const notesStorageKey = `notes_${getUserKey()}`;
+  const draftNotesStorageKey = `moduleDraftNotes_${getUserKey()}`;
+  const subjectId = module?.id ||
+    topic
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "");
+
   const getDraftNotes = () => {
     try {
-      return JSON.parse(localStorage.getItem("moduleDraftNotes")) || [];
+      return JSON.parse(localStorage.getItem(draftNotesStorageKey)) || [];
     } catch {
       return [];
     }
@@ -236,7 +290,7 @@ const getAdminItemContent = (item) => {
 
   const getMyNotes = () => {
     try {
-      return JSON.parse(localStorage.getItem("notes")) || [];
+      return JSON.parse(localStorage.getItem(notesStorageKey)) || [];
     } catch {
       return [];
     }
@@ -376,7 +430,7 @@ const getAdminItemContent = (item) => {
         )
       : [newDraftNote, ...existingDraftNotes];
 
-    localStorage.setItem("moduleDraftNotes", JSON.stringify(updatedDraftNotes));
+    localStorage.setItem(draftNotesStorageKey, JSON.stringify(updatedDraftNotes));
 
     const existingMyNotes = getMyNotes();
 
@@ -406,7 +460,7 @@ const getAdminItemContent = (item) => {
           : note
       );
 
-      localStorage.setItem("notes", JSON.stringify(updatedMyNotes));
+      localStorage.setItem(notesStorageKey, JSON.stringify(updatedMyNotes));
       alert("Note saved to Book and updated in My Notes!");
     } else {
       alert("Note saved to Book!");
@@ -423,36 +477,42 @@ const getAdminItemContent = (item) => {
     const draftNote = moduleGroup.note;
 
     const newMyNote = {
-      id: `${currentLevel}-${draftNote.subject}-${draftNote.moduleId}`,
-      level: currentLevel,
-      title: draftNote.subject,
+      id: `note-${Date.now()}`,
+      userId: getUserKey(),
+      subjectId,
       subject: draftNote.subject,
+      subjectName: draftNote.subject,
+      level: draftNote.level || currentLevel || "beginner",
       moduleId: draftNote.moduleId,
       moduleNumber: draftNote.moduleNumber,
       moduleName: draftNote.moduleName,
       content: draftNote.content,
       color: draftNote.color || "#7C3AED",
+      createdAt: new Date().toISOString(),
       dateTime: getDateTime()
     };
 
     const noteExists = existingNotes.some(
       (note) =>
-        note.level === currentLevel &&
-        note.subject === draftNote.subject &&
+        note.subjectId === subjectId &&
         note.moduleId === draftNote.moduleId
     );
 
     const updatedNotes = noteExists
       ? existingNotes.map((note) =>
-          note.level === currentLevel &&
-          note.subject === draftNote.subject &&
+          note.subjectId === subjectId &&
           note.moduleId === draftNote.moduleId
             ? { ...note, ...newMyNote }
             : note
         )
       : [newMyNote, ...existingNotes];
 
-    localStorage.setItem("notes", JSON.stringify(updatedNotes));
+    console.log("Saving note:", newMyNote);
+    console.log("Notes storage before save:", existingNotes);
+    console.log("Notes storage after save:", updatedNotes);
+
+    localStorage.setItem(notesStorageKey, JSON.stringify(updatedNotes));
+    window.dispatchEvent(new Event("notesUpdated"));
     alert("Note saved to My Notes!");
   };
 
@@ -476,7 +536,7 @@ const getAdminItemContent = (item) => {
         )
     );
 
-    localStorage.setItem("moduleDraftNotes", JSON.stringify(updatedDraftNotes));
+    localStorage.setItem(draftNotesStorageKey, JSON.stringify(updatedDraftNotes));
 
     setSelectedBookModuleId(null);
     setNotesVersion((prev) => prev + 1);
@@ -809,25 +869,20 @@ const getAdminItemContent = (item) => {
   const allItems = moduleSections.flatMap((section) => section.items);
 
   const markItemCompleted = (itemId) => {
-  const todayKey = new Date().toISOString().split("T")[0];
+    const todayKey = new Date().toISOString().split("T")[0];
 
-  localStorage.setItem(
-    `completedToday_${todayKey}`,
-    "true"
-  );
+    localStorage.setItem(`completedToday_${todayKey}`, "true");
 
-  if (typeof setCompletedItems !== "function") return;
+    if (typeof setCompletedItems !== "function") return;
 
-  setCompletedItems((prev) => {
-    const current = Array.isArray(prev) ? prev : [];
-    return current.includes(itemId) ? current : [...current, itemId];
-  });
-};
+    setCompletedItems((prev) => {
+      const current = Array.isArray(prev) ? prev : [];
+      return current.includes(itemId) ? current : [...current, itemId];
+    });
+  };
 
   const openContent = (item, section) => {
-
-  const moduleKey =
-    `${topic}_Module_${section.moduleNumber}`;
+    const moduleKey = `${topic}_Module_${section.moduleNumber}`;
 
   localStorage.setItem("currentModule", moduleKey);
 
@@ -955,7 +1010,7 @@ const getAdminItemContent = (item) => {
   };
 
   const handleQuizSubmit = () => {
-    const quizId = activeItem.id;
+    const quizId = resolveBaseId(activeItem);
     const questions = quizSets[quizId] || [];
 
     let correct = 0;
@@ -1049,7 +1104,7 @@ const getAdminItemContent = (item) => {
             <h3>Introduction</h3>
 
             <img
-              src={moduleContent[activeItem.id]?.image}
+              src={moduleContent[resolveBaseId(activeItem)]?.image}
               alt={activeItem.title}
               style={{
                 width: "100%",
@@ -1063,7 +1118,7 @@ const getAdminItemContent = (item) => {
             <p className="content-text">
             {isAdminCreatedSubject
               ? activeItem.content || "No reading content added yet."
-              : moduleContent[activeItem.id]?.intro || "No reading content added yet."}
+              : moduleContent[resolveBaseId(activeItem)]?.intro || "No reading content added yet."}
           </p>
           </div>
 
@@ -1087,7 +1142,7 @@ const getAdminItemContent = (item) => {
   {getModuleApiContent()?.video?.title || activeItem.title}
 </h2>
 
- {moduleContent[activeItem.id]?.video ? (
+ {moduleContent[resolveBaseId(activeItem)]?.video ? (
   <div
     style={{
       marginTop: "20px",
@@ -1097,7 +1152,7 @@ const getAdminItemContent = (item) => {
   >
     <img
       src={`https://img.youtube.com/vi/${
-        moduleContent[activeItem.id]?.video
+        moduleContent[resolveBaseId(activeItem)]?.video
           .split("embed/")[1]
           ?.split("?")[0]
       }/hqdefault.jpg`}
@@ -1111,7 +1166,7 @@ const getAdminItemContent = (item) => {
     />
 
     <a
-      href={moduleContent[activeItem.id]?.video.replace(
+      href={moduleContent[resolveBaseId(activeItem)]?.video.replace(
         "/embed/",
         "/watch?v="
       )}
@@ -1150,7 +1205,7 @@ const getAdminItemContent = (item) => {
   }
 
   if (activeItem?.type === "Quiz") {
-    const quizId = activeItem.id;
+    const quizId = resolveBaseId(activeItem);
     const questions = quizSets[quizId] || [];
 
     let correctCount = 0;
@@ -1280,7 +1335,7 @@ const getAdminItemContent = (item) => {
             <h3>Task</h3>
 
             <ul className="practical-list">
-              {(moduleContent[activeItem.id]?.task || []).map((task, index) => (
+              {(moduleContent[resolveBaseId(activeItem)]?.task || []).map((task, index) => (
                 <li key={index}>{task}</li>
               ))}
             </ul>
