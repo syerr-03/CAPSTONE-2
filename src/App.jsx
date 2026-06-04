@@ -12,54 +12,56 @@ import "./ProgressManagement/ProgressManagement.css";
 function App() {
   const [activePage, setActivePage] = useState("login");
   const [selectedSubject, setSelectedSubject] = useState(null);
-  const [certificateProgressMemory, setCertificateProgressMemory] = useState(() => {
-    const saved = JSON.parse(localStorage.getItem("certificateProgressMemory") || "null");
-    return saved && typeof saved === "object"
-      ? {
-          beginner: false,
-          intermediate: false,
-          advanced: false,
-          ...saved
-        }
-      : {
-          beginner: false,
-          intermediate: false,
-          advanced: false
-        };
+  const [currentUser, setCurrentUser] = useState(() => {
+    return (
+      localStorage.getItem("loggedInUser") ||
+      localStorage.getItem("username") ||
+      localStorage.getItem("name") ||
+      null
+    );
   });
-  const [completedSubjectMemory, setCompletedSubjectMemory] = useState(() => {
-    return JSON.parse(localStorage.getItem("certificateSubjectCompletion") || "{}") || {};
+
+  const studentKey =
+  localStorage.getItem("loggedInUser") ||
+  localStorage.getItem("username") ||
+  localStorage.getItem("name") ||
+  "guest";
+  const progressKey = `progress_${studentKey}`;
+  const subjectProgressKey = `subjectProgress_${studentKey}`;
+  const completedSubjectMemoryKey = `certificateSubjectCompletion_${studentKey}`;
+  const certificateProgressMemoryKey = `certificateProgressMemory_${studentKey}`;
+  const learningLevelKey = `learningLevel_${studentKey}`;
+  const userPlanKey = `userPlan_${studentKey}`;
+
+  const [certificateProgressMemory, setCertificateProgressMemory] = useState({
+    beginner: false,
+    intermediate: false,
+    advanced: false
   });
-  
+  const [completedSubjectMemory, setCompletedSubjectMemory] = useState({});
+  const [showLevelPopup, setShowLevelPopup] = useState(true);
+  const [learningLevel, setLearningLevel] = useState("beginner");
+  const [userPlan, setUserPlan] = useState("standard");
+  const [completedItems, setCompletedItems] = useState([]);
+  const [quizScore, setQuizScore] = useState(0);
+  const [practicalScore, setPracticalScore] = useState(0);
+  const [subjectProgress, setSubjectProgress] = useState({});
+
   const certificateSubjectIdsByLevel = {
     beginner: [1, 2],
     intermediate: [3, 4],
     advanced: [5, 6]
   };
 
-  const [showLevelPopup, setShowLevelPopup] = useState(
-    localStorage.getItem("learningLevel") ? false : true
-  );
-
-  const [learningLevel, setLearningLevel] = useState(
-    localStorage.getItem("learningLevel") || "beginner"
-  );
-
-  const [userSubscriptionPlan, setUserSubscriptionPlan] = useState(
-    localStorage.getItem("userSubscriptionPlan") || "standard"
-  );
-
-  // For backward compatibility, also keep userPlan for now
-  const userPlan = userSubscriptionPlan;
-
   const handleOpenPremiumUpgrade = () => {
-    // This now navigates to subscriptions tab where user can see the upgrade button
-    // Premium is NOT activated here - user must complete payment first
+    setDashboardTargetTab("subscriptions");
+    setActivePage("dashboard");
   };
 
   const handleSwitchToStandard = () => {
-    localStorage.setItem("userSubscriptionPlan", "standard");
-    setUserSubscriptionPlan("standard");
+    localStorage.setItem(userPlanKey, "standard");
+    setUserPlan("standard");
+    
     alert(
       "You are now using the Standard Plan. Some modules, quizzes, and AI chatbot features are limited."
     );
@@ -73,21 +75,49 @@ function App() {
   };
 
   const totalLearningItems = 8;
-  const studentKey = localStorage.getItem("name") || "guest";
-  const progressKey = `progress_${studentKey}`;
-  const subjectProgressKey = `subjectProgress_${studentKey}`;
-  const savedProgress = JSON.parse(localStorage.getItem(progressKey)) || {
-    completedItems: [],
-    quizScore: 0,
-    practicalScore: 0
-  };
 
-  const [completedItems, setCompletedItems] = useState(savedProgress.completedItems);
-  const [quizScore, setQuizScore] = useState(savedProgress.quizScore);
-  const [practicalScore, setPracticalScore] = useState(savedProgress.practicalScore);
-  const [subjectProgress, setSubjectProgress] = useState(
-  JSON.parse(localStorage.getItem(subjectProgressKey)) || {}
-);
+  useEffect(() => {
+    const savedProgress = JSON.parse(localStorage.getItem(progressKey)) || {
+      completedItems: [],
+      quizScore: 0,
+      practicalScore: 0
+    };
+
+    setCompletedItems(savedProgress.completedItems || []);
+    setQuizScore(savedProgress.quizScore || 0);
+    setPracticalScore(savedProgress.practicalScore || 0);
+
+    const savedSubjectProgress = JSON.parse(localStorage.getItem(subjectProgressKey)) || {};
+    setSubjectProgress(savedSubjectProgress);
+
+    const savedCompletedSubjectMemory =
+      JSON.parse(localStorage.getItem(completedSubjectMemoryKey)) || {};
+    setCompletedSubjectMemory(savedCompletedSubjectMemory);
+
+    const savedCertificateProgressMemory =
+      JSON.parse(localStorage.getItem(certificateProgressMemoryKey)) || {
+        beginner: false,
+        intermediate: false,
+        advanced: false
+      };
+
+    setCertificateProgressMemory({
+      beginner: Boolean(savedCertificateProgressMemory.beginner),
+      intermediate: Boolean(savedCertificateProgressMemory.intermediate),
+      advanced: Boolean(savedCertificateProgressMemory.advanced)
+    });
+
+    const savedLevel = localStorage.getItem(learningLevelKey);
+    if (savedLevel) {
+      setLearningLevel(savedLevel);
+      setShowLevelPopup(false);
+    } else {
+      setLearningLevel("beginner");
+      setShowLevelPopup(true);
+    }
+
+    setUserPlan(localStorage.getItem(userPlanKey) || "standard");
+  }, [studentKey]);
 
   const updateCertificateProgressMemory = (newMemory) => {
     const normalizedMemory = {
@@ -97,7 +127,7 @@ function App() {
     };
 
     localStorage.setItem(
-      "certificateProgressMemory",
+      certificateProgressMemoryKey,
       JSON.stringify(normalizedMemory)
     );
     setCertificateProgressMemory(normalizedMemory);
@@ -128,14 +158,23 @@ function App() {
     ) {
       updateCertificateProgressMemory(restoredMemory);
     }
-  }, []);
+  }, [completedSubjectMemory, certificateProgressMemory]);
 
   useEffect(() => {
     if (!selectedSubject || !Array.isArray(completedItems)) return;
-    if (completedItems.length < totalLearningItems) return;
 
     const subjectId = selectedSubject.id;
     if (!subjectId) return;
+
+    const subjectItemIds = selectedSubject?.modules
+      ? selectedSubject.modules.flatMap((mod) => (Array.isArray(mod.items) ? mod.items.map((item) => item.id) : []))
+      : null;
+
+    if (subjectItemIds) {
+      if (!subjectItemIds.every((id) => completedItems.includes(id))) return;
+    } else {
+      if (completedItems.length < totalLearningItems) return;
+    }
 
     if (completedSubjectMemory[subjectId]) return;
 
@@ -145,7 +184,7 @@ function App() {
     };
 
     localStorage.setItem(
-      "certificateSubjectCompletion",
+      completedSubjectMemoryKey,
       JSON.stringify(updatedSubjectMemory)
     );
     setCompletedSubjectMemory(updatedSubjectMemory);
@@ -156,7 +195,7 @@ function App() {
 
   const handleSelectLevel = (level) => {
     setLearningLevel(level);
-    localStorage.setItem("learningLevel", level);
+    localStorage.setItem(learningLevelKey, level);
     setShowLevelPopup(false);
   };
 
@@ -164,7 +203,8 @@ const saveSubjectProgress = (updatedProgress) => {
   setSubjectProgress(updatedProgress);
   localStorage.setItem(subjectProgressKey, JSON.stringify(updatedProgress));
 };
-  const saveProgress = (newCompletedItems, newQuizScore, newPracticalScore) => {
+
+const saveProgress = (newCompletedItems, newQuizScore, newPracticalScore) => {
   localStorage.setItem(
     progressKey,
     JSON.stringify({
@@ -174,15 +214,28 @@ const saveSubjectProgress = (updatedProgress) => {
     })
   );
 };
-  const [leaderboard, setLeaderboard] = useState([]);
-  const [difficultyLevel, setDifficultyLevel] = useState("Medium");
 
-  const totalModules = 8;
+useEffect(() => {
+  saveProgress(completedItems, quizScore, practicalScore);
+}, [completedItems, quizScore, practicalScore, progressKey]);
+
+const [leaderboard, setLeaderboard] = useState([]);
+  const [difficultyLevel, setDifficultyLevel] = useState("Medium");
+  const [dashboardTargetTab, setDashboardTargetTab] = useState(null);
+
+  const totalModules = Object.values(certificateSubjectIdsByLevel).flat().length;
+  const completedModulesCount = Object.values(completedSubjectMemory).filter(Boolean).length;
+
+  const certificateProgress = Math.round(
+    (Object.values(certificateProgressMemory).filter(Boolean).length /
+      Object.keys(certificateProgressMemory).length) *
+      100
+  );
 
   const studentData = {
-    completedModules: completedItems.length,
+    completedModules: completedModulesCount,
     totalModules,
-    progressPercent: Math.round((completedItems.length / totalModules) * 100),
+    progressPercent: Math.round((completedModulesCount / totalModules) * 100),
     completedContent: completedItems.map((item) => ({
       title: item,
       type: "Learning Activity",
@@ -194,6 +247,8 @@ const saveSubjectProgress = (updatedProgress) => {
     streak: 7,
     weakTopics: [],
     subjectProgress,
+    certificateProgressMemory,
+    certificateProgress,
   };
 
   const goToDashboard = () => {
@@ -210,13 +265,22 @@ const saveSubjectProgress = (updatedProgress) => {
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("role");
     localStorage.removeItem("name");
+    localStorage.removeItem("username");
+    localStorage.removeItem("loggedInUser");
+    setCurrentUser(null);
     setActivePage("login");
   };
 
-  const handleEnroll = (subject) => {
-    setSelectedSubject(subject);
-    setActivePage("learning-content");
-  };
+ const handleEnroll = (subject) => {
+
+  localStorage.setItem(
+    "currentModule",
+    subject.title
+  );
+
+  setSelectedSubject(subject);
+  setActivePage("learning-content");
+};
 
   const updateLeaderboard = (name, score) => {
     const newEntry = {
@@ -241,6 +305,7 @@ const saveSubjectProgress = (updatedProgress) => {
         <Login
           goToRegister={() => setActivePage("register")}
           goToDashboard={goToDashboard}
+          setCurrentUser={setCurrentUser}
         />
       )}
 
@@ -267,6 +332,8 @@ const saveSubjectProgress = (updatedProgress) => {
         onPremiumPlan={handleOpenPremiumUpgrade}
         onStandardPlan={handleSwitchToStandard}
         onPremiumPaymentSuccess={handlePremiumPaymentSuccess}
+        dashboardTargetTab={dashboardTargetTab}
+        setDashboardTargetTab={setDashboardTargetTab}
       />
 )}
 
@@ -274,28 +341,27 @@ const saveSubjectProgress = (updatedProgress) => {
   <NewQuizSystem
     module={selectedSubject}
     userPlan={userPlan}
-    onBack={() => setActivePage("dashboard")}
+    onBack={() => {
+      setDashboardTargetTab("subjects");
+      setActivePage("dashboard");
+    }}
 
     setQuizScore={(score) => {
       setQuizScore(score);
-      saveProgress(completedItems, score, practicalScore);
     }}
 
     setPracticalScore={(score) => {
       setPracticalScore(score);
-      saveProgress(completedItems, quizScore, score);
     }}
 
     completedItems={completedItems}
 
     setCompletedItems={(itemsOrFunction) => {
-      const newItems =
-        typeof itemsOrFunction === "function"
-          ? itemsOrFunction(completedItems)
-          : itemsOrFunction;
-
-      setCompletedItems(newItems);
-      saveProgress(newItems, quizScore, practicalScore);
+      if (typeof itemsOrFunction === "function") {
+        setCompletedItems((prev) => itemsOrFunction(prev));
+      } else {
+        setCompletedItems(itemsOrFunction);
+      }
     }}
 
     updateAdaptiveLevel={updateAdaptiveLevel}

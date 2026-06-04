@@ -11,7 +11,6 @@ function Drawer({
   openGoals,
   openProgress,
   openAchievement,
-  openForum,
   openSettings,
   openFeedback,
   onStandardPlan,
@@ -25,7 +24,6 @@ function Drawer({
   const [showHelp, setShowHelp] = useState(false);
   const subscriptionRef = useRef(null);
   const learningRef = useRef(null);
-  const downloadRef = useRef(null);
   const moreSettingsRef = useRef(null);
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
 
@@ -184,33 +182,6 @@ function Drawer({
         <span>›</span>
       </button>
 
-      <button className="drawer-link" onClick={openForum}>
-        <span>Forum</span>
-        <span>›</span>
-      </button>
-
-      <button
-        ref={downloadRef}
-        className={`drawer-link ${openMenu === "download" ? "active" : ""}`}
-        onClick={() => toggleMenu("download", downloadRef)}
-      >
-        <span>Download</span>
-        <span>{openMenu === "download" ? "⌃" : "›"}</span>
-      </button>
-
-      {openMenu === "download" && (
-        <div className="drawer-popup download-popup" style={popupStyle}>
-          <button className="drawer-popup-link" onClick={() => {}}>
-            <span>Notes</span>
-            <span>›</span>
-          </button>
-
-          <button className="drawer-popup-link" onClick={() => {}}>
-            <span>Certificate</span>
-            <span>›</span>
-          </button>
-        </div>
-      )}
 
       <div className="drawer-divider"></div>
 

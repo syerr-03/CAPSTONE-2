@@ -139,14 +139,14 @@ textarea {
 }
 
 .card-title {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
   color: #2f2e4e;
   margin: 0 0 8px;
 }
 
 .content-text {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 400;
   color: #5f5c78;
   line-height: 1.7;
@@ -181,19 +181,19 @@ textarea {
 .two-column {
   grid-template-columns: repeat(2, 1fr);
 }
-
 .achievement-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 22px;
+  gap: 16px;
+  max-width: 1050px;
+  margin: 0 auto;
 }
-
 .dashboard-card,
 .info-card,
 .empty-state-card {
-  border-radius: 22px;
-  padding: 26px;
-  box-shadow: 0 8px 22px rgba(88, 68, 128, 0.08);
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: 0 6px 16px rgba(88, 68, 128, 0.08);
 }
 
 .white-card,
@@ -278,15 +278,14 @@ textarea {
   background: #efedf3;
   color: #8e8b98;
 }
-
 .achievement-header {
   display: flex;
   align-items: flex-start;
-  gap: 16px;
+  gap: 10px;
 }
 
 .achievement-icon {
-  font-size: 28px;
+  font-size: 22px;
 }
 
 .achievement-footer {
@@ -523,4 +522,59 @@ textarea {
 .info-card.clickable-card {
   background: inherit;
 }
+}
+
+.achievement-button {
+  min-height: 130px;
+}
+
+.achievement-footer {
+  margin-top: 12px;
+}
+
+.status-pill {
+  padding: 6px 10px;
+  font-size: 11px;
+}
+
+/* COMPACT PROGRESS PAGE */
+.progress-page,
+.page-wrapper {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.progress-hero-card {
+  padding: 22px !important;
+  border-radius: 20px !important;
+  margin-bottom: 22px !important;
+}
+
+.stats-grid {
+  gap: 18px !important;
+  margin-bottom: 22px !important;
+}
+
+.stats-grid .dashboard-card,
+.stats-grid .info-card {
+  padding: 22px !important;
+  min-height: 150px !important;
+  border-radius: 20px !important;
+}
+
+.stats-grid .big-number {
+  font-size: 28px !important;
+}
+
+.stats-grid .card-title {
+  font-size: 18px !important;
+}
+
+.stats-grid .content-text,
+.stats-grid .small-text {
+  font-size: 13px !important;
+}
+
+.progress-strip {
+  height: 14px !important;
 }

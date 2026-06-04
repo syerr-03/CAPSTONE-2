@@ -825,12 +825,22 @@ const getAdminItemContent = (item) => {
 };
 
   const openContent = (item, section) => {
-    setActiveItem(item);
-    setActiveSection(section);
-    setActiveModuleNumber(section.moduleNumber);
-    markItemCompleted(item.id);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+
+  const moduleKey =
+    `${topic}_Module_${section.moduleNumber}`;
+
+  localStorage.setItem("currentModule", moduleKey);
+
+  setActiveItem(item);
+  setActiveSection(section);
+  setActiveModuleNumber(section.moduleNumber);
+  markItemCompleted(item.id);
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+};
 
   const goBackToModuleList = () => {
     setActiveItem(null);

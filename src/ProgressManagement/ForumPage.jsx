@@ -1,4 +1,17 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import {
+  collection,
+  addDoc,
+  onSnapshot,
+  query,
+  orderBy,
+  serverTimestamp,
+  doc,
+  updateDoc,
+  arrayUnion
+} from "firebase/firestore";
+
+import { db } from "../firebase";
 
 function ForumPage({ onBack }) {
   const formatTimeAgo = (dateString) => {
@@ -17,52 +30,45 @@ function ForumPage({ onBack }) {
     return `${days} day${days > 1 ? "s" : ""} ago`;
   };
 
-  const [posts, setPosts] = useState([
-    {
-      id: 1,
-      author: "Izzati",
-      text: "Can someone explain the difference between supervised and unsupervised learning?",
-      time: new Date().toISOString(),
-      replies: [
-        {
-          text: "Supervised learning uses labeled data, while unsupervised learning uses unlabeled data.",
-          time: new Date().toISOString(),
-        },
-      ],
-    },
-    {
-      id: 2,
-      author: "Alia",
-      text: "I found Python practice quizzes really helpful for revision.",
-      time: new Date().toISOString(),
-      replies: [
-        {
-          text: "Yes, especially for syntax and logic questions.",
-          time: new Date().toISOString(),
-        },
-      ],
-    },
-  ]);
+  const [posts, setPosts] = useState([]);
+  useEffect(() => {
+  const q = query(
+    collection(db, "forumPosts"),
+    orderBy("createdAt", "desc")
+  );
 
-  const [newAuthor, setNewAuthor] = useState("");
+  const unsubscribe = onSnapshot(q, (snapshot) => {
+    const postsData = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    setPosts(postsData);
+  });
+
+  return () => unsubscribe();
+}, []);
+
   const [newPost, setNewPost] = useState("");
   const [replyInputs, setReplyInputs] = useState({});
 
-  const handleAddPost = () => {
-    if (newAuthor.trim() === "" || newPost.trim() === "") return;
+  const handleAddPost = async () => {
+  if (newPost.trim() === "") return;
 
-    const newEntry = {
-      id: Date.now(),
-      author: newAuthor,
-      text: newPost,
-      time: new Date().toISOString(),
-      replies: [],
-    };
+  const author =
+    localStorage.getItem("name") ||
+    localStorage.getItem("loggedInUser") ||
+    "Student";
 
-    setPosts([newEntry, ...posts]);
-    setNewAuthor("");
-    setNewPost("");
-  };
+  await addDoc(collection(db, "forumPosts"), {
+    author,
+    text: newPost,
+    createdAt: serverTimestamp(),
+    replies: []
+  });
+
+  setNewPost("");
+};
 
   const handleReplyChange = (postId, value) => {
     setReplyInputs({
@@ -71,37 +77,34 @@ function ForumPage({ onBack }) {
     });
   };
 
-  const handleAddReply = (postId) => {
-    const replyText = replyInputs[postId];
-    if (!replyText || replyText.trim() === "") return;
+  const handleAddReply = async (postId) => {
+  const replyText = replyInputs[postId];
 
-    const updatedPosts = posts.map((post) =>
-      post.id === postId
-        ? {
-            ...post,
-            replies: [
-              ...post.replies,
-              {
-                text: replyText,
-                time: new Date().toISOString(),
-              },
-            ],
-          }
-        : post
-    );
+  if (!replyText || replyText.trim() === "") return;
 
-    setPosts(updatedPosts);
-    setReplyInputs({
-      ...replyInputs,
-      [postId]: "",
-    });
+  const author =
+    localStorage.getItem("name") ||
+    localStorage.getItem("loggedInUser") ||
+    "Student";
+
+  const postRef = doc(db, "forumPosts", postId);
+
+  await updateDoc(postRef, {
+    replies: arrayUnion({
+      author,
+      text: replyText,
+      createdAt: new Date().toISOString()
+    })
+  });
+
+  setReplyInputs({
+    ...replyInputs,
+    [postId]: ""
+  });
   };
 
   return (
     <div className="page-wrapper">
-      <button className="back-btn" onClick={onBack}>
-        ← Back
-      </button>
 
       <div className="hero-section">
         <h2 className="main-title">Discussion Forum</h2>
@@ -115,13 +118,6 @@ function ForumPage({ onBack }) {
         <div className="divider purple-divider"></div>
 
         <div className="form-group">
-          <input
-            className="custom-input"
-            type="text"
-            placeholder="Enter your name"
-            value={newAuthor}
-            onChange={(e) => setNewAuthor(e.target.value)}
-          />
 
           <textarea
             placeholder="Write your post here"
@@ -161,7 +157,7 @@ function ForumPage({ onBack }) {
               <div>
                 <h3 className="card-title">{post.author}</h3>
                 <p className="small-text">
-                  Posted {formatTimeAgo(post.time)}
+                  Posted {post.createdAt?.toDate ? formatTimeAgo(post.createdAt.toDate()) : "Just now"}
                 </p>
               </div>
             </div>
@@ -176,9 +172,11 @@ function ForumPage({ onBack }) {
               ) : (
                 post.replies.map((reply, index) => (
                   <div className="reply-box" key={index}>
-                    <p className="content-text">{reply.text}</p>
+                    <p className="content-text">
+                      <strong>{reply.author}:</strong> {reply.text}
+                    </p>
                     <p className="small-text">
-                      Replied {formatTimeAgo(reply.time)}
+                      Replied {formatTimeAgo(reply.createdAt)}
                     </p>
                   </div>
                 ))

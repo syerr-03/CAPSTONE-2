@@ -7,13 +7,31 @@ const defaultSubjectsByLevel = {
   advanced: []
 };
 
+const emptyQuizQuestions = [
+  { question: "", optionA: "", optionB: "", optionC: "", optionD: "", correctAnswer: "" },
+  { question: "", optionA: "", optionB: "", optionC: "", optionD: "", correctAnswer: "" },
+  { question: "", optionA: "", optionB: "", optionC: "", optionD: "", correctAnswer: "" },
+  { question: "", optionA: "", optionB: "", optionC: "", optionD: "", correctAnswer: "" },
+  { question: "", optionA: "", optionB: "", optionC: "", optionD: "", correctAnswer: "" }
+];
+
 function AdminDashboard() {
   const [selectedLevel, setSelectedLevel] = useState("beginner");
   const [subjectsByLevel, setSubjectsByLevel] = useState(defaultSubjectsByLevel);
+  const [showSubjectList, setShowSubjectList] = useState(false);
 
   const [subjectTitle, setSubjectTitle] = useState("");
   const [subjectDesc, setSubjectDesc] = useState("");
   const [subjectIcon, setSubjectIcon] = useState("📘");
+
+  const [showQuizList, setShowQuizList] = useState(false);
+  const [adminQuizzes, setAdminQuizzes] = useState([]);
+
+  const [newQuizTitle, setNewQuizTitle] = useState("");
+  const [newQuizLevel, setNewQuizLevel] = useState("beginner");
+  const [newQuizPremium, setNewQuizPremium] = useState(false);
+  const [newQuizIcon, setNewQuizIcon] = useState("📝");
+  const [quizQuestions, setQuizQuestions] = useState(emptyQuizQuestions);
 
   // ===== MODULE 1 STATES =====
   const [readingTitle, setReadingTitle] = useState("");
@@ -46,16 +64,16 @@ function AdminDashboard() {
   const [practicalInstruction2, setPracticalInstruction2] = useState("");
 
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem("bbSubjectsByLevel"));
+    const savedSubjects = JSON.parse(localStorage.getItem("bbSubjectsByLevel"));
 
-    if (saved) {
-      setSubjectsByLevel(saved);
+    if (savedSubjects) {
+      setSubjectsByLevel(savedSubjects);
     } else {
-      localStorage.setItem(
-        "bbSubjectsByLevel",
-        JSON.stringify(defaultSubjectsByLevel)
-      );
+      localStorage.setItem("bbSubjectsByLevel", JSON.stringify(defaultSubjectsByLevel));
     }
+
+    const savedQuizzes = JSON.parse(localStorage.getItem("bbAdminQuizzes") || "[]");
+    setAdminQuizzes(savedQuizzes);
   }, []);
 
   const saveSubjects = (updated) => {
@@ -63,7 +81,18 @@ function AdminDashboard() {
     localStorage.setItem("bbSubjectsByLevel", JSON.stringify(updated));
   };
 
+  const saveQuizzes = (updated) => {
+    setAdminQuizzes(updated);
+    localStorage.setItem("bbAdminQuizzes", JSON.stringify(updated));
+  };
+
   const currentSubjects = subjectsByLevel[selectedLevel] || [];
+
+  const allSubjects = [
+    ...(subjectsByLevel.beginner || []),
+    ...(subjectsByLevel.intermediate || []),
+    ...(subjectsByLevel.advanced || [])
+  ];
 
   const inputStyle = {
     width: "100%",
@@ -89,7 +118,7 @@ function AdminDashboard() {
     resize: "vertical"
   };
 
-  const resetForm = () => {
+  const resetSubjectForm = () => {
     setSubjectTitle("");
     setSubjectDesc("");
     setSubjectIcon("📘");
@@ -123,109 +152,138 @@ function AdminDashboard() {
     setPracticalInstruction2("");
   };
 
+  const resetQuizForm = () => {
+    setNewQuizTitle("");
+    setNewQuizLevel("beginner");
+    setNewQuizPremium(false);
+    setNewQuizIcon("📝");
+    setQuizQuestions(emptyQuizQuestions);
+  };
+
+  const updateQuizQuestion = (index, field, value) => {
+    setQuizQuestions((prev) =>
+      prev.map((item, i) => (i === index ? { ...item, [field]: value } : item))
+    );
+  };
+
   const addSubject = () => {
-    if (!subjectTitle.trim()) {
-      alert("Please enter subject title first.");
+    if (!subjectTitle.trim() || !subjectDesc.trim()) {
+      alert("Please fill in subject title and description.");
       return;
     }
 
+    if (
+      !readingTitle.trim() ||
+      !readingContent.trim() ||
+      !videoTitle.trim() ||
+      !videoLink.trim() ||
+      !quizTitle.trim() ||
+      !quizQuestion.trim() ||
+      !quizOption1.trim() ||
+      !quizOption2.trim() ||
+      !quizOption3.trim() ||
+      !quizOption4.trim() ||
+      !correctAnswer.trim() ||
+      !practicalTitle.trim() ||
+      !practicalInstruction.trim() ||
+      !readingTitle2.trim() ||
+      !readingContent2.trim() ||
+      !videoTitle2.trim() ||
+      !videoLink2.trim() ||
+      !quizTitle2.trim() ||
+      !quizQuestion2.trim() ||
+      !quizOption1_2.trim() ||
+      !quizOption2_2.trim() ||
+      !quizOption3_2.trim() ||
+      !quizOption4_2.trim() ||
+      !correctAnswer2.trim() ||
+      !practicalTitle2.trim() ||
+      !practicalInstruction2.trim()
+    ) {
+      alert("Please complete all Module 1 and Module 2 details before releasing this subject.");
+      return;
+    }
+
+    const now = Date.now();
+
     const newSubject = {
-      id: Date.now(),
+      id: now,
       title: subjectTitle,
       description: subjectDesc,
       icon: subjectIcon,
       level: selectedLevel,
+      status: "Released",
       modules: [
         {
-          id: `module-1-${Date.now()}`,
+          id: `module-1-${now}`,
           heading: "Module 1",
           items: [
             {
-              id: "reading-1",
+              id: `reading-1-${now}`,
               type: "Reading",
-              title: readingTitle || "Reading Material",
+              title: readingTitle,
               content: readingContent
             },
             {
-              id: "video-1",
+              id: `video-1-${now}`,
               type: "Video",
-              title: videoTitle || "Video Lesson",
+              title: videoTitle,
               videoLink
             },
             {
-              id: "quiz-1",
+              id: `quiz-1-${now}`,
               type: "Quiz",
-              title: quizTitle || "Module Quiz",
-              questions:
-                quizQuestion || quizOption1 || quizOption2 || quizOption3 || quizOption4
-                  ? [
-                      {
-                        id: 1,
-                        question: quizQuestion,
-                        options: [
-                          quizOption1,
-                          quizOption2,
-                          quizOption3,
-                          quizOption4
-                        ].filter(Boolean),
-                        correctAnswer
-                      }
-                    ]
-                  : []
+              title: quizTitle,
+              questions: [
+                {
+                  id: 1,
+                  question: quizQuestion,
+                  options: [quizOption1, quizOption2, quizOption3, quizOption4],
+                  correctAnswer
+                }
+              ]
             },
             {
-              id: "practical-1",
+              id: `practical-1-${now}`,
               type: "Practical Assignment",
-              title: practicalTitle || "Practical Task",
+              title: practicalTitle,
               instruction: practicalInstruction
             }
           ]
         },
         {
-          id: `module-2-${Date.now()}`,
+          id: `module-2-${now}`,
           heading: "Module 2",
           items: [
             {
-              id: "reading-2",
+              id: `reading-2-${now}`,
               type: "Reading",
-              title: readingTitle2 || "Reading Material",
+              title: readingTitle2,
               content: readingContent2
             },
             {
-              id: "video-2",
+              id: `video-2-${now}`,
               type: "Video",
-              title: videoTitle2 || "Video Lesson",
+              title: videoTitle2,
               videoLink: videoLink2
             },
             {
-              id: "quiz-2",
+              id: `quiz-2-${now}`,
               type: "Quiz",
-              title: quizTitle2 || "Module Quiz",
-              questions:
-                quizQuestion2 ||
-                quizOption1_2 ||
-                quizOption2_2 ||
-                quizOption3_2 ||
-                quizOption4_2
-                  ? [
-                      {
-                        id: 1,
-                        question: quizQuestion2,
-                        options: [
-                          quizOption1_2,
-                          quizOption2_2,
-                          quizOption3_2,
-                          quizOption4_2
-                        ].filter(Boolean),
-                        correctAnswer: correctAnswer2
-                      }
-                    ]
-                  : []
+              title: quizTitle2,
+              questions: [
+                {
+                  id: 1,
+                  question: quizQuestion2,
+                  options: [quizOption1_2, quizOption2_2, quizOption3_2, quizOption4_2],
+                  correctAnswer: correctAnswer2
+                }
+              ]
             },
             {
-              id: "practical-2",
+              id: `practical-2-${now}`,
               type: "Practical Assignment",
-              title: practicalTitle2 || "Practical Task",
+              title: practicalTitle2,
               instruction: practicalInstruction2
             }
           ]
@@ -239,39 +297,108 @@ function AdminDashboard() {
     };
 
     saveSubjects(updated);
-    resetForm();
+    resetSubjectForm();
+    alert("Subject released successfully and is now visible to students.");
   };
 
-  const editSubject = (id) => {
+  const releaseQuiz = () => {
+    if (!newQuizTitle.trim()) {
+      alert("Please enter quiz title.");
+      return;
+    }
+
+    const hasIncompleteQuestion = quizQuestions.some(
+      (q) =>
+        !q.question.trim() ||
+        !q.optionA.trim() ||
+        !q.optionB.trim() ||
+        !q.optionC.trim() ||
+        !q.optionD.trim() ||
+        !q.correctAnswer.trim()
+    );
+
+    if (hasIncompleteQuestion) {
+      alert("Please complete all 5 quiz questions before releasing.");
+      return;
+    }
+
+    const invalidAnswer = quizQuestions.some(
+      (q) => ![q.optionA, q.optionB, q.optionC, q.optionD].includes(q.correctAnswer)
+    );
+
+    if (invalidAnswer) {
+      alert("Correct answer must exactly match one of the option texts.");
+      return;
+    }
+
+    const newQuiz = {
+      id: `adminQuiz_${Date.now()}`,
+      title: newQuizTitle,
+      description: "Admin released quiz.",
+      level: newQuizLevel,
+      premium: newQuizPremium,
+      icon: newQuizIcon,
+      status: "Released",
+      questions: quizQuestions.map((q, index) => ({
+        id: index + 1,
+        level: newQuizLevel,
+        question: q.question,
+        options: [q.optionA, q.optionB, q.optionC, q.optionD],
+        correctAnswer: q.correctAnswer,
+        explanation: "This question was added by admin."
+      }))
+    };
+
+    const updatedQuizzes = [...adminQuizzes, newQuiz];
+
+    saveQuizzes(updatedQuizzes);
+    resetQuizForm();
+    alert("Quiz released successfully and is now visible on the Quiz Page.");
+  };
+
+  const deleteQuiz = (id) => {
+    if (!window.confirm("Delete this quiz?")) return;
+
+    const updatedQuizzes = adminQuizzes.filter((quiz) => quiz.id !== id);
+    saveQuizzes(updatedQuizzes);
+  };
+
+  const editSubject = (id, level) => {
     const newTitle = prompt("New subject title:");
     if (!newTitle) return;
 
-    const updatedSubjects = currentSubjects.map((subject) =>
+    const levelSubjects = subjectsByLevel[level] || [];
+
+    const updatedSubjects = levelSubjects.map((subject) =>
       subject.id === id ? { ...subject, title: newTitle } : subject
     );
 
     saveSubjects({
       ...subjectsByLevel,
-      [selectedLevel]: updatedSubjects
+      [level]: updatedSubjects
     });
   };
 
-  const deleteSubject = (id) => {
+  const deleteSubject = (id, level) => {
     if (!window.confirm("Delete this subject?")) return;
 
-    const updatedSubjects = currentSubjects.filter((subject) => subject.id !== id);
+    const levelSubjects = subjectsByLevel[level] || [];
+
+    const updatedSubjects = levelSubjects.filter((subject) => subject.id !== id);
 
     saveSubjects({
       ...subjectsByLevel,
-      [selectedLevel]: updatedSubjects
+      [level]: updatedSubjects
     });
   };
 
-  const addModule = (subjectId) => {
+  const addModule = (subjectId, level) => {
     const moduleName = prompt("Module name:");
     if (!moduleName) return;
 
-    const updatedSubjects = currentSubjects.map((subject) =>
+    const levelSubjects = subjectsByLevel[level] || [];
+
+    const updatedSubjects = levelSubjects.map((subject) =>
       subject.id === subjectId
         ? {
             ...subject,
@@ -289,7 +416,7 @@ function AdminDashboard() {
 
     saveSubjects({
       ...subjectsByLevel,
-      [selectedLevel]: updatedSubjects
+      [level]: updatedSubjects
     });
   };
 
@@ -338,9 +465,7 @@ function AdminDashboard() {
           placeholder={`Module ${moduleNumber} reading content`}
           value={isModule1 ? readingContent : readingContent2}
           onChange={(e) =>
-            isModule1
-              ? setReadingContent(e.target.value)
-              : setReadingContent2(e.target.value)
+            isModule1 ? setReadingContent(e.target.value) : setReadingContent2(e.target.value)
           }
           style={textareaStyle}
         />
@@ -440,9 +565,7 @@ function AdminDashboard() {
           placeholder={`Module ${moduleNumber} practical assignment title`}
           value={isModule1 ? practicalTitle : practicalTitle2}
           onChange={(e) =>
-            isModule1
-              ? setPracticalTitle(e.target.value)
-              : setPracticalTitle2(e.target.value)
+            isModule1 ? setPracticalTitle(e.target.value) : setPracticalTitle2(e.target.value)
           }
           style={inputStyle}
         />
@@ -573,109 +696,274 @@ function AdminDashboard() {
             )}
 
             <button className="hero-button" onClick={addSubject}>
-              Add Subject
+              Release Subject
             </button>
           </div>
 
-          {currentSubjects.map((subject) => (
-            <div
-              className="module-card"
-              key={subject.id}
+          <div className="module-card" style={{ padding: "35px", marginBottom: "25px" }}>
+            <h3>Add Quiz</h3>
+
+            <input
+              placeholder="Quiz title"
+              value={newQuizTitle}
+              onChange={(e) => setNewQuizTitle(e.target.value)}
+              style={inputStyle}
+            />
+
+            <select
+              value={newQuizLevel}
+              onChange={(e) => setNewQuizLevel(e.target.value)}
+              style={inputStyle}
+            >
+              <option value="beginner">Beginner</option>
+              <option value="intermediate">Intermediate</option>
+              <option value="advanced">Advanced</option>
+            </select>
+
+            <input
+              placeholder="Quiz icon, example: 🧪"
+              value={newQuizIcon}
+              onChange={(e) => setNewQuizIcon(e.target.value)}
+              style={inputStyle}
+            />
+
+            <button
+              type="button"
+              onClick={() => setNewQuizPremium(!newQuizPremium)}
+              className="hero-button"
               style={{
                 marginBottom: "20px",
-                textAlign: "center",
-                padding: "30px",
-                borderRadius: "24px"
+                background: newQuizPremium
+                  ? "#7C3AED"
+                  : "#E9D5FF",
+                color: newQuizPremium
+                  ? "#fff"
+                  : "#7C3AED"
               }}
             >
-              <h3>
-                {subject.icon} {subject.title}
-              </h3>
+              {newQuizPremium
+                ? "💎 Premium Quiz"
+                : "🆓 Free Quiz"}
+            </button>
 
-              <p>{subject.description}</p>
-
+                        {quizQuestions.map((item, index) => (
               <div
+                key={index}
                 style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  gap: "14px",
-                  flexWrap: "wrap",
-                  marginTop: "20px"
+                  marginTop: "20px",
+                  padding: "20px",
+                  borderRadius: "18px",
+                  background: "#FAF7FF",
+                  border: "1px solid #E9D5FF"
                 }}
               >
-                <button className="hero-button" onClick={() => editSubject(subject.id)}>
-                  Edit Subject
-                </button>
+                <h4>Question {index + 1}</h4>
+
+                <input
+                  placeholder={`Question ${index + 1}`}
+                  value={item.question}
+                  onChange={(e) => updateQuizQuestion(index, "question", e.target.value)}
+                  style={inputStyle}
+                />
+
+                <input
+                  placeholder="Option A"
+                  value={item.optionA}
+                  onChange={(e) => updateQuizQuestion(index, "optionA", e.target.value)}
+                  style={inputStyle}
+                />
+
+                <input
+                  placeholder="Option B"
+                  value={item.optionB}
+                  onChange={(e) => updateQuizQuestion(index, "optionB", e.target.value)}
+                  style={inputStyle}
+                />
+
+                <input
+                  placeholder="Option C"
+                  value={item.optionC}
+                  onChange={(e) => updateQuizQuestion(index, "optionC", e.target.value)}
+                  style={inputStyle}
+                />
+
+                <input
+                  placeholder="Option D"
+                  value={item.optionD}
+                  onChange={(e) => updateQuizQuestion(index, "optionD", e.target.value)}
+                  style={inputStyle}
+                />
+
+                <input
+                  placeholder="Correct answer must match option text"
+                  value={item.correctAnswer}
+                  onChange={(e) => updateQuizQuestion(index, "correctAnswer", e.target.value)}
+                  style={inputStyle}
+                />
+              </div>
+            ))}
+
+            <button className="hero-button" onClick={releaseQuiz}>
+              Release Quiz
+            </button>
+          </div>
+
+          <button
+            className="hero-button"
+            onClick={() => setShowQuizList(!showQuizList)}
+            style={{ marginBottom: "20px", marginRight: "12px" }}
+          >
+            {showQuizList ? "Hide Quiz List" : "List of Added Quizzes"}
+          </button>
+
+          <button
+            className="hero-button"
+            onClick={() => setShowSubjectList(!showSubjectList)}
+            style={{ marginBottom: "20px" }}
+          >
+            {showSubjectList ? "Hide Added Subjects" : "List of Added Subjects"}
+          </button>
+
+          {showQuizList &&
+            adminQuizzes.map((quiz) => (
+              <div
+                className="module-card"
+                key={quiz.id}
+                style={{
+                  marginBottom: "20px",
+                  textAlign: "center",
+                  padding: "30px",
+                  borderRadius: "24px"
+                }}
+              >
+                <h3>
+                  {quiz.icon || "📝"} {quiz.title}
+                </h3>
+                <p>
+                  Level: {quiz.level.toUpperCase()} | Status: {quiz.status || "Released"}
+                </p>
+                <p>{quiz.premium ? "🔒 Premium" : "✅ Free"}</p>
+                <p>{quiz.questions?.length || 0} questions added</p>
 
                 <button
                   className="hero-button"
-                  style={{ background: "#ef4444" }}
-                  onClick={() => deleteSubject(subject.id)}
+                  style={{ background: "#ef4444", marginTop: "15px" }}
+                  onClick={() => deleteQuiz(quiz.id)}
                 >
-                  Remove Subject
-                </button>
-
-                <button className="hero-button" onClick={() => addModule(subject.id)}>
-                  Add Module
+                  Delete Quiz
                 </button>
               </div>
+            ))}
 
-              {subject.modules.map((module) => (
+          {showSubjectList &&
+            allSubjects.map((subject) => (
+              <div
+                className="module-card"
+                key={subject.id}
+                style={{
+                  marginBottom: "20px",
+                  textAlign: "center",
+                  padding: "30px",
+                  borderRadius: "24px"
+                }}
+              >
+                <h3>
+                  {subject.icon} {subject.title}
+                </h3>
+
+                <p>{subject.description}</p>
+                <p style={{ color: "#7C3AED", fontWeight: "700" }}>
+                  Level: {subject.level.toUpperCase()} | Status: {subject.status || "Released"}
+                </p>
+
                 <div
-                  key={module.id}
                   style={{
-                    borderTop: "1px solid #ddd",
-                    marginTop: "20px",
-                    paddingTop: "20px"
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    gap: "14px",
+                    flexWrap: "wrap",
+                    marginTop: "20px"
                   }}
                 >
-                  <h4>{module.heading}</h4>
+                  <button
+                    className="hero-button"
+                    onClick={() => editSubject(subject.id, subject.level)}
+                  >
+                    Edit Subject
+                  </button>
 
+                  <button
+                    className="hero-button"
+                    style={{ background: "#ef4444" }}
+                    onClick={() => deleteSubject(subject.id, subject.level)}
+                  >
+                    Remove Subject
+                  </button>
+
+                  <button
+                    className="hero-button"
+                    onClick={() => addModule(subject.id, subject.level)}
+                  >
+                    Add Module
+                  </button>
+                </div>
+
+                {subject.modules?.map((module) => (
                   <div
+                    key={module.id}
                     style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "12px",
-                      marginTop: "15px"
+                      borderTop: "1px solid #ddd",
+                      marginTop: "20px",
+                      paddingTop: "20px"
                     }}
                   >
-                    {module.items.map((item) => (
-                      <div
-                        key={item.id}
-                        style={{
-                          background: "#F5F3FF",
-                          border: "1px solid #E9D5FF",
-                          borderRadius: "14px",
-                          padding: "14px 18px",
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center"
-                        }}
-                      >
-                        <span>
-                          <strong>{item.type}</strong> — {item.title || "No title added"}
-                        </span>
+                    <h4>{module.heading}</h4>
 
-                        <span
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "12px",
+                        marginTop: "15px"
+                      }}
+                    >
+                      {module.items?.map((item) => (
+                        <div
+                          key={item.id}
                           style={{
-                            background: "#7C3AED",
-                            color: "white",
-                            borderRadius: "999px",
-                            padding: "6px 12px",
-                            fontSize: "12px",
-                            fontWeight: "600"
+                            background: "#F5F3FF",
+                            border: "1px solid #E9D5FF",
+                            borderRadius: "14px",
+                            padding: "14px 18px",
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center"
                           }}
                         >
-                          Added
-                        </span>
-                      </div>
-                    ))}
+                          <span>
+                            <strong>{item.type}</strong> — {item.title || "No title added"}
+                          </span>
+
+                          <span
+                            style={{
+                              background: "#7C3AED",
+                              color: "white",
+                              borderRadius: "999px",
+                              padding: "6px 12px",
+                              fontSize: "12px",
+                              fontWeight: "600"
+                            }}
+                          >
+                            Added
+                          </span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          ))}
+                ))}
+              </div>
+            ))}
         </section>
       </main>
     </div>

@@ -1,7 +1,15 @@
 import React, { useState } from "react";
 
-function ProgressPage({ studentData = {}, onBack }) {
+  function ProgressPage({
+    studentData = {},
+    onBack,
+    learningLevel = "beginner"
+  }) {
   const [selectedSection, setSelectedSection] = useState("overview");
+
+  const displayLevel =
+  learningLevel.charAt(0).toUpperCase() +
+  learningLevel.slice(1);
 
   const hasProgress = (studentData.completedModules || 0) > 0;
 
@@ -28,10 +36,6 @@ function ProgressPage({ studentData = {}, onBack }) {
 
   return (
     <div className="page-wrapper">
-      <button className="back-btn" onClick={onBack}>
-        ← Back
-      </button>
-
       <div className="hero-section">
         <h2 className="main-title">Track Progress</h2>
         <p className="subtitle-text">Click any card below to view more details.</p>
@@ -104,9 +108,11 @@ function ProgressPage({ studentData = {}, onBack }) {
             </div>
 
             <div className="mini-stat-box">
-              <p className="small-text">Difficulty Level</p>
-              <p className="metric-value">{studentData.difficultyLevel || "Medium"}</p>
-            </div>
+            <p className="small-text">Learning Level</p>
+            <p className="metric-value">
+              {displayLevel}
+            </p>
+          </div>
 
             <div className="mini-stat-box">
               <p className="small-text">Quiz Score</p>
@@ -173,8 +179,10 @@ function ProgressPage({ studentData = {}, onBack }) {
             </div>
 
             <div className="mini-stat-box">
-              <p className="small-text">Current Difficulty</p>
-              <p className="metric-value">{studentData.difficultyLevel || "Medium"}</p>
+              <p className="small-text">Current Level</p>
+              <p className="metric-value">
+                {displayLevel}
+              </p>
             </div>
           </div>
 

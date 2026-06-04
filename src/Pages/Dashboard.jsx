@@ -14,8 +14,8 @@ import QuickHelpModal from "../components/QuickHelpModal";
 import "../App.css";
 import jsPDF from "jspdf";
 
-import {Copy, Mail, MessageCircle, X} from "lucide-react";
-import { doc, getDoc, updateDoc} from "firebase/firestore";
+import { Copy, Mail, MessageCircle, X } from "lucide-react";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { auth, db } from "../firebase";
 
 function Dashboard({
@@ -32,10 +32,15 @@ function Dashboard({
   userPlan,
   onPremiumPlan,
   onStandardPlan,
+  dashboardTargetTab,
+  setDashboardTargetTab,
   onPremiumPaymentSuccess,
 }) {
 
   const [subjectsForLevel, setSubjectsForLevel] = useState([]);
+  const [reminderShown, setReminderShown] = useState(
+  sessionStorage.getItem("reminderShown") === "true"
+);
 
   useEffect(() => {
     const raw = localStorage.getItem("bbSubjectsByLevel");
@@ -141,11 +146,20 @@ setSubjectsForLevel(allowed[level] || allowed.beginner);
     fetchStreak();
   }, []);
 
-
   const studentName = localStorage.getItem("name") || "Student";
   const welcomeType = localStorage.getItem("welcomeType");
 
   const [activeTab, setActiveTab] = useState("dashboard");
+
+  useEffect(() => {
+    if (!dashboardTargetTab) return;
+
+    setActiveTab(dashboardTargetTab);
+    if (typeof setDashboardTargetTab === "function") {
+      setDashboardTargetTab(null);
+    }
+  }, [dashboardTargetTab, setDashboardTargetTab]);
+
   const [editName, setEditName] = useState(
     localStorage.getItem("name") || ""
   );
@@ -162,6 +176,31 @@ setSubjectsForLevel(allowed[level] || allowed.beginner);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const [showHelp, setShowHelp] = useState(false);
+
+  useEffect(() => {
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+
+    if (drawerOpen) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+      if (scrollbarWidth > 0) {
+        document.body.style.paddingRight = `${scrollbarWidth}px`;
+        document.documentElement.style.paddingRight = `${scrollbarWidth}px`;
+      }
+    } else {
+      document.body.style.overflow = "";
+      document.body.style.paddingRight = "";
+      document.documentElement.style.overflow = "";
+      document.documentElement.style.paddingRight = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+      document.body.style.paddingRight = "";
+      document.documentElement.style.overflow = "";
+      document.documentElement.style.paddingRight = "";
+    };
+  }, [drawerOpen]);
   const [showStandardModal, setShowStandardModal] = useState(false);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [showInstitutionalModal, setShowInstitutionalModal] = useState(false);
@@ -531,7 +570,7 @@ const getCurrentTimeSlot = () => {
     `studentSchedule_${currentUser}`,
     JSON.stringify({ days, time, duration })
   );
-
+  sessionStorage.removeItem(`reminderShown_${currentUser}`);
   setScheduleReminder(reminderText);
   setStep(4);
 };
@@ -546,13 +585,25 @@ const checkScheduleReminder = () => {
 
   if (!savedSchedule) return;
 
+  // NEW
+  const reminderShown = sessionStorage.getItem(
+    `reminderShown_${currentUser}`
+  );
+
+  if (reminderShown) return;
+
   const currentSlot = getCurrentTimeSlot();
 
   if (savedSchedule.time.includes(currentSlot)) {
     alert("Reminder: It's your scheduled study time today!");
+
+    // NEW
+    sessionStorage.setItem(
+      `reminderShown_${currentUser}`,
+      "true"
+    );
   }
 };
-
 useEffect(() => {
   checkScheduleReminder();
 }, []);
@@ -564,7 +615,6 @@ useEffect(() => {
       console.log("No handleEnroll function received:", subject);
     }
   };
-
   
   const saveSelectedLevel = (level) => {
     localStorage.setItem("learningLevel", level);
@@ -605,105 +655,70 @@ useEffect(() => {
   ];
 
   const allCourses = [
-    {
-      id: 1,
-      title: "What is Data Science?",
-      description: "Start with the basic meaning, purpose, and use of data science.",
-      icon: "📊",
-      level: "Beginner",
-      topic: "Data Science Basics"
-    },
-    {
-      id: 2,
-      title: "Python for Data Science",
-      description: "Learn basic Python syntax, variables, and simple coding skills.",
-      icon: "🐍",
-      level: "Beginner",
-      topic: "Python Basics"
-    },
-    {
-      id: 3,
-      title: "Statistics Fundamentals",
-      description: "Improve your understanding of probability, mean, and data analysis.",
-      icon: "📈",
-      level: "Intermediate",
-      topic: "Statistics"
-    },
-    {
-      id: 4,
-      title: "Exploratory Data Analysis",
-      description: "Learn how to inspect, clean, and understand datasets.",
-      icon: "🔍",
-      level: "Intermediate",
-      topic: "EDA"
-    },
-    {
-      id: 5,
-      title: "Machine Learning Basics",
-      description: "Understand model training, prediction, and evaluation.",
-      icon: "🤖",
-      level: "Advanced",
-      topic: "Machine Learning"
-    },
-    {
-      id: 6,
-      title: "Data Visualization",
-      description: "Learn advanced ways to present insights using charts and dashboards.",
-      icon: "🎨",
-      level: "Advanced",
-      topic: "Data Visualization"
-    }
-  ];
+  {
+    id: 1,
+    title: "What is Data Science?",
+    description: "Start with the basic meaning, purpose, and use of data science.",
+    icon: "📊",
+    level: "Beginner",
+    topic: "Data Science Basics",
+    quizId: "dataScience"
+  },
+  {
+    id: 2,
+    title: "Python for Data Science",
+    description: "Learn basic Python syntax, variables, and simple coding skills.",
+    icon: "🐍",
+    level: "Beginner",
+    topic: "Python Basics",
+    quizId: "pythonBasics"
+  },
+  {
+    id: 3,
+    title: "Statistics Fundamentals",
+    description: "Improve your understanding of probability, mean, and data analysis.",
+    icon: "📈",
+    level: "Intermediate",
+    topic: "Statistics",
+    quizId: "dataScience"
+  },
+  {
+    id: 4,
+    title: "Exploratory Data Analysis",
+    description: "Learn how to inspect, clean, and understand datasets.",
+    icon: "🔍",
+    level: "Intermediate",
+    topic: "EDA",
+    quizId: "dataScience"
+  },
+  {
+    id: 5,
+    title: "Machine Learning Basics",
+    description: "Understand model training, prediction, and evaluation.",
+    icon: "🤖",
+    level: "Advanced",
+    topic: "Machine Learning",
+    quizId: "machineLearning"
+  },
+  {
+    id: 6,
+    title: "Artificial Intelligence Fundamentals",
+    description: "Understand AI concepts, applications, and ethical AI.",
+    icon: "🧠",
+    level: "Advanced",
+    topic: "Artificial Intelligence",
+    quizId: "artificialIntelligence"
+  }
+];
 
-  const quizScores = JSON.parse(localStorage.getItem("quizScores") || "{}");
+ const weakQuizId = localStorage.getItem("weakQuizId");
 
-  const weaknessMap = {
-    dataScience: "Data Science Basics",
-    artificialIntelligence: "Machine Learning",
-    machineLearning: "Machine Learning",
-    pythonProgramming: "Python Basics",
-    statistics: "Statistics",
-    eda: "EDA",
-    dataVisualization: "Data Visualization"
-  };
-
-  const weakTopics = Object.entries(quizScores)
-    .filter(([quizId, score]) => Number(score) < 60)
-    .map(([quizId]) => weaknessMap[quizId])
-    .filter(Boolean);
-
-  const recommendedCourses =
-    weakTopics.length > 0
-      ? allCourses.filter((course) => weakTopics.includes(course.topic))
-      : allCourses.filter(
-          (course) =>
-            course.level.toLowerCase() === learningLevel.toLowerCase()
-        );
-
-  const handleSaveProfile = async () => {
-    try {
-      const uid = localStorage.getItem("uid");
-
-      if (!uid) {
-        alert("User ID not found. Please login again.");
-        return;
-      }
-
-      await updateDoc(doc(db, "users", uid), {
-        name: editName,
-        phone: editPhone,
-      });
-
-      localStorage.setItem("name", editName);
-      localStorage.setItem("phone", editPhone);
-      localStorage.setItem("profilePic", editProfilePic);
-
-      alert("Profile updated successfully!");
-      setActiveTab("account");
-    } catch (error) {
-      alert(error.message);
-    }
-  };
+const recommendedCourses = weakQuizId
+  ? allCourses.filter((course) => course.quizId === weakQuizId)
+  : allCourses.filter(
+      (course) =>
+        course.level.toLowerCase() === learningLevel.toLowerCase()
+    );
 
   return (
     <div className="dashboard-page">
@@ -1194,7 +1209,19 @@ useEffect(() => {
         )}
 
         {/* MAIN CONTENT */}
-        <main className="dashboard-main-single">
+        <main
+          className="dashboard-main-single"
+          onWheel={(event) => {
+            if (drawerOpen) {
+              setDrawerOpen(false);
+            }
+          }}
+          onTouchMove={(event) => {
+            if (drawerOpen) {
+              setDrawerOpen(false);
+            }
+          }}
+        >
           {/* MENU BAR */}
           <header className="simple-menu-bar">
             <button
@@ -1222,12 +1249,14 @@ useEffect(() => {
 </button>
 
 <button
-  className={`simple-menu-tab ${activeTab === "content" ? "active" : ""}`}
-  onClick={() => goToTab("content")}
+  className={`simple-menu-tab ${
+    activeTab === "forum" ? "active" : ""
+  }`}
+  style={{ flexShrink: 0 }}
+  onClick={() => goToTab("forum")}
 >
-  Content
+  Forum
 </button>
-
 
 <button
   className={`simple-menu-tab ${activeTab === "quiz" ? "active" : ""}`}
@@ -1241,6 +1270,15 @@ useEffect(() => {
   onClick={() => goToTab("performance")}
 >
   Performance
+</button>
+
+<button
+  className={`simple-menu-tab ${
+    activeTab === "notes" ? "active" : ""
+  }`}
+  onClick={() => goToTab("notes")}
+>
+  Notes
 </button>
             </nav>
           </header>
@@ -1258,8 +1296,8 @@ useEffect(() => {
                   </h2>
                   <p>Keep going. Small progress still counts.</p>
                 </div>
-              </section>
 
+              </section>
               {shouldShowScheduleReminder && (
               <section
                 className="compact-streak-card"
@@ -1302,7 +1340,6 @@ useEffect(() => {
               </section>
             )}
                           
-
               <section className="compact-streak-card">
                 <div className="compact-streak-info">
                   <div className="main-fire-circle">
@@ -1334,8 +1371,6 @@ useEffect(() => {
               </section>
 
               {/* CERTIFICATE SECTION */}
-              
-
               <section className="certificate-dashboard-card">
                 <div className="certificate-visual">
                   <div className="certificate-paper">
@@ -1358,6 +1393,9 @@ useEffect(() => {
                     </span>
                   </div>
 
+                  <p>
+                    Complete the requirements below to unlock your professional certificate.
+                  </p>
                   <ul className="certificate-requirements">
                     <li className={certificateMemory.beginner ? "done" : ""}>
                       <span>{certificateMemory.beginner ? "✓" : ""}</span>
@@ -1417,8 +1455,13 @@ useEffect(() => {
 
               {/* MY COURSES */}
               <section className="dashboard-content-section">
-                <h2 className="section-title">My Courses</h2>
-                <SubjectGrid onEnroll={enrollSubject} learningLevel={learningLevel} />
+                <h2 className="section-title">Recommended Courses</h2>
+                <SubjectGrid
+                subjects={recommendedCourses}
+                onEnroll={enrollSubject}
+                learningLevel={learningLevel}
+                userPlan={userPlan}
+              />
               </section>
             </>
           )}
@@ -1426,27 +1469,14 @@ useEffect(() => {
           {/* SUBJECTS TAB */}
           {activeTab === "subjects" && (
             <section className="dashboard-content-section">
-              <h2 className="section-title">Available Subjects</h2>
+              <h2 className="section-title">Recommended Courses</h2>
+
               <SubjectGrid
-                onEnroll={enrollSubject}
-                subjects={subjectsForLevel}
-                learningLevel={learningLevel}
-                userPlan={userPlan}
-              />
-            </section>
-          )}
-
-          {/* CONTENT TAB */}
-          {activeTab === "content" && (
-            <section className="dashboard-content-section">
-              <h2 className="section-title">AI Learning Assistant & Notes</h2>
-
-              {/* <AiChat
-                userPlan={userPlan}
-                moduleId="general"
-              /> */}
-
-              <Notes />
+            subjects={subjectsForLevel}
+            onEnroll={enrollSubject}
+            learningLevel={learningLevel}
+            userPlan={userPlan}
+          />
             </section>
           )}
 
@@ -1478,6 +1508,12 @@ useEffect(() => {
             </section>
           )}
 
+          {activeTab === "notes" && (
+            <section className="dashboard-content-section">
+              <Notes />
+            </section>
+          )}
+
           {/* LEADERBOARD TAB */}
           {activeTab === "leaderboard" && (
             <section className="dashboard-content-section">
@@ -1493,35 +1529,36 @@ useEffect(() => {
                 ← Back
               </button>
 
-              <ProgressPage studentData={performanceData} />
+            <ProgressPage
+            studentData={studentData}
+            learningLevel={learningLevel}
+          />
 
             </section>
           )}
 
           {/* ACHIEVEMENT TAB */}
           {activeTab === "achievement" && (
-            <section className="dashboard-content-section">
-
-              <button className="back-btn" onClick={() => goToTab("dashboard")}>
-                ← Back
-              </button>
+            <>
+              <div
+                style={{
+                  width: "100%",
+                  display: "flex",
+                  justifyContent: "flex-start",
+                  paddingLeft: "90px",
+                  marginBottom: "20px"
+                }}
+              >
+                <button
+                  className="back-btn"
+                  onClick={() => goToTab("dashboard")}
+                >
+                  ← Back
+                </button>
+              </div>
 
               <AchievementPage studentData={performanceData} />
-
-            </section>
-          )}
-
-          {/* FORUM TAB */}
-          {activeTab === "forum" && (
-            <section className="dashboard-content-section">
-
-              <button className="back-btn" onClick={() => goToTab("dashboard")}>
-                ← Back
-              </button>
-
-              <ForumPage />
-
-            </section>
+            </>
           )}
 
           {/* FEEDBACK TAB */}
@@ -1648,29 +1685,7 @@ useEffect(() => {
                 </div>
               </div>
 
-              <h3 className="account-section-title">Security</h3>
 
-              <div className="security-card">
-                <div className="security-row">
-                  <div className="security-icon">🔒</div>
-                  <div>
-                    <h4>Change Password</h4>
-                    <p>Update your password regularly for better security.</p>
-                  </div>
-                  <button>Change</button>
-                </div>
-
-                <hr />
-
-                <div className="security-row">
-                  <div className="security-icon">🛡️</div>
-                  <div>
-                    <h4>Two-Factor Authentication (2FA)</h4>
-                    <p>Add an extra layer of security to your account.</p>
-                  </div>
-                  <button>Manage</button>
-                </div>
-              </div>
             </section>
           )}
 
@@ -1885,10 +1900,21 @@ useEffect(() => {
                   Save Profile
                 </button>
               </div>
-            </section>
+              </section>
           )}
 
-         {/* SETTINGS TAB */}
+          {/* FORUM TAB */}
+          {activeTab === "forum" && (
+            <section className="dashboard-content-section">
+
+              <button className="back-btn" onClick={() => goToTab("dashboard")}>
+             ← Back
+              </button>
+
+              <ForumPage />
+            </section>
+          )}
+          {/* SETTINGS TAB */}
           {activeTab === "settings" && (
             <section className="dashboard-content-section">
               <button className="back-btn" onClick={() => goToTab("dashboard")}>

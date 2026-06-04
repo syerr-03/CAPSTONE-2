@@ -20,8 +20,10 @@ function QuizPage({
   leaderboard = [],
   updateLeaderboard,
   onSubmitQuiz,
-  learningLevel = "beginner"
+  learningLevel = "beginner",
+  userPlan = "standard"
 }) {
+
   const [selectedQuiz, setSelectedQuiz] = useState(null);
     useEffect(() => {
     setSelectedQuiz(null);
@@ -41,7 +43,20 @@ function QuizPage({
     intermediate: ["beginner", "intermediate"],
     advanced: ["beginner", "intermediate", "advanced"]
   };
-  
+ const freeQuizIds = ["dataScience", "pythonBasics"];
+ const adminQuizzes = JSON.parse(localStorage.getItem("bbAdminQuizzes")) || [];
+
+const dynamicQuizzes = {};
+
+adminQuizzes.forEach((quiz) => {
+  dynamicQuizzes[quiz.id] = {
+    title: quiz.title,
+    description: "Admin released quiz.",
+    premium: quiz.premium,
+    questions: quiz.questions
+  };
+});
+
  const quizCategories = {
   dataScience: {
     title: "Data Science Quiz",
@@ -331,7 +346,12 @@ function QuizPage({
     ]
   }
 };
-  const activeQuiz = selectedQuiz ? quizCategories[selectedQuiz] : null;
+  const allQuizzes = {
+  ...quizCategories,
+  ...dynamicQuizzes
+};
+
+const activeQuiz = selectedQuiz ? allQuizzes[selectedQuiz] : null;
   
   const activeQuestions = activeQuiz
     ? activeQuiz.questions.filter((q) =>
@@ -357,7 +377,6 @@ function QuizPage({
 
   const handleSubmit = async () => {
     const percent = Math.round((getScore() / activeQuestions.length) * 100);
-
     if (onSubmitQuiz) onSubmitQuiz(percent);
     const previousBest = quizAttempts[selectedQuiz]?.bestScore || 0;
     const bestScore = Math.max(previousBest, percent);
@@ -496,6 +515,18 @@ const weaknessStatus =
     ? "Moderate"
     : "Weak";
 
+const weakTopic = activeQuiz?.title || selectedQuiz;
+
+if (percent < 80) {
+  localStorage.setItem("weakTopic", weakTopic);
+  localStorage.setItem("weakQuizId", selectedQuiz);
+  localStorage.setItem("weaknessStatus", weaknessStatus);
+} else {
+  localStorage.removeItem("weakTopic");
+  localStorage.removeItem("weakQuizId");
+  localStorage.removeItem("weaknessStatus");
+}
+
 const recommendation =
   percent >= 80
     ? "You are doing well. Try a higher level quiz."
@@ -587,14 +618,26 @@ await addDoc(collection(db, "performanceHistory"), {
     padding: "0 20px"
   }}
 >
-  {Object.keys(quizCategories).map((key) => (
+  {Object.keys(allQuizzes).map((key) => {
+  const isPremiumQuiz =
+  userPlan !== "premium" &&
+  (allQuizzes[key]?.premium || !freeQuizIds.includes(key));
+
+  return (
     <button
       key={key}
       onClick={() => {
+        if (isPremiumQuiz) {
+          alert("This quiz is locked. Please upgrade to Premium to access all quizzes.");
+          return;
+        }
+
         setSelectedQuiz(key);
         setQuizAnswers({});
         setQuizSubmitted(false);
       }}
+
+
       style={{
         border: "2px solid #e9d5ff",
         borderRadius: "24px",
@@ -605,10 +648,30 @@ await addDoc(collection(db, "performanceHistory"), {
         alignItems: "center",
         gap: "16px",
         textAlign: "left",
-        cursor: "pointer",
-        color: "#2f235f"
+        cursor: isPremiumQuiz ? "not-allowed" : "pointer",
+        color: "#2f235f",
+        opacity: isPremiumQuiz ? 0.55 : 1,
+        filter: isPremiumQuiz ? "grayscale(80%)" : "none",
+        position: "relative"
       }}
     >
+      {isPremiumQuiz && (
+  <span
+    style={{
+      position: "absolute",
+      top: "12px",
+      right: "12px",
+      background: "#111827",
+      color: "white",
+      padding: "6px 10px",
+      borderRadius: "999px",
+      fontSize: "12px",
+      fontWeight: "700"
+    }}
+  >
+    🔒 Premium
+  </span>
+)}
       <span
   style={{
     width: "56px",
@@ -629,11 +692,11 @@ await addDoc(collection(db, "performanceHistory"), {
 
       <div style={{ flex: 1 }}>
         <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "800" }}>
-          {quizCategories[key].title}
+          {allQuizzes[key].title}
         </h3>
         <p style={{ margin: "6px 0 0", color: "#7c6aa8", fontSize: "14px" }}>
           {
-            quizCategories[key].questions.filter((q) =>
+            allQuizzes[key].questions.filter((q) =>
               allowedLevels[learningLevel || "beginner"]?.includes(q.level)
             ).length
           } questions • Test your skills
@@ -648,8 +711,9 @@ await addDoc(collection(db, "performanceHistory"), {
       <span style={{ fontSize: "30px", fontWeight: "800", color: "#8b5cf6" }}>
         ›
       </span>
-    </button>
-  ))}
+      </button>
+  );
+})}
 </div>
         </div>
       </div>

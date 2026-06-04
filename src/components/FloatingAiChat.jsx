@@ -5,6 +5,7 @@ function FloatingAiChat() {
   const [question, setQuestion] = useState("");
   const userName = localStorage.getItem("name") || "Student";
   const moduleName = localStorage.getItem("currentModule") || "defaultModule";
+  const messageKey = `aiChatMessages_${userName}_${moduleName}`;
 
   const premiumKey = `premium_${userName}`;
   const chatLimitKey = `chatCount_${userName}_${moduleName}`;
@@ -16,17 +17,17 @@ function FloatingAiChat() {
   const [chatCount, setChatCount] = useState(
     Number(localStorage.getItem(chatLimitKey)) || 0
   );
-  const [messages, setMessages] = useState (() => {
-    const savedMessages = localStorage.getItem("aiChatMessanges");
-    return savedMessages
+ const [messages, setMessages] = useState(() => {
+  const savedMessages = localStorage.getItem(messageKey);
+
+  return savedMessages
     ? JSON.parse(savedMessages)
     : [
-
-    {
-      sender: "ai",
-      text: "Hi! Ask me anything about this module.",
-    },
-  ];
+        {
+          sender: "ai",
+          text: "Hi! Ask me anything about this module.",
+        },
+      ];
 });
 
   const generateAnswer = (question) => {
@@ -72,7 +73,7 @@ function FloatingAiChat() {
     ];
 
     setMessages(limitMessage);
-    localStorage.setItem("aiChatMessanges", JSON.stringify(limitMessage));
+    localStorage.setItem(messageKey, JSON.stringify(limitMessage));
     setQuestion("");
     return;
   }
@@ -87,7 +88,7 @@ function FloatingAiChat() {
   ];
 
   setMessages(newMessages);
-  localStorage.setItem("aiChatMessanges", JSON.stringify(newMessages));
+  localStorage.setItem(messageKey, JSON.stringify(newMessages));
 
   if (!isPremium) {
     const newCount = chatCount + 1;
@@ -111,7 +112,7 @@ const handleSubscribePremium = () => {
   ];
 
   setMessages(premiumMessage);
-  localStorage.setItem("aiChatMessanges", JSON.stringify(premiumMessage));
+  localStorage.setItem(messageKey, JSON.stringify(premiumMessage));
 };
 
   return (
