@@ -387,13 +387,16 @@ const getCurrentTimeSlot = () => {
     }
 
     setSubscriptionPaymentError("");
-    setShowSubscriptionPaymentModal(false);
-    setShowSubscriptionPaymentSuccess(true);
-    
-    // Activate premium subscription after payment success
-    if (onPremiumPaymentSuccess) {
-      onPremiumPaymentSuccess();
-    }
+setShowSubscriptionPaymentModal(false);
+setShowSubscriptionPaymentSuccess(true);
+
+localStorage.setItem("userPlan", "premium");
+localStorage.setItem("plan", "premium");
+
+// Activate premium subscription after payment success
+if (onPremiumPaymentSuccess) {
+  onPremiumPaymentSuccess();
+}
   };
 
   const handleCloseSubscriptionSuccess = () => {

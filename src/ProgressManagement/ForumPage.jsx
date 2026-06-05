@@ -8,7 +8,9 @@ import {
   serverTimestamp,
   doc,
   updateDoc,
-  arrayUnion
+  deleteDoc,
+  arrayUnion,
+  arrayRemove
 } from "firebase/firestore";
 
 import { db } from "../firebase";
@@ -68,6 +70,27 @@ function ForumPage({ onBack }) {
   });
 
   setNewPost("");
+};
+const handleDeletePost = async (postId) => {
+  const confirmDelete = window.confirm(
+    "Are you sure you want to delete this post?"
+  );
+
+  if (!confirmDelete) return;
+
+  await deleteDoc(doc(db, "forumPosts", postId));
+};
+
+const handleDeleteReply = async (postId, reply) => {
+  const confirmDelete = window.confirm(
+    "Are you sure you want to delete this reply?"
+  );
+
+  if (!confirmDelete) return;
+
+  await updateDoc(doc(db, "forumPosts", postId), {
+    replies: arrayRemove(reply)
+  });
 };
 
   const handleReplyChange = (postId, value) => {
@@ -162,7 +185,34 @@ function ForumPage({ onBack }) {
               </div>
             </div>
 
-            <p className="content-text">{post.text}</p>
+            <p
+  className="content-text"
+  style={{
+    textAlign: "left",
+    marginBottom: "15px"
+  }}
+>
+  {post.text}
+</p>
+
+<button
+  onClick={() => handleDeletePost(post.id)}
+  style={{
+  border: "none",
+  borderRadius: "12px",
+  padding: "10px 16px",
+  background: "#EF4444",
+  color: "white",
+  fontWeight: "700",
+  cursor: "pointer",
+  marginBottom: "15px",
+  display: "block",
+  marginLeft: "0",
+  marginRight: "auto"
+}}
+>
+  🗑 Delete Post
+</button>
 
             <div className="reply-section">
               <h4 className="reply-title">Replies</h4>
@@ -171,6 +221,7 @@ function ForumPage({ onBack }) {
                 <p className="small-text">No replies yet.</p>
               ) : (
                 post.replies.map((reply, index) => (
+
                   <div className="reply-box" key={index}>
                     <p className="content-text">
                       <strong>{reply.author}:</strong> {reply.text}
@@ -178,6 +229,22 @@ function ForumPage({ onBack }) {
                     <p className="small-text">
                       Replied {formatTimeAgo(reply.createdAt)}
                     </p>
+                    
+<button
+  onClick={() => handleDeleteReply(post.id, reply)}
+  style={{
+    border: "none",
+    borderRadius: "10px",
+    padding: "8px 12px",
+    background: "#F97316",
+    color: "white",
+    fontWeight: "700",
+    cursor: "pointer",
+    marginTop: "8px"
+  }}
+>
+  🗑 Delete Reply
+</button>
                   </div>
                 ))
               )}
