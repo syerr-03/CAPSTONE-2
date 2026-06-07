@@ -1341,32 +1341,19 @@ const getAdminItemContent = (item) => {
             </ul>
           </div>
 
-          <textarea
-            className="assignment-textarea"
-            placeholder="Type your answer here..."
-            value={practicalText}
-            onChange={(event) => setPracticalText(event.target.value)}
-            disabled={practicalSubmitted}
-          />
-
-          {!practicalSubmitted ? (
-            <button
-              className="hero-button"
-              style={{ marginTop: "16px", width: "100%" }}
-              onClick={handlePracticalSubmit}
-            >
-              Submit Assignment
-            </button>
-          ) : (
-            <div
-              className="quiz-result-box"
-              style={{ marginTop: "16px", textAlign: "center" }}
-            >
-              <p>
-                <strong>Submitted!</strong>
-              </p>
-            </div>
-          )}
+          <p
+  style={{
+    marginTop: "20px",
+    textAlign: "center",
+    color: "#6B7280",
+    fontSize: "14px",
+    lineHeight: "1.6"
+  }}
+>
+  This practical activity is designed for self-learning. Students are encouraged
+  to complete the task independently using suitable tools such as Excel, CSV,
+  or data visualization software to strengthen their understanding of the topic.
+</p>
 
           <ContentNoteActions item={activeItem} section={activeSection} />
         </div>

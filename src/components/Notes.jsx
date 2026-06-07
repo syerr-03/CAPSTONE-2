@@ -497,14 +497,10 @@ const getSectionInfo = (title) => {
             </div>
 
             <div style={styles.actionRow}>
-              <button style={styles.saveBtn} onClick={addNote}>
-                Save Note
-              </button>
-
-              <button style={styles.aiBtn} onClick={explainNote}>
-                Explain with AI
-              </button>
-            </div>
+  <button style={styles.saveBtn} onClick={addNote}>
+    Save Note
+  </button>
+</div>
 
             {aiExplanation && (
               <div style={styles.aiBox}>

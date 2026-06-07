@@ -232,9 +232,20 @@ function Drawer({
 
       <div className="drawer-divider"></div>
 
-            <button className="drawer-link logout" onClick={handleLogout}>
-        <span>🚪 Logout</span>
-      </button>
+            <button
+  className="drawer-link logout"
+  onClick={() => {
+    const confirmLogout = window.confirm(
+      "Are you sure you want to logout?"
+    );
+
+    if (!confirmLogout) return;
+
+    handleLogout();
+  }}
+>
+  <span>🚪 Logout</span>
+</button>
     </aside>
 
     {showHelp && (

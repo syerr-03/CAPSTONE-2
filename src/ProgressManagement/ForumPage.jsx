@@ -159,8 +159,7 @@ const handleDeleteReply = async (postId, reply) => {
               backgroundColor: "#ffffff",
               resize: "vertical",
               outline: "none",
-              position: "relative",
-              zIndex: 9999
+
             }}
           />
 
