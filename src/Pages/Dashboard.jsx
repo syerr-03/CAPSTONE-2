@@ -1458,7 +1458,9 @@ const recommendedCourses = weakQuizId
 
               {/* MY COURSES */}
               <section className="dashboard-content-section">
-                <h2 className="section-title">Recommended Courses</h2>
+  <h2 className="section-title">
+    {weakQuizId ? "Recommended Based on Your Quiz Score" : "Recommended Courses"}
+  </h2>
                 <SubjectGrid
                 subjects={recommendedCourses}
                 onEnroll={enrollSubject}
@@ -1471,8 +1473,8 @@ const recommendedCourses = weakQuizId
 
           {/* SUBJECTS TAB */}
           {activeTab === "subjects" && (
-            <section className="dashboard-content-section">
-              <h2 className="section-title">Recommended Courses</h2>
+  <section className="dashboard-content-section">
+    <h2 className="section-title">Available Subjects</h2>
 
               <SubjectGrid
             subjects={subjectsForLevel}

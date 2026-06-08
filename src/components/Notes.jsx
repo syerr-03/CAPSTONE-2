@@ -511,20 +511,16 @@ const getSectionInfo = (title) => {
           </section>
         )}
 
-        <div style={styles.searchBox}>
-          <span>🔍</span>
+<div style={styles.searchBox}>
+  <span>🔍</span>
 
-          <input
-            type="text"
-            placeholder="Search notes..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            style={styles.searchInput}
-          />
-        </div>
-
-<div style={styles.noteActionRow}>
-  <div></div>
+  <input
+    type="text"
+    placeholder="Search notes..."
+    value={search}
+    onChange={(e) => setSearch(e.target.value)}
+    style={styles.searchInput}
+  />
 
   {!isSelectMode ? (
     <button style={styles.selectBtn} onClick={() => setIsSelectMode(true)}>
@@ -639,7 +635,7 @@ const styles = {
     color: "#111827",
     fontFamily: "Inter, Arial, sans-serif",
     position: "relative",
-    paddingTop: "30px"
+    paddingTop: "0px"
   },
 
   backBtn: {
@@ -660,7 +656,7 @@ const styles = {
 
   container: {
     width: "84%",
-    margin: "35px auto"
+    margin: "10px auto"
   },
 
   heroCard: {
