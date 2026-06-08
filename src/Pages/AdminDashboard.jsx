@@ -19,6 +19,7 @@ function AdminDashboard() {
   const [selectedLevel, setSelectedLevel] = useState("beginner");
   const [subjectsByLevel, setSubjectsByLevel] = useState(defaultSubjectsByLevel);
   const [showSubjectList, setShowSubjectList] = useState(false);
+  const [adminView, setAdminView] = useState("");
 
   const [subjectTitle, setSubjectTitle] = useState("");
   const [subjectDesc, setSubjectDesc] = useState("");
@@ -623,12 +624,61 @@ function AdminDashboard() {
 
         <section className="dashboard-content-section">
           <h2 className="section-title">Manage Learning Content</h2>
-
           <div
-            className="module-card"
-            style={{
-              marginBottom: "25px",
-              padding: "30px",
+  style={{
+    display: "grid",
+    gridTemplateColumns: "repeat(3, minmax(220px, 1fr))",
+    gap: "20px",
+    marginBottom: "30px"
+  }}
+>
+  <button
+    className="module-card"
+    style={{ cursor: "pointer", textAlign: "center" }}
+    onClick={() => {
+  setAdminView("subjects");
+  setShowSubjectList(true);
+  setShowQuizList(false);
+}}
+  >
+    <h3>📚 List Subject</h3>
+    <p>View all subjects by level.</p>
+  </button>
+
+  <button
+    className="module-card"
+    style={{ cursor: "pointer", textAlign: "center" }}
+    onClick={() => {
+  setAdminView("quizzes");
+  setShowQuizList(true);
+  setShowSubjectList(false);
+}}
+  >
+    <h3>📝 List Quizzes</h3>
+    <p>View all released quizzes.</p>
+  </button>
+
+  <button
+    className="module-card"
+    style={{ cursor: "pointer", textAlign: "center" }}
+    onClick={() => {
+  setAdminView("manage");
+  setShowSubjectList(false);
+  setShowQuizList(false);
+}}
+  >
+    <h3>⚙️ Manage Learning Content</h3>
+    <p>Add subjects, modules, readings, videos and quizzes.</p>
+  </button>
+</div>
+
+{adminView === "manage" && (
+  <>
+  <div
+    className="module-card"
+    style={{
+      marginBottom: "25px",
+      padding: "30px",
               borderRadius: "24px",
               background: "#ffffff",
               boxShadow: "0 8px 20px rgba(124,58,237,0.08)"
@@ -808,21 +858,8 @@ function AdminDashboard() {
             </button>
           </div>
 
-          <button
-            className="hero-button"
-            onClick={() => setShowQuizList(!showQuizList)}
-            style={{ marginBottom: "20px", marginRight: "12px" }}
-          >
-            {showQuizList ? "Hide Quiz List" : "List of Added Quizzes"}
-          </button>
-
-          <button
-            className="hero-button"
-            onClick={() => setShowSubjectList(!showSubjectList)}
-            style={{ marginBottom: "20px" }}
-          >
-            {showSubjectList ? "Hide Added Subjects" : "List of Added Subjects"}
-          </button>
+  </>
+)}
 
           {showQuizList &&
             adminQuizzes.map((quiz) => (
