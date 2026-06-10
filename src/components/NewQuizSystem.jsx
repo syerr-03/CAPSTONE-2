@@ -2,6 +2,87 @@ import { useEffect, useMemo, useState } from "react";
 import "../App.css";
 import FloatingAiChat from "./FloatingAiChat.jsx";
 
+export const getSystemQuizSets = (topic = "this topic") => ({
+  "quiz-1": [
+    {
+      id: 1,
+      question: `What is the main purpose of learning ${topic}?`,
+      options: [
+        "To ignore data completely",
+        "To understand important concepts and applications",
+        "To replace all programming languages",
+        "To avoid practical work"
+      ],
+      correctAnswer: "To understand important concepts and applications",
+      explanation:
+        "Learning helps understand important concepts and how they are applied in real situations."
+    },
+    {
+      id: 2,
+      question: `Why is ${topic} important in real-world situations?`,
+      options: [
+        "It helps solve problems using knowledge and skills",
+        "It makes learning unnecessary",
+        "It removes the need for practice",
+        "It is only useful for games"
+      ],
+      correctAnswer: "It helps solve problems using knowledge and skills",
+      explanation:
+        `${topic} is important because it helps learners apply knowledge to solve real-world problems.`
+    }
+  ],
+
+  "quiz-2": [
+    {
+      id: 1,
+      question: `Which of the following is a key concept in ${topic}?`,
+      options: [
+        "Understanding data and information",
+        "Ignoring analysis",
+        "Deleting all results",
+        "Avoiding decision making"
+      ],
+      correctAnswer: "Understanding data and information",
+      explanation:
+        `A key concept in ${topic} is understanding data, information, and how they can support better decisions.`
+    },
+    {
+      id: 2,
+      question: `What should students do to improve their understanding of ${topic}?`,
+      options: [
+        "Practice using examples and exercises",
+        "Avoid reading materials",
+        "Skip all quizzes",
+        "Only memorize without understanding"
+      ],
+      correctAnswer: "Practice using examples and exercises",
+      explanation:
+        "Practice helps students understand concepts more clearly and apply them in different situations."
+    }
+  ]
+});
+
+export const getSystemQuizList = (topic = "Data Science") => {
+  const quizSets = getSystemQuizSets(topic);
+
+  return [
+    {
+      id: "quiz-1",
+      title: "Test Your Knowledge: Fundamentals Quiz",
+      description: `${quizSets["quiz-1"].length} questions available`,
+      level: "Beginner",
+      questions: quizSets["quiz-1"]
+    },
+    {
+      id: "quiz-2",
+      title: "Check Your Understanding",
+      description: `${quizSets["quiz-2"].length} questions available`,
+      level: "Beginner",
+      questions: quizSets["quiz-2"]
+    }
+  ];
+};
+
 function NewQuizSystem({
   module,
   onBack,
@@ -102,87 +183,72 @@ const getAdminItemContent = (item) => {
   };
 };
 
-  const moduleSections = useMemo(() => {
-  const subjectPrefix = getSubjectPrefix();
+  const getStudentQuizEditKey = (quizBaseId) => {
+  return `${getSubjectKey()}_${quizBaseId}`;
+};
 
-  if (isAdminCreatedSubject) {
-    return module.modules.map((mod, index) => ({
-      id: mod.id || `admin-module-${index + 1}`,
-      moduleNumber: index + 1,
-      heading: mod.heading || `Module ${index + 1}`,
-      items: (mod.items || []).map((item, itemIndex) => ({
-        ...item,
-        id: `${subjectPrefix}_${item.id || `item-${itemIndex + 1}`}`,
-        baseId: item.id || `item-${itemIndex + 1}`
-      }))
-    }));
+const getStudentQuizEdits = () => {
+  try {
+    return JSON.parse(localStorage.getItem("bbStudentQuizEdits") || "{}");
+  } catch {
+    return {};
   }
+};
 
-  return [
-    {
-      id: `${subjectPrefix}_module1`,
-      moduleNumber: 1,
-      heading: "Fundamentals",
-      items: [
-        {
-          id: `${subjectPrefix}_reading-1`,
-          baseId: "reading-1",
-          type: "Reading",
-          title: `Master the Basics: What is ${topic}?`
-        },
-        {
-          id: `${subjectPrefix}_video-1`,
-          baseId: "video-1",
-          type: "Video",
-          title: `Watch and Learn: ${topic} Overview`
-        },
-        {
-          id: `${subjectPrefix}_quiz-1`,
-          baseId: "quiz-1",
-          type: "Quiz",
-          title: "Test Your Knowledge: Fundamentals Quiz"
-        },
-        {
-          id: `${subjectPrefix}_practical-1`,
-          baseId: "practical-1",
-          type: "Practical Assignment",
-          title: "Practical Assignment: Basic Data Exploration"
-        }
-      ]
-    },
-    {
-      id: `${subjectPrefix}_module2`,
-      moduleNumber: 2,
-      heading: "Programming Basics",
-      items: [
-        {
-          id: `${subjectPrefix}_reading-2`,
-          baseId: "reading-2",
-          type: "Reading",
-          title: "Core Concepts of Data Science"
-        },
-        {
-          id: `${subjectPrefix}_video-2`,
-          baseId: "video-2",
-          type: "Video",
-          title: "Data Science Concepts and Techniques"
-        },
-        {
-          id: `${subjectPrefix}_quiz-2`,
-          baseId: "quiz-2",
-          type: "Quiz",
-          title: "Check Your Understanding"
-        },
-        {
-          id: `${subjectPrefix}_practical-2`,
-          baseId: "practical-2",
-          type: "Practical Assignment",
-          title: "Mini Exercise"
-        }
-      ]
-    }
-  ];
-}, [isAdminCreatedSubject, module, topic, currentLevel]);
+const getEditedQuizItem = (item) => {
+  if (!item || item.type !== "Quiz") return item;
+
+  const quizBaseId = resolveBaseId(item);
+  const editKey = getStudentQuizEditKey(quizBaseId);
+  const edits = getStudentQuizEdits();
+
+  if (!edits[editKey]) return item;
+
+  return {
+    ...item,
+    title: edits[editKey].title || item.title,
+    questions: edits[editKey].questions || item.questions,
+  };
+};
+
+useEffect(() => {
+  const existingStudentQuizzes = JSON.parse(
+    localStorage.getItem("bbStudentQuizzes") || "[]"
+  );
+
+  const subjectKey = getSubjectKey();
+
+  const currentSubjectQuizzes = moduleSections.flatMap((section) =>
+    section.items
+      .filter((item) => item.type === "Quiz")
+      .map((item) => {
+        const quizBaseId = resolveBaseId(item);
+        const editedItem = getEditedQuizItem(item);
+        const editKey = getStudentQuizEditKey(quizBaseId);
+
+        return {
+          id: item.id,
+          baseId: quizBaseId,
+          studentEditKey: editKey,
+          subjectKey,
+          subject: topic,
+          level: currentLevel,
+          icon: "📝",
+          title: editedItem.title,
+          questions: editedItem.questions || [],
+        };
+      })
+  );
+
+  const otherSubjectQuizzes = existingStudentQuizzes.filter(
+    (quiz) => quiz.subjectKey !== subjectKey
+  );
+
+  const updatedStudentQuizzes = [...otherSubjectQuizzes, ...currentSubjectQuizzes];
+
+  localStorage.setItem("bbStudentQuizzes", JSON.stringify(updatedStudentQuizzes));
+  window.dispatchEvent(new Event("bbStudentQuizzesUpdated"));
+}, [moduleSections, topic, currentLevel]);
 
   useEffect(() => {
     if (typeof saveSubjectProgress !== "function") return;
@@ -886,7 +952,7 @@ const getAdminItemContent = (item) => {
 
   localStorage.setItem("currentModule", moduleKey);
 
-  setActiveItem(item);
+  setActiveItem(getEditedQuizItem(item));
   setActiveSection(section);
   setActiveModuleNumber(section.moduleNumber);
   markItemCompleted(item.id);
@@ -913,92 +979,7 @@ const getAdminItemContent = (item) => {
       ? Math.round((safeCompletedItems.length / allItems.length) * 100)
       : 0;
 
-  const quizSets = {
-    "quiz-1": [
-      {
-        id: 1,
-        question: `What is the main purpose of learning ${topic}?`,
-        options: [
-          "To ignore data completely",
-          "To understand important concepts and applications",
-          "To replace all programming languages",
-          "To avoid practical work"
-        ],
-        correctAnswer: "To understand important concepts and applications",
-        explanation:
-          "Learning helps understand important concepts and how they are applied in real situations."
-      },
-      {
-        id: 2,
-        question: `Which statement best describes ${topic}?`,
-        options: [
-          "A topic used only for memorizing facts",
-          "A field that combines understanding, analysis, and application",
-          "Something only graphic designers use",
-          "A topic that removes the need for thinking"
-        ],
-        correctAnswer:
-          "A field that combines understanding, analysis, and application",
-        explanation:
-          "Best understood through concepts, examples, and practical use."
-      },
-      {
-        id: 3,
-        question: `Why is practical understanding important in ${topic}?`,
-        options: [
-          "Because theory is never useful",
-          "Because practical work connects ideas to real situations",
-          "Because it replaces all study",
-          "Because it is only useful during exams"
-        ],
-        correctAnswer:
-          "Because practical work connects ideas to real situations",
-        explanation:
-          "Practical understanding helps learners apply knowledge with more confidence."
-      }
-    ],
-    "quiz-2": [
-      {
-        id: 1,
-        question: `Which skill is important when learning intermediate ${topic}?`,
-        options: [
-          "Ignoring examples",
-          "Connecting theory with analysis",
-          "Avoiding all tools",
-          "Skipping practice"
-        ],
-        correctAnswer: "Connecting theory with analysis",
-        explanation:
-          "Intermediate learning requires understanding how ideas connect and how to apply them in practice."
-      },
-      {
-        id: 2,
-        question: "Why should learners study core concepts more deeply?",
-        options: [
-          "To build stronger understanding",
-          "To make the topic more confusing",
-          "To avoid real-world use",
-          "To remove the need for problem solving"
-        ],
-        correctAnswer: "To build stronger understanding",
-        explanation:
-          "Stronger conceptual understanding helps learners solve problems more effectively."
-      },
-      {
-        id: 3,
-        question: "What helps improve understanding at this level?",
-        options: [
-          "Memorizing without thinking",
-          "Examples, reflection, and practice",
-          "Skipping all quizzes",
-          "Avoiding feedback"
-        ],
-        correctAnswer: "Examples, reflection, and practice",
-        explanation:
-          "Examples and practice help learners connect concepts to situations they may face later."
-      }
-    ]
-  };
+  const quizSets = getSystemQuizSets(topic);
 
   const handleAnswerSelect = (quizId, questionId, option) => {
     if (quizSubmitted) return;
@@ -1206,7 +1187,13 @@ const getAdminItemContent = (item) => {
 
   if (activeItem?.type === "Quiz") {
     const quizId = resolveBaseId(activeItem);
-    const questions = quizSets[quizId] || [];
+    const savedQuizEdits = getStudentQuizEdits();
+    const editKey = getStudentQuizEditKey(quizId);
+    const questions =
+      savedQuizEdits[editKey]?.questions ||
+      activeItem.questions ||
+      quizSets[quizId] ||
+      [];
 
     let correctCount = 0;
 
@@ -1424,7 +1411,9 @@ const getAdminItemContent = (item) => {
                     onClick={() => openContent(item, section)}
                   >
                     <div className="learning-info-left">
-                      <h3 className="learning-item-title">{item.title}</h3>
+                      <h3 className="learning-item-title">
+                        {getEditedQuizItem(item).title}
+                      </h3>
                       <p className="learning-item-type">{item.type}</p>
                     </div>
 

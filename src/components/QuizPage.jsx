@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import "../App.css";
 import LeaderboardPage from "../ProgressManagement/LeaderboardPage.jsx";
-import { useEffect } from "react";
 
 import { auth, db } from "../firebase";
 
@@ -346,6 +345,44 @@ adminQuizzes.forEach((quiz) => {
     ]
   }
 };
+
+useEffect(() => {
+  const defaultStudentQuizzes = Object.entries(quizCategories).flatMap(
+    ([quizKey, quiz]) => {
+      const quizLevels = [
+        ...new Set((quiz.questions || []).map((q) => q.level || "beginner")),
+      ];
+
+      return quizLevels.map((level) => ({
+        id: `${quizKey}-${level}`,
+        quizKey,
+        title: quiz.title,
+        description: quiz.description,
+        level: level.toLowerCase(),
+        icon:
+          quizKey === "dataScience"
+            ? "📊"
+            : quizKey === "artificialIntelligence"
+            ? "🤖"
+            : quizKey === "machineLearning"
+            ? "🧠"
+            : quizKey === "pythonBasics"
+            ? "🐍"
+            : "📝",
+        questions: quiz.questions.filter(
+          (question) => question.level === level
+        ),
+        source: "Default Student Quiz",
+      }));
+    }
+  );
+
+  localStorage.setItem(
+    "bbDefaultStudentQuizzes",
+    JSON.stringify(defaultStudentQuizzes)
+  );
+}, []);
+
   const allQuizzes = {
   ...quizCategories,
   ...dynamicQuizzes
