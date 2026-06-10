@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import SubjectGrid from "../components/SubjectGrid.jsx";
 import QuizPage from "../components/QuizPage.jsx";
+import { getStudentSubjectsForLevel } from "../data/subjectData.js";
 import Drawer from "../components/Drawer.jsx";
 import PerformancePage from "../ProgressManagement/PerformancePage.jsx";
 import ProgressPage from "../ProgressManagement/ProgressPage.jsx";
@@ -53,78 +54,8 @@ function Dashboard({
       const parsed = JSON.parse(raw) || {};
       const level = (learningLevel || "beginner").toLowerCase();
 
-      const adminBeginner = parsed.beginner || [];
-const adminIntermediate = parsed.intermediate || [];
-const adminAdvanced = parsed.advanced || [];
-
-const defaultSubjects = [
-  {
-    id: 1,
-    title: "What is Data Science?",
-    description: "Start with the basic meaning, purpose, and use of data science.",
-    icon: "📊",
-    level: "beginner"
-  },
-  {
-    id: 2,
-    title: "Python for Data Science",
-    description: "Learn basic Python syntax, variables, and simple coding skills.",
-    icon: "🐍",
-    level: "beginner"
-  },
-  {
-    id: 3,
-    title: "Statistics Fundamentals",
-    description: "Improve your understanding of probability, mean, and data analysis.",
-    icon: "📈",
-    level: "intermediate"
-  },
-  {
-    id: 4,
-    title: "Exploratory Data Analysis",
-    description: "Learn how to inspect, clean, and understand datasets.",
-    icon: "🔍",
-    level: "intermediate"
-  },
-  {
-    id: 5,
-    title: "Machine Learning Basics",
-    description: "Understand model training, prediction, and evaluation.",
-    icon: "🤖",
-    level: "advanced"
-  },
-  {
-    id: 6,
-    title: "Data Visualization",
-    description: "Learn advanced ways to present insights using charts and dashboards.",
-    icon: "🎨",
-    level: "advanced"
-  }
-];
-
-const defaultBeginner = defaultSubjects.filter((s) => s.level === "beginner");
-const defaultIntermediate = defaultSubjects.filter((s) => s.level === "intermediate");
-const defaultAdvanced = defaultSubjects.filter((s) => s.level === "advanced");
-
-const allowed = {
-  beginner: [...defaultBeginner, ...adminBeginner],
-  intermediate: [
-    ...defaultBeginner,
-    ...defaultIntermediate,
-    ...adminBeginner,
-    ...adminIntermediate
-  ],
-  advanced: [
-    ...defaultBeginner,
-    ...defaultIntermediate,
-    ...defaultAdvanced,
-    ...adminBeginner,
-    ...adminIntermediate,
-    ...adminAdvanced
-  ]
-};
-
-setSubjectsForLevel(allowed[level] || allowed.beginner);
+      const subjectList = getStudentSubjectsForLevel(level, parsed);
+      setSubjectsForLevel(subjectList);
     } catch (e) {
       setSubjectsForLevel([]);
     }

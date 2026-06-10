@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import "../App.css";
+import { getStudentSubjectsByLevel } from "../data/subjectData.js";
 
 const defaultSubjectsByLevel = {
   beginner: [
@@ -70,6 +71,7 @@ const emptyQuizQuestions = [
 function AdminDashboard() {
   const [selectedLevel, setSelectedLevel] = useState("beginner");
   const [subjectsByLevel, setSubjectsByLevel] = useState(defaultSubjectsByLevel);
+  const studentSubjectsByLevel = getStudentSubjectsByLevel(subjectsByLevel);
 
   const [adminView, setAdminView] = useState("");
   const [showSubjectList, setShowSubjectList] = useState(false);
@@ -726,74 +728,100 @@ const [editingQuizSource, setEditingQuizSource] = useState(null);
   };
 
   const getAllSystemQuizzes = () => {
-  const allQuizzes = [];
+    const savedStudentQuizzes = JSON.parse(
+      localStorage.getItem("bbStudentQuizzes") || "[]"
+    );
+    const savedAdminQuizzes = JSON.parse(
+      localStorage.getItem("bbAdminQuizzes") || "[]"
+    );
+    const savedDefaultStudentQuizzes = JSON.parse(
+      localStorage.getItem("bbDefaultStudentQuizzes") || "[]"
+    );
+    const savedSubjects = JSON.parse(
+      localStorage.getItem("bbSubjectsByLevel") || "{}"
+    );
 
-  studentQuizzes.forEach((quiz, index) => {
-    allQuizzes.push({
-      id: `student-${quiz.id || index}`,
-      realId: quiz.id,
-      studentEditKey: quiz.studentEditKey,
-      title: quiz.title || "Untitled Quiz",
-      level: (quiz.level || "beginner").toLowerCase(),
-      icon: quiz.icon || "📝",
-      sourceType: "student",
-      rawQuiz: quiz,
-      canEdit: true,
-      canDelete: false,
-    });
-  });
+    const allQuizzes = [];
 
-  Object.entries(subjectsByLevel).forEach(([level, subjects]) => {
-    (subjects || []).forEach((subject) => {
-      (subject.modules || []).forEach((moduleItem) => {
-        (moduleItem.items || [])
-          .filter((item) => item.type === "Quiz")
-          .forEach((quizItem, index) => {
-            allQuizzes.push({
-              id: `subject-${subject.id}-${quizItem.id || index}`,
-              realId: quizItem.id,
-              title: quizItem.title || "Untitled Quiz",
-              level: (level || subject.level || "beginner").toLowerCase(),
-              icon: subject.icon || "📝",
-              sourceType: "subject",
-              subjectLevel: level,
-              subjectId: subject.id,
-              moduleId: moduleItem.id,
-              quizItemId: quizItem.id,
-              rawQuiz: quizItem,
-              canEdit: true,
-              canDelete: false,
-            });
-          });
+    savedDefaultStudentQuizzes.forEach((quiz, index) => {
+      allQuizzes.push({
+        id: `default-${quiz.id || index}`,
+        realId: quiz.id || null,
+        title: quiz.title || "Default Student Quiz",
+        level: (quiz.level || "beginner").toLowerCase(),
+        icon: quiz.icon || "🧠",
+        sourceType: "defaultStudent",
+        rawQuiz: quiz,
+        canEdit: false,
+        canDelete: false,
       });
     });
-  });
 
-  adminQuizzes.forEach((quiz, index) => {
-    allQuizzes.push({
-      id: `admin-${quiz.id || index}`,
-      realId: quiz.id,
-      title: quiz.title || "Untitled Quiz",
-      level: (quiz.level || "beginner").toLowerCase(),
-      icon: quiz.icon || "📝",
-      sourceType: "admin",
-      rawQuiz: quiz,
-      canEdit: true,
-      canDelete: true,
+    savedStudentQuizzes.forEach((quiz, index) => {
+      allQuizzes.push({
+        id: `student-${quiz.id || index}`,
+        realId: quiz.id || null,
+        studentEditKey: quiz.studentEditKey || null,
+        title: quiz.title || "Student Added Quiz",
+        level: (quiz.level || "beginner").toLowerCase(),
+        icon: quiz.icon || "📝",
+        sourceType: "student",
+        rawQuiz: quiz,
+        canEdit: true,
+        canDelete: false,
+      });
     });
-  });
 
-  return allQuizzes.filter(
-    (quiz, index, self) =>
-      index ===
-      self.findIndex(
-        (q) =>
-          q.title.toLowerCase() === quiz.title.toLowerCase() &&
-          q.level === quiz.level &&
-          q.sourceType === quiz.sourceType
-      )
-  );
-};
+    Object.entries(savedSubjects).forEach(([level, subjects]) => {
+      (subjects || []).forEach((subject) => {
+        (subject.modules || []).forEach((moduleItem) => {
+          (moduleItem.items || [])
+            .filter((item) => item.type === "Quiz")
+            .forEach((quizItem, index) => {
+              allQuizzes.push({
+                id: `subject-${subject.id}-${quizItem.id || index}`,
+                realId: quizItem.id || null,
+                title: quizItem.title || "Subject Quiz",
+                level: (level || subject.level || "beginner").toLowerCase(),
+                icon: subject.icon || "📝",
+                sourceType: "subject",
+                subjectLevel: level,
+                subjectId: subject.id,
+                moduleId: moduleItem.id,
+                quizItemId: quizItem.id,
+                rawQuiz: quizItem,
+                canEdit: true,
+                canDelete: false,
+              });
+            });
+        });
+      });
+    });
+
+    savedAdminQuizzes.forEach((quiz, index) => {
+      allQuizzes.push({
+        id: `admin-${quiz.id || index}`,
+        realId: quiz.id || null,
+        title: quiz.title || "Admin Quiz",
+        level: (quiz.level || "beginner").toLowerCase(),
+        icon: quiz.icon || "📝",
+        sourceType: "admin",
+        rawQuiz: quiz,
+        canEdit: true,
+        canDelete: true,
+      });
+    });
+
+    return allQuizzes.filter(
+      (quiz, index, self) =>
+        index ===
+        self.findIndex(
+          (q) =>
+            `${q.sourceType}:${q.level}:${q.title}` ===
+            `${quiz.sourceType}:${quiz.level}:${quiz.title}`
+        )
+    );
+  };
 
   const renderModuleForm = (moduleNumber) => {
     const isModule1 = moduleNumber === 1;
@@ -1676,11 +1704,11 @@ const [editingQuizSource, setEditingQuizSource] = useState(null);
                     {level.toUpperCase()}
                   </h2>
 
-                  {(subjectsByLevel[level] || []).length === 0 ? (
-                    <p>No subjects added yet.</p>
+                  {(studentSubjectsByLevel[level] || []).length === 0 ? (
+                    <p>No subjects available in the student view yet.</p>
                   ) : (
                     <ol style={{ paddingLeft: "25px", margin: 0 }}>
-                      {(subjectsByLevel[level] || []).map((subject, index) => (
+                      {(studentSubjectsByLevel[level] || []).map((subject, index) => (
                         <li
                           key={`${level}-${subject.id}-${index}`}
                           style={{

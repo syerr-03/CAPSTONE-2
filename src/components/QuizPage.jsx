@@ -43,17 +43,59 @@ function QuizPage({
     advanced: ["beginner", "intermediate", "advanced"]
   };
  const freeQuizIds = ["dataScience", "pythonBasics"];
- const adminQuizzes = JSON.parse(localStorage.getItem("bbAdminQuizzes")) || [];
+ const adminQuizzes = JSON.parse(localStorage.getItem("bbAdminQuizzes") || "[]");
+ const studentQuizzes = JSON.parse(localStorage.getItem("bbStudentQuizzes") || "[]");
+ const savedSubjects = JSON.parse(localStorage.getItem("bbSubjectsByLevel") || "{}");
 
 const dynamicQuizzes = {};
 
 adminQuizzes.forEach((quiz) => {
   dynamicQuizzes[quiz.id] = {
     title: quiz.title,
-    description: "Admin released quiz.",
-    premium: quiz.premium,
-    questions: quiz.questions
+    description: quiz.description || "Admin released quiz.",
+    premium: Boolean(quiz.premium),
+    icon: quiz.icon || "📝",
+    questions: quiz.questions || [],
+    source: "Admin Added Quiz",
   };
+});
+
+studentQuizzes.forEach((quiz, index) => {
+  const quizId = quiz.id || `student-quiz-${index}`;
+
+  dynamicQuizzes[quizId] = {
+    title: quiz.title || "Student Added Quiz",
+    description: quiz.description || "Quiz added from the student learning flow.",
+    premium: Boolean(quiz.premium),
+    icon: quiz.icon || "🧩",
+    questions: quiz.questions || [],
+    source: "Student Added Quiz",
+  };
+});
+
+Object.entries(savedSubjects).forEach(([level, subjects]) => {
+  (subjects || []).forEach((subject) => {
+    (subject.modules || []).forEach((moduleItem) => {
+      (moduleItem.items || [])
+        .filter((item) => item.type === "Quiz")
+        .forEach((quizItem, index) => {
+          const quizId = `subject-${subject.id}-${quizItem.id || index}`;
+
+          dynamicQuizzes[quizId] = {
+            title: quizItem.title || `${subject.title} Quiz`,
+            description:
+              quizItem.description ||
+              subject.description ||
+              "Quiz linked to this subject.",
+            premium: false,
+            icon: subject.icon || "📘",
+            questions: quizItem.questions || [],
+            source: "Subject Quiz",
+            level: (level || subject.level || "beginner").toLowerCase(),
+          };
+        });
+    });
+  });
 });
 
  const quizCategories = {
@@ -656,9 +698,12 @@ await addDoc(collection(db, "performanceHistory"), {
   }}
 >
   {Object.keys(allQuizzes).map((key) => {
+  const quizMeta = allQuizzes[key] || {};
+  const isDefaultQuiz = quizMeta.source === "Default Student Quiz";
   const isPremiumQuiz =
-  userPlan !== "premium" &&
-  (allQuizzes[key]?.premium || !freeQuizIds.includes(key));
+    userPlan !== "premium" &&
+    (quizMeta.premium === true ||
+      (isDefaultQuiz && !freeQuizIds.includes(key)));
 
   return (
     <button
@@ -721,10 +766,7 @@ await addDoc(collection(db, "performanceHistory"), {
     fontSize: "26px"
   }}
 >
-  {key === "dataScience" && "📊"}
-  {key === "artificialIntelligence" && "🤖"}
-  {key === "machineLearning" && "🧠"}
-  {key === "pythonBasics" && "🐍"}
+  {quizMeta.icon || (key === "dataScience" ? "📊" : key === "artificialIntelligence" ? "🤖" : key === "machineLearning" ? "🧠" : key === "pythonBasics" ? "🐍" : "📝")}
 </span>
 
       <div style={{ flex: 1 }}>
