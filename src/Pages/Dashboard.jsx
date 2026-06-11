@@ -61,25 +61,35 @@ function Dashboard({
     }
   }, [learningLevel]);
 
-  const [weeklyLoginDays, setWeeklyLoginDays] = useState({});
-  useEffect(() => {
-    const fetchStreak = async () => {
-      if (!auth.currentUser) return;
+const [weeklyLoginDays, setWeeklyLoginDays] = useState({});
 
-      const userRef = doc(db, "users", auth.currentUser.uid);
-      const userSnap = await getDoc(userRef);
+const [currentStreak, setCurrentStreak] = useState(0);
 
-      if (userSnap.exists()) {
-        setWeeklyLoginDays(userSnap.data().weeklyLoginDays || {});
-      }
-    };
+const [motivationalText, setMotivationalText] = useState(
+  "Let's start learning today!"
+);
+useEffect(() => {
+  const today = new Date()
+    .toISOString()
+    .split("T")[0];
 
-    fetchStreak();
-  }, []);
+  const completedDates =
+    JSON.parse(
+      localStorage.getItem("completedDates")
+    ) || [];
 
-  const studentName = localStorage.getItem("name") || "Student";
+  if (!completedDates.includes(today)) {
+    completedDates.push(today);
+
+    localStorage.setItem(
+      "completedDates",
+      JSON.stringify(completedDates)
+    );
+  }
+}, []);
   const welcomeType = localStorage.getItem("welcomeType");
-
+  const studentName =
+  localStorage.getItem("name") || "Student";
   const [activeTab, setActiveTab] = useState("dashboard");
 
   useEffect(() => {
@@ -577,16 +587,77 @@ useEffect(() => {
     scheduleReminder &&
     days.includes(todayName) &&
     !completedToday;
+    const completedDates =
+  JSON.parse(localStorage.getItem("completedDates")) || [];
 
-  const streakDays = [
-    { day: "Mon", active: true },
-    { day: "Tue", active: true },
-    { day: "Wed", active: true },
-    { day: "Thu", active: true },
-    { day: "Fri", active: true },
-    { day: "Sat", active: false },
-    { day: "Sun", active: false }
-  ];
+const weekDays = [
+  "Mon",
+  "Tue",
+  "Wed",
+  "Thu",
+  "Fri",
+  "Sat",
+  "Sun"
+];
+
+const streakDays = weekDays.map(day => ({
+  day,
+  active: completedDates.some(date => {
+    const dayName = new Date(date)
+      .toLocaleDateString("en-US", {
+        weekday: "short"
+      });
+
+    return dayName === day;
+  })
+}));
+  useEffect(() => {
+  const completedDates =
+    JSON.parse(localStorage.getItem("completedDates")) || [];
+
+  const uniqueDates = [...new Set(completedDates)].sort();
+
+  if (uniqueDates.length === 0) {
+    setCurrentStreak(0);
+    setMotivationalText("Let's start learning today!");
+    return;
+  }
+
+  let streak = 1;
+
+  for (let i = uniqueDates.length - 1; i > 0; i--) {
+    const current = new Date(uniqueDates[i]);
+    const previous = new Date(uniqueDates[i - 1]);
+
+    const diff =
+      (current - previous) /
+      (1000 * 60 * 60 * 24);
+
+    if (diff === 1) {
+      streak++;
+    } else {
+      break;
+    }
+  }
+
+  setCurrentStreak(streak);
+
+if (streak === 0) {
+  setMotivationalText("Let's start learning today!");
+} else if (streak <= 3) {
+  setMotivationalText("Great start!");
+} else if (streak <= 7) {
+  setMotivationalText("You're building consistency!");
+} else if (streak <= 14) {
+  setMotivationalText(
+    "Amazing! You're on fire. Keep it up!"
+  );
+} else {
+  setMotivationalText(
+    "Outstanding dedication! Keep the momentum going!"
+  );
+}
+}, []);
 
   const allCourses = [
   {
@@ -1283,10 +1354,10 @@ const recommendedCourses = weakQuizId
                   <div className="streak-info-text">
                     <h3>Learning Streak</h3>
                     <div className="compact-streak-number">
-                      <strong>7</strong>
+                      <strong>{currentStreak}</strong>
                       <span>Day Streak</span>
                     </div>
-                    <p>Amazing! You’re on fire. Keep it up!</p>
+                    <p>{motivationalText}</p>
                   </div>
                 </div>
 
