@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { auth } from "../firebase";
 
-const Notes = ({ onBack }) => {
+const Notes = ({ onBack, darkMode }) => {
   const [showInput, setShowInput] = useState(false);
   const [search, setSearch] = useState("");
 
@@ -356,15 +356,20 @@ const getSectionInfo = (title) => {
 
   const renderNoteRow = (item) => (
     <div
-      key={item.id || item.originalIndex}
-      style={{
-        ...styles.noteRow,
-        ...(selectedIndexes.includes(item.originalIndex)
-          ? styles.selectedRow
-          : {})
-      }}
-      onClick={() => openNote(item, item.originalIndex)}
-    >
+  style={{
+    ...styles.noteRow,
+
+    background: darkMode ? "#2a2a2a" : "#FFFFFF",
+
+    border: darkMode
+      ? "1px solid #444"
+      : "1px solid #E5E7EB",
+
+    ...(selectedIndexes.includes(item.originalIndex)
+      ? styles.selectedRow
+      : {})
+  }}
+>
       {isSelectMode && (
         <div style={styles.checkBox}>
           {selectedIndexes.includes(item.originalIndex) ? "✓" : ""}
@@ -374,12 +379,26 @@ const getSectionInfo = (title) => {
       <div style={styles.rowIconBox}>📄</div>
 
       <div style={styles.rowTitleBox}>
-        <p style={styles.rowTitle}>{item.title}</p>
+       <p
+        style={{
+          ...styles.rowTitle,
+          color: darkMode ? "#FFFFFF" : "#111827"
+        }}
+      >
+        {item.title}
+      </p>
       </div>
 
       <div style={styles.rowSubjectBox}>
         <span style={styles.bookIcon}>📖</span>
-        <span style={styles.rowSubject}>{item.subject}</span>
+        <span
+        style={{
+          ...styles.rowSubject,
+          color: darkMode ? "#D1D5DB" : "#6B7280"
+        }}
+      >
+        {item.subject}
+      </span>
       </div>
 
       <div style={styles.rowLevelBox}>
@@ -389,11 +408,21 @@ const getSectionInfo = (title) => {
       </div>
 
       <div style={styles.rowPreviewBox}>
-        <p style={styles.rowPreview}>• {getShortContent(item.content)}</p>
+        <p
+  style={{
+    ...styles.rowPreview,
+    color: darkMode ? "#D1D5DB" : "#6B7280"
+  }}
+>• {getShortContent(item.content)}</p>
       </div>
 
       <div style={styles.rowDateBox}>
-        <p style={styles.rowDate}>🕒 {item.dateTime}</p>
+        <p
+  style={{
+    ...styles.rowDate,
+    color: darkMode ? "#D1D5DB" : "#6B7280"
+  }}
+>🕒 {item.dateTime}</p>
       </div>
     </div>
   );
@@ -402,7 +431,15 @@ const getSectionInfo = (title) => {
     const info = getSectionInfo(title);
 
     return (
-      <section style={styles.listSection}>
+      <section
+  style={{
+    ...styles.listSection,
+    background: darkMode ? "#1e1e1e" : "#FFFFFF",
+    border: darkMode
+      ? "1px solid #333"
+      : "1px solid #E9D5FF"
+  }}
+>
         <div style={styles.sectionTopRow}>
           <div style={styles.sectionTitleGroup}>
             <div style={styles.sectionIcon(info.bg, info.color)}>
@@ -511,7 +548,15 @@ const getSectionInfo = (title) => {
           </section>
         )}
 
-<div style={styles.searchBox}>
+<div
+  style={{
+    ...styles.searchBox,
+    background: darkMode ? "#1e1e1e" : "white",
+    border: darkMode
+      ? "1px solid #333"
+      : "1px solid #E5E7EB"
+  }}
+>
   <span>🔍</span>
 
   <input

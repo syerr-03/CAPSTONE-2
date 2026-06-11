@@ -1,6 +1,120 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap');
 
 /* =========================
+   DARK MODE
+========================= */
+
+.dashboard-page.dark-mode {
+  background: #121212 !important;
+}
+
+.dashboard-page.dark-mode {
+  background: #121212 !important;
+}
+
+/* TOP NAVBAR */
+.dashboard-page.dark-mode .simple-menu-bar {
+  background: #1a1a1a !important;
+  border: 1px solid #2a2a2a;
+  box-shadow: none;
+}
+
+.dashboard-page.dark-mode .simple-menu-logo {
+  color: white;
+}
+
+.dashboard-page.dark-mode .simple-menu-tab {
+  background: #242424;
+  color: white;
+}
+
+.dashboard-page.dark-mode .simple-menu-tab.active {
+  background: #7c3aed;
+  color: white;
+}
+
+/* Menu Bar */
+.dashboard-page.dark-mode .simple-menu-bar {
+  background: #1e1e1e;
+  border: 1px solid #2a2a2a;
+}
+
+.dashboard-page.dark-mode .simple-menu-logo {
+  color: white;
+}
+
+.dashboard-page.dark-mode .simple-menu-tab {
+  background: #2a2a2a;
+  color: white;
+}
+
+/* Drawer */
+.dashboard-page.dark-mode .drawer-panel {
+  background: #1e1e1e;
+  border-right: 1px solid #2a2a2a;
+}
+
+.dashboard-page.dark-mode .drawer-link {
+  color: white;
+}
+
+/* Dashboard Cards */
+.dashboard-page.dark-mode .compact-welcome-card,
+.dashboard-page.dark-mode .compact-streak-card,
+.dashboard-page.dark-mode .certificate-dashboard-card {
+  background: #1e1e1e;
+  border: 1px solid #2a2a2a;
+}
+
+/* Text */
+.dashboard-page.dark-mode h1,
+.dashboard-page.dark-mode h2,
+.dashboard-page.dark-mode h3,
+.dashboard-page.dark-mode h4,
+.dashboard-page.dark-mode p,
+.dashboard-page.dark-mode label {
+  color: white;
+}
+.dashboard-page.dark-mode .streak-info-text h3,
+.dashboard-page.dark-mode .compact-streak-number strong,
+.dashboard-page.dark-mode .compact-streak-number span {
+  color: white;
+}
+
+.dashboard-page.dark-mode .hero-subtitle {
+  color: #000000 !important;
+}
+.dashboard-page.dark-mode .main-title {
+  color: #7c3aed !important;
+}
+
+.dashboard-page.dark-mode .section-title {
+  color: #ffffff !important;
+}
+.dashboard-page.dark-mode .hero-subtitle {
+  color: #a1a1aa !important;
+}
+
+.dashboard-page.dark-mode .module-card {
+  background: #1e1e1e !important;
+  color: white !important;
+}
+.dashboard-page.dark-mode .module-card p {
+  color: white !important;
+}
+
+.dashboard-page.dark-mode .module-card strong {
+  color: white !important;
+}
+.dashboard-page.dark-mode .module-card h4 {
+  color: #c084fc !important;
+}
+
+.dashboard-page.dark-mode .module-card strong {
+  color: white !important;
+}
+
+/* =========================
    GLOBAL RESET
 ========================= */
 
@@ -20,8 +134,19 @@ body {
 .app-container,
 .dashboard-page {
   min-height: 100vh;
-  background: linear-gradient(180deg, #fbfaff 0%, #fafafa 45%, #fafafa 100%);
+  background: linear-gradient(
+    180deg,
+    #fbfaff 0%,
+    #fafafa 45%,
+    #fafafa 100%
+  );
 }
+
+.dashboard-page.dark-mode {
+  background: #121212 !important;
+}
+
+
 
 /* =========================
    GENERAL BUTTONS
@@ -2636,16 +2761,6 @@ input {
   cursor: pointer;
 }
 
-.dashboard-page .simple-menu-logo,
-.dashboard-page .section-title,
-.dashboard-page h1,
-.dashboard-page h2,
-.dashboard-page h3,
-.dashboard-page h4,
-.dashboard-page p,
-.dashboard-page label {
-  color: #000000 !important;
-}
 
 
 /* ADMIN PAGE TEXT FIX */
@@ -3238,6 +3353,10 @@ input {
 .compact-welcome-card h2 {
   color: #7c3aed !important;
 }
+.dashboard-page.dark-mode .compact-welcome-card h2 {
+  color: #8b5cf6;
+}
+
 .dashboard-page .compact-welcome-card h2 {
   color: #7c3aed !important;
 }
@@ -3314,3 +3433,19 @@ input {
   left: -390px !important;
   transform: none !important;
 }
+
+/* PERFORMANCE PAGE DARK MODE */
+
+.dashboard-page.dark-mode .module-card {
+  background: #1e1e1e !important;
+  color: white !important;
+  border: 1px solid #333 !important;
+}
+.dashboard-page.dark-mode .module-card {
+  color: white !important;
+}
+
+.dashboard-page.dark-mode .module-card * {
+  color: white !important;
+}
+

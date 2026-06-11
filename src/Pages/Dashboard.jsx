@@ -61,6 +61,7 @@ function Dashboard({
     }
   }, [learningLevel]);
 
+
 const [weeklyLoginDays, setWeeklyLoginDays] = useState({});
 
 const [currentStreak, setCurrentStreak] = useState(0);
@@ -114,7 +115,15 @@ useEffect(() => {
   );
 
   const [showContactPopup, setShowContactPopup] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
+const [drawerOpen, setDrawerOpen] = useState(false);
+
+const [darkMode, setDarkMode] = useState(
+  localStorage.getItem("darkMode") === "true"
+);
+
+useEffect(() => {
+  localStorage.setItem("darkMode", darkMode);
+}, [darkMode]);
 
   const [showHelp, setShowHelp] = useState(false);
 
@@ -726,7 +735,7 @@ const recommendedCourses = weakQuizId
     );
 
   return (
-    <div className="dashboard-page">
+  <div className={`dashboard-page ${darkMode ? "dark-mode" : ""}`}>
       <div className={`dashboard-layout-single ${drawerOpen ? "drawer-open" : ""}`}>
         {/* DRAWER */}
         {drawerOpen && (
@@ -1511,15 +1520,19 @@ const recommendedCourses = weakQuizId
                 studentData={performanceData} 
                 leaderboard={leaderboard}
                 learningLevel={learningLevel}
+                darkMode={darkMode}
+                studentData={performanceData}
+                leaderboard={leaderboard}
+                learningLevel={learningLevel}
               />
             </section>
           )}
 
-          {activeTab === "notes" && (
-            <section className="dashboard-content-section">
-              <Notes />
-            </section>
-          )}
+         {activeTab === "notes" && (
+          <section className="dashboard-content-section">
+            <Notes darkMode={darkMode} />
+          </section>
+        )}
 
           {/* LEADERBOARD TAB */}
           {activeTab === "leaderboard" && (
@@ -1968,6 +1981,46 @@ const recommendedCourses = weakQuizId
 
           )}
 
+          {/* APPEARANCE TAB */}
+{activeTab === "appearance" && (
+  <section className="dashboard-content-section">
+
+    <button
+      className="back-btn"
+      onClick={() => goToTab("dashboard")}
+    >
+      ← Back
+    </button>
+
+    <div
+      className="module-card"
+      style={{
+        textAlign: "center",
+        maxWidth: "600px",
+        margin: "0 auto"
+      }}
+    >
+      <h2 className="section-title">
+        Appearance
+      </h2>
+
+      <p>
+        Choose your preferred theme.
+      </p>
+
+      <button
+        className="hero-button"
+        onClick={() => setDarkMode(!darkMode)}
+      >
+        {darkMode
+          ? "☀️ Switch to Light Mode"
+          : "🌙 Switch to Dark Mode"}
+      </button>
+
+    </div>
+
+  </section>
+)}
         </main>
       </div>
 

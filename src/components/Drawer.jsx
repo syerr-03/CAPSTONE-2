@@ -196,10 +196,15 @@ function Drawer({
 
       {openMenu === "moreSettings" && (
         <div className="drawer-popup more-settings-popup" style={popupStyle}>
-          <button className="drawer-popup-link" onClick={() => {}}>
-            <span>Appearance</span>
-            <span>›</span>
-          </button>
+         <button className="drawer-popup-link" onClick={() => {
+                setActiveTab("appearance");
+                closeDrawer();
+                setOpenMenu(null);
+              }}
+            >
+              <span>Appearance</span>
+              <span>›</span>
+            </button>
 
           <button className="drawer-popup-link" onClick={() => {}}>
             <span>Notification</span>

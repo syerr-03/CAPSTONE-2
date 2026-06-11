@@ -578,3 +578,51 @@ textarea {
 .progress-strip {
   height: 14px !important;
 }
+
+/* =========================
+   DARK MODE - PERFORMANCE & PROGRESS
+========================= */
+
+.dashboard-page.dark-mode .top-navbar,
+.dashboard-page.dark-mode .white-card,
+.dashboard-page.dark-mode .dashboard-card,
+.dashboard-page.dark-mode .info-card,
+.dashboard-page.dark-mode .empty-state-card,
+.dashboard-page.dark-mode .mini-stat-box,
+.dashboard-page.dark-mode .chart-wrapper {
+  background: #1e1e1e !important;
+  color: white !important;
+}
+
+.dashboard-page.dark-mode .main-title,
+.dashboard-page.dark-mode .section-title,
+.dashboard-page.dark-mode .card-title,
+.dashboard-page.dark-mode .content-text,
+.dashboard-page.dark-mode .small-text,
+.dashboard-page.dark-mode .brand-text {
+  color: white !important;
+}
+
+.dashboard-page.dark-mode .list-row {
+  border-bottom: 1px solid #333;
+}
+
+.dashboard-page.dark-mode .progress-strip {
+  background: #2a2a2a;
+}
+
+.dashboard-page.dark-mode .custom-input,
+.dashboard-page.dark-mode .custom-textarea {
+  background: #2a2a2a;
+  color: white;
+  border: 1px solid #444;
+}
+
+.dashboard-page.dark-mode .reply-box {
+  background: #2a2a2a;
+  color: white;
+}
+
+.dashboard-page.dark-mode .top-navbar {
+  border-bottom: 1px solid #333;
+}

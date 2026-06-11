@@ -11,7 +11,12 @@ import {
 import "../App.css";
 import LeaderboardPage from "./LeaderboardPage.jsx";
 
-function PerformancePage({ studentData, leaderboard, learningLevel }) {
+function PerformancePage({
+  darkMode,
+  studentData,
+  leaderboard,
+  learningLevel
+}) {
   const [selectedMetric, setSelectedMetric] = useState("quiz");
   const [mainTab, setMainTab] = useState("performance");
   const studentName =
@@ -177,8 +182,10 @@ const quizScoreList = Object.entries(quizSource).map(([key, value]) => ({
                   style={{
                     padding: "16px",
                     borderRadius: "16px",
-                    background: "#F5F3FF",
-                    border: "1px solid #E9D5FF"
+                    background: darkMode ? "#2A2A2A" : "#F5F3FF",
+                    border: darkMode
+                      ? "1px solid #444"
+                      : "1px solid #E9D5FF"
                   }}
           >
             <h4 style={{ margin: "0 0 8px", color: "#4C1D95" }}>
