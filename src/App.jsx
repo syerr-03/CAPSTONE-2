@@ -5,6 +5,7 @@ import Login from "./Pages/Login.jsx";
 import Register from "./Pages/Register.jsx";
 import Dashboard from "./Pages/Dashboard.jsx";
 import AdminDashboard from "./Pages/AdminDashboard.jsx";
+import FeedbackPage from "./Pages/FeedbackPage.jsx";
 import NewQuizSystem from "./components/NewQuizSystem.jsx";
 import CertificatePreview from "./components/CertificatePreview.jsx";
 import "./ProgressManagement/ProgressManagement.css";
@@ -344,6 +345,8 @@ const [leaderboard, setLeaderboard] = useState([]);
         setDashboardTargetTab={setDashboardTargetTab}
       />
 )}
+
+{activePage === "feedback" && <FeedbackPage />}
 
 {activePage === "learning-content" && selectedSubject && (
   <NewQuizSystem

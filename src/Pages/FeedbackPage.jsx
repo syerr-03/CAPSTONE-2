@@ -15,42 +15,35 @@ const FeedbackPage = () => {
   const userId = useMemo(() => localStorage.getItem("uid") || "", []);
 
   const onSubmit = async () => {
-    alert("Button clicked");
-
     setMessage("");
 
     if (!rating) {
-      setMessage("Please rate with stars (1-5).");
+      setMessage("Please rate your overall experience.");
       return;
     }
 
     if (!feedback.trim()) {
-      setMessage("Please write your feedback.");
+      setMessage("Please write your feedback or suggestions.");
       return;
     }
 
     setSubmitting(true);
 
     try {
-      alert("Saving to Firebase...");
-
       await addDoc(collection(db, "feedbacks"), {
-        rating: rating,
+        rating,
         feedback: feedback.trim(),
         name: userName || "Anonymous",
         email: userEmail,
-        userId: userId,
+        userId,
         createdAt: serverTimestamp(),
       });
-
-      alert("Saved successfully!");
 
       setRating(0);
       setFeedback("");
       setMessage("Feedback submitted successfully!");
     } catch (error) {
       console.error("Error submitting feedback:", error);
-      alert(error.message);
       setMessage("Submit failed. Please try again.");
     } finally {
       setSubmitting(false);
@@ -61,34 +54,42 @@ const FeedbackPage = () => {
     <div className="feedback-page">
       <div className="feedback-card">
         <h1>Feedback Form</h1>
-
         <p>Share your feedback to help us improve BrainyBits.</p>
 
-        <div
-          style={{
-            marginTop: 16,
-            marginBottom: 16,
-          }}
-        >
-          <div
-            style={{
-              marginBottom: 10,
-              fontWeight: 700,
-              color: "#4B5563",
-            }}
-          >
-            Rate our app
+        <div className="feedback-rating-box">
+          <label className="feedback-question">
+            1. How would you rate your overall experience?{" "}
+            <span>*</span>
+          </label>
+
+          <div className="feedback-stars">
+            <StarRating rating={rating} onChange={setRating} />
           </div>
 
-          <StarRating rating={rating} onChange={setRating} />
+          <div className="feedback-rating-labels">
+            <span>Very Poor</span>
+            <span>Excellent</span>
+          </div>
         </div>
 
-        <textarea
-          placeholder="What do you want to improve?"
-          className="feedback-textarea"
-          value={feedback}
-          onChange={(e) => setFeedback(e.target.value)}
-        />
+        <div className="feedback-input-section">
+          <label className="feedback-question">
+            2. What can we improve or any suggestions for us?{" "}
+            <span>*</span>
+          </label>
+
+          <div className="feedback-textarea-wrapper">
+            <textarea
+              placeholder="Write your feedback, suggestions or ideas..."
+              className="feedback-textarea"
+              value={feedback}
+              maxLength={500}
+              onChange={(e) => setFeedback(e.target.value)}
+            />
+
+            <div className="feedback-counter">{feedback.length} / 500</div>
+          </div>
+        </div>
 
         <button
           className="feedback-submit"
@@ -100,12 +101,11 @@ const FeedbackPage = () => {
 
         {message && (
           <p
-            style={{
-              marginTop: 12,
-              color: message.includes("success") ? "#16A34A" : "#B91C1C",
-              fontWeight: 600,
-              fontSize: 13,
-            }}
+            className={
+              message.includes("success")
+                ? "feedback-message success"
+                : "feedback-message error"
+            }
           >
             {message}
           </p>

@@ -11,12 +11,20 @@ import LeaderboardPage from "../ProgressManagement/LeaderboardPage.jsx";
 import AiChat from "../components/aiChat.jsx";
 import Notes from "../components/Notes.jsx";
 import QuickHelpModal from "../components/QuickHelpModal";
+import StarRating from "../components/StarRating";
 
 import "../App.css";
 import jsPDF from "jspdf";
 
 import { Copy, Mail, MessageCircle, X } from "lucide-react";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  updateDoc,
+  addDoc,
+  collection,
+  serverTimestamp,
+} from "firebase/firestore";
 import { auth, db } from "../firebase";
 
 function Dashboard({
@@ -37,6 +45,9 @@ function Dashboard({
   setDashboardTargetTab,
   onPremiumPaymentSuccess,
 }) {
+
+  const [rating, setRating] = useState(0);
+  const [feedback, setFeedback] = useState("");
 
   const [subjectsForLevel, setSubjectsForLevel] = useState([]);
   const [reminderShown, setReminderShown] = useState(
@@ -1609,26 +1620,84 @@ const recommendedCourses = weakQuizId
               </div>
 
               <div className="feedback-card">
-                <h1>Feedback Form</h1>
+  <h1>Feedback Form</h1>
 
-                <p>
-                  Share your feedback to help us improve BrainyBits.
-                </p>
+  <p>
+    Share your feedback to help us improve BrainyBits.
+  </p>
 
-                <textarea
-                  placeholder="Write your feedback..."
-                  className="feedback-textarea"
-                />
+  <div className="feedback-rating-box">
+    <label className="feedback-question">
+      1. How would you rate your overall experience? <span>*</span>
+    </label>
 
-                <button
-                  className="feedback-submit"
-                  onClick={() => {
-                    alert("Feedback submitted successfully!");
-                  }}
-                >
-                  Submit
-                </button>
-              </div>
+    <div className="feedback-stars">
+      <StarRating
+        rating={rating}
+        onChange={setRating}
+      />
+    </div>
+
+    <div className="feedback-rating-labels">
+      <span>Very Poor</span>
+      <span>Excellent</span>
+    </div>
+  </div>
+
+  <div className="feedback-input-section">
+    <label className="feedback-question">
+      2. What can we improve or any suggestions for us? <span>*</span>
+    </label>
+
+    <div className="feedback-textarea-wrapper">
+      <textarea
+        placeholder="Write your feedback, suggestions or ideas..."
+        className="feedback-textarea"
+        value={feedback}
+        onChange={(e) => setFeedback(e.target.value)}
+      />
+
+      <div className="feedback-counter">
+        {feedback.length}/500
+      </div>
+    </div>
+  </div>
+
+  <button
+  className="feedback-submit"
+  onClick={async () => {
+    if (!rating) {
+      alert("Please rate your overall experience.");
+      return;
+    }
+
+    if (!feedback.trim()) {
+      alert("Please write your feedback or suggestions.");
+      return;
+    }
+
+     try {
+      await addDoc(collection(db, "feedbacks"), {
+        rating: rating,
+        feedback: feedback.trim(),
+        name: localStorage.getItem("name") || "Anonymous",
+        email: localStorage.getItem("email") || "",
+        userId: localStorage.getItem("uid") || "",
+        createdAt: serverTimestamp(),
+      });
+
+    setRating(0);
+    setFeedback("");
+    alert("Feedback submitted successfully!");
+     } catch (error) {
+      console.error("Error submitting feedback:", error);
+      alert(error.message);
+     }
+  }}
+>
+  Submit
+</button>
+</div>
             </section>
           )}
 
