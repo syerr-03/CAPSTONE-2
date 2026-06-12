@@ -76,9 +76,11 @@
   color: white;
 }
 .dashboard-page.dark-mode .streak-info-text h3,
+.dashboard-page.dark-mode .streak-info-text p,
 .dashboard-page.dark-mode .compact-streak-number strong,
-.dashboard-page.dark-mode .compact-streak-number span {
-  color: white;
+.dashboard-page.dark-mode .compact-streak-number span,
+.dashboard-page.dark-mode .compact-streak-day span {
+  color: white !important;
 }
 
 .dashboard-page.dark-mode .hero-subtitle {
@@ -112,6 +114,20 @@
 
 .dashboard-page.dark-mode .module-card strong {
   color: white !important;
+}
+.dashboard-page.dark-mode .certificate-info p,
+.dashboard-page.dark-mode .certificate-requirements li,
+.dashboard-page.dark-mode .certificate-info-note p,
+.dashboard-page.dark-mode .certificate-progress-area p,
+.dashboard-page.dark-mode .certificate-progress-area small {
+  color: white !important;
+}
+.dashboard-page.dark-mode .certificate-title-row h2 {
+  color: white !important;
+}
+.dashboard-page.dark-mode .certificate-info-note {
+  background: #2a2a2a !important;
+  border: 1px solid #3a3a3a !important;
 }
 
 /* =========================
