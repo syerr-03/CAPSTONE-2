@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
 import "../App.css";
 import { getStudentSubjectsByLevel } from "../data/subjectData.js";
+import { useState, useEffect } from "react";
 
 const defaultSubjectsByLevel = {
   beginner: [
@@ -69,6 +69,8 @@ const emptyQuizQuestions = [
 
 
 function AdminDashboard() {
+
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [selectedLevel, setSelectedLevel] = useState("beginner");
   const [subjectsByLevel, setSubjectsByLevel] = useState(defaultSubjectsByLevel);
   const studentSubjectsByLevel = getStudentSubjectsByLevel(subjectsByLevel);
@@ -1340,7 +1342,7 @@ const [editingQuizSource, setEditingQuizSource] = useState(null);
 
             <button
               className="hero-button"
-              onClick={logout}
+              onClick={() => setShowLogoutModal(true)}
               style={{
                 position: "absolute",
                 right: "30px",
@@ -1785,7 +1787,32 @@ const [editingQuizSource, setEditingQuizSource] = useState(null);
               ))}
             </div>
           )}
-        </section>
+                </section>
+
+        {showLogoutModal && (
+          <div className="logout-modal-overlay">
+            <div className="logout-modal">
+              <h3>Are you sure to logout?</h3>
+
+              <div className="logout-modal-buttons">
+                <button
+                  className="logout-yes-btn"
+                  onClick={logout}
+                >
+                  Yes
+                </button>
+
+                <button
+                  className="logout-cancel-btn"
+                  onClick={() => setShowLogoutModal(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
       </main>
     </div>
   );

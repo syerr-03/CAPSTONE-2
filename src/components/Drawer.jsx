@@ -22,6 +22,7 @@ function Drawer({
   const [openMenu, setOpenMenu] = useState(null);
   const [popupPosition, setPopupPosition] = useState({ top: 0, left: 0 });
   const [showHelp, setShowHelp] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const subscriptionRef = useRef(null);
   const learningRef = useRef(null);
   const moreSettingsRef = useRef(null);
@@ -234,19 +235,56 @@ function Drawer({
 
             <button
   className="drawer-link logout"
-  onClick={() => {
-    const confirmLogout = window.confirm(
-      "Are you sure you want to logout?"
-    );
-
-    if (!confirmLogout) return;
-
-    handleLogout();
-  }}
+  onClick={() => setShowLogoutConfirm(true)}
 >
   <span>🚪 Logout</span>
 </button>
     </aside>
+
+    {showLogoutConfirm && (
+      <div className="subscription-modal-overlay" style={{ zIndex: 1100 }}>
+        <div className="subscription-modal-card" style={{ maxWidth: "380px", textAlign: "center" }}>
+          <button
+            className="subscription-modal-close"
+            onClick={() => setShowLogoutConfirm(false)}
+            aria-label="Close logout confirmation"
+          >
+            ×
+          </button>
+
+          <div className="subscription-modal-icon">🚪</div>
+
+          <h3 className="subscription-modal-title" style={{ marginBottom: "8px" }}>
+            Are you sure to logout?
+          </h3>
+          <p className="subscription-modal-subtitle" style={{ marginBottom: "18px" }}>
+            You will be redirected to the login page.
+          </p>
+
+          <div style={{ display: "flex", justifyContent: "center", gap: "12px" }}>
+            <button
+              className="hero-button"
+              style={{ padding: "10px 20px", minWidth: "88px" }}
+              onClick={() => {
+                setShowLogoutConfirm(false);
+                closeDrawer();
+                handleLogout();
+              }}
+            >
+              Yes
+            </button>
+
+            <button
+              className="hero-button"
+              style={{ padding: "10px 20px", minWidth: "88px", background: "linear-gradient(135deg, #6b7280, #9ca3af)" }}
+              onClick={() => setShowLogoutConfirm(false)}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
 
     {showHelp && (
       <QuickHelpModal closeHelp={() => setShowHelp(false)} />
