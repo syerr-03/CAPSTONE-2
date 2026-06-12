@@ -211,11 +211,6 @@ function Drawer({
             <span>›</span>
           </button>
 
-          <button className="drawer-popup-link" onClick={() => {}}>
-            <span>Language</span>
-            <span>›</span>
-          </button>
-
           {/* FEEDBACK FORM */}
           <button
             className="drawer-popup-link"
