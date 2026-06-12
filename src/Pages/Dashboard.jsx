@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import SubjectGrid from "../components/SubjectGrid.jsx";
 import QuizPage from "../components/QuizPage.jsx";
 import { getStudentSubjectsForLevel } from "../data/subjectData.js";
@@ -12,6 +12,9 @@ import AiChat from "../components/aiChat.jsx";
 import Notes from "../components/Notes.jsx";
 import QuickHelpModal from "../components/QuickHelpModal";
 import StarRating from "../components/StarRating";
+
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 import "../App.css";
 import jsPDF from "jspdf";
@@ -180,38 +183,98 @@ useEffect(() => {
   const [subscriptionCardHolderName, setSubscriptionCardHolderName] = useState("");
   const [subscriptionPaymentError, setSubscriptionPaymentError] = useState("");
 
-  // ===== SCHEDULE STATES =====
-const [step, setStep] = useState(0);
-const [days, setDays] = useState([]);
-const [time, setTime] = useState([]);
-const [duration, setDuration] = useState([]);
+// ===== SCHEDULE STATES =====
+const [showSchedulePopup, setShowSchedulePopup] = useState(false);
 
-const [scheduleReminder, setScheduleReminder] = useState(
-  localStorage.getItem("scheduleReminder") || ""
-);
+const [studyDate, setStudyDate] = useState(null);
 
-const currentUser = localStorage.getItem("loggedInUser");
-const scheduleKey = `schedule_${currentUser}`;
+const dateRef = useRef(null);
+const timeRef = useRef(null);
 
-const getCurrentTimeSlot = () => {
-  const now = new Date();
-  const hour = now.getHours();
-  const minute = now.getMinutes();
+const [studyTime, setStudyTime] = useState("");
+const [showTimePicker, setShowTimePicker] = useState(false);
+const [selectedHour, setSelectedHour] = useState("08");
+const [selectedMinute, setSelectedMinute] = useState("00");
+const [selectedPeriod, setSelectedPeriod] = useState("AM");
 
-  const currentTime = hour + minute / 60;
+const [showStudyAlert, setShowStudyAlert] = useState(false);
 
-  if (currentTime >= 8 && currentTime < 12) {
-    return "Morning";
-  } else if (currentTime >= 12 && currentTime <= 14) {
-    return "Afternoon";
-  } else if (currentTime > 14 && currentTime <= 19) {
-    return "Evening";
-  } else if (currentTime > 19 && currentTime <= 24) {
-    return "Night";
+const currentUser =
+  localStorage.getItem("loggedInUser") ||
+  localStorage.getItem("userName") ||
+  localStorage.getItem("name") ||
+  "guest";
+
+const scheduleKey = `studySchedule_${currentUser}`;
+
+const [studyReminder, setStudyReminder] = useState(() => {
+  const saved = localStorage.getItem(scheduleKey);
+  return saved ? JSON.parse(saved) : null;
+});
+
+const openSchedule = () => {
+  setGoalStep(0);
+  setShowSchedulePopup(true);
+  setDrawerOpen(false);
+};
+
+const handleSetSchedule = () => {
+  if (!studyDate || !studyTime) {
+    alert("Please select date and time.");
+    return;
   }
 
-  return "";
+  const reminderData = {
+    date: studyDate.toISOString().split("T")[0],
+    time: studyTime,
+    notified: false,
+  };
+
+  localStorage.setItem(scheduleKey, JSON.stringify(reminderData));
+  setStudyReminder(reminderData);
+  setShowSchedulePopup(false);
+
+  alert("Study reminder has been set!");
 };
+
+const handleCancelSchedule = () => {
+  setShowSchedulePopup(false);
+  setStudyDate("");
+  setStudyTime("");
+};
+
+useEffect(() => {
+  const interval = setInterval(() => {
+    const saved = localStorage.getItem(scheduleKey);
+    if (!saved) return;
+
+    const savedReminder = JSON.parse(saved);
+
+    if (savedReminder.notified) return;
+
+    const studyDateTime = new Date(
+      `${savedReminder.date}T${savedReminder.time}`
+    );
+
+    const now = new Date();
+    const diffMinutes = (studyDateTime - now) / (1000 * 60);
+
+    if (diffMinutes <= 5 && diffMinutes > 0) {
+      setShowStudyAlert(true);
+
+      const updatedReminder = {
+        ...savedReminder,
+        notified: true,
+      };
+
+      localStorage.setItem(scheduleKey, JSON.stringify(updatedReminder));
+      setStudyReminder(updatedReminder);
+    }
+  }, 1000);
+
+  return () => clearInterval(interval);
+}, [scheduleKey]);
+
   // ===== GOALS STATES =====
   const [goalStep, setGoalStep] = useState(0);
   const [goalType, setGoalType] = useState("");
@@ -512,12 +575,6 @@ if (onPremiumPaymentSuccess) {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const openSchedule = () => {
-    setGoalStep(0);
-    setStep(1);
-    setDrawerOpen(false);
-  };
-
   const openGoals = () => {
     setStep(0);
     setGoalStep(1);
@@ -540,37 +597,6 @@ if (onPremiumPaymentSuccess) {
 };
 
 // ===== CHECK REMINDER BASED ON USER + TIME =====
-const checkScheduleReminder = () => {
-  const currentUser = localStorage.getItem("loggedInUser");
-
-  const savedSchedule = JSON.parse(
-    localStorage.getItem(`studentSchedule_${currentUser}`)
-  );
-
-  if (!savedSchedule) return;
-
-  // NEW
-  const reminderShown = sessionStorage.getItem(
-    `reminderShown_${currentUser}`
-  );
-
-  if (reminderShown) return;
-
-  const currentSlot = getCurrentTimeSlot();
-
-  if (savedSchedule.time.includes(currentSlot)) {
-    alert("Reminder: It's your scheduled study time today!");
-
-    // NEW
-    sessionStorage.setItem(
-      `reminderShown_${currentUser}`,
-      "true"
-    );
-  }
-};
-useEffect(() => {
-  checkScheduleReminder();
-}, []);
 
   const enrollSubject = (subject) => {
     if (handleEnroll) {
@@ -603,10 +629,6 @@ useEffect(() => {
   const completedToday =
     localStorage.getItem(`completedToday_${todayKey}`) === "true";
 
-  const shouldShowScheduleReminder =
-    scheduleReminder &&
-    days.includes(todayName) &&
-    !completedToday;
     const completedDates =
   JSON.parse(localStorage.getItem("completedDates")) || [];
 
@@ -1323,47 +1345,6 @@ const recommendedCourses = weakQuizId
                 </div>
 
               </section>
-              {shouldShowScheduleReminder && (
-              <section
-                className="compact-streak-card"
-                onClick={() => goToTab("subjects")}
-                style={{
-                  marginTop: "24px",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  textAlign: "center",
-                  minHeight: "120px",
-                  background: "linear-gradient(135deg, #F3E8FF, #E9D5FF)",
-                  border: "1px solid #DDD6FE",
-                  cursor: "pointer"
-                }}
-              >
-                <div>
-                  <h3
-                    style={{
-                      fontSize: "28px",
-                      fontWeight: "700",
-                      color: "#312E81",
-                      marginBottom: "12px"
-                    }}
-                  >
-                    ⏰ Study Reminder
-                  </h3>
-
-                  <p
-                    style={{
-                      fontSize: "18px",
-                      color: "#5B21B6",
-                      fontWeight: "500",
-                      margin: 0
-                    }}
-                  >
-                    📚 You still haven’t completed today’s study session. Click here to continue learning 🔥✨
-                  </p>
-                </div>
-              </section>
-            )}
                           
               <section className="compact-streak-card">
                 <div className="compact-streak-info">
@@ -2094,111 +2075,139 @@ const recommendedCourses = weakQuizId
       </div>
 
       {/* SCHEDULE POPUP */}
-      {step !== 0 && (
-        <div style={overlay}>
-          <div className="module-card popup-card">
-            {step === 1 && (
-              <>
-                <h3 className="section-title">Learning Days</h3>
+{showSchedulePopup && (
+  <div className="schedule-overlay">
+    <div className="schedule-popup">
+      <h2>Set Study Schedule</h2>
+      <p>Choose your study date and time.</p>
 
-                <div style={optionWrap}>
-                  {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
-                    <button
-                      key={day}
-                      onClick={() => toggleDay(day)}
-                      style={option(days.includes(day))}
-                    >
-                      {day}
-                    </button>
-                  ))}
-                </div>
+      <label>Study Date</label>
 
-                <div style={navRow}>
-                  <span style={back} onClick={() => setStep(0)}>←</span>
+      <div className="date-input-wrapper">
+        <DatePicker
+          selected={studyDate}
+          onChange={(date) => setStudyDate(date)}
+          minDate={new Date()}
+          dateFormat="dd/MM/yyyy"
+          placeholderText="dd/mm/yyyy"
+          className="custom-datepicker"
+          showPopperArrow={false}
+        />
+        <span className="calendar-icon">📅</span>
+      </div>
+
+      <label>Study Time</label>
+
+      <div className="time-input-wrapper">
+        <input
+          type="text"
+          className="digital-time-input"
+          value={studyTime}
+          placeholder="--:-- --"
+          readOnly
+        />
+
+        <button
+          type="button"
+          className="clock-btn"
+          onClick={() => setShowTimePicker(true)}
+        >
+          🕒
+        </button>
+
+        {showTimePicker && (
+          <div className="digital-time-popup">
+            <div className="time-columns">
+              <div className="time-column">
+                {Array.from({ length: 12 }, (_, i) =>
+                  String(i + 1).padStart(2, "0")
+                ).map((hour) => (
                   <button
-                    className="hero-button"
-                    style={{ padding: "10px 25px" }}
-                    onClick={() => setStep(2)}
+                    type="button"
+                    key={hour}
+                    className={selectedHour === hour ? "active-time" : ""}
+                    onClick={() => setSelectedHour(hour)}
                   >
-                    Next
+                    {hour}
                   </button>
-                </div>
-              </>
-            )}
-
-            {step === 2 && (
-              <>
-                <h3 className="section-title">Learning Time</h3>
-
-                <div style={optionWrap}>
-                  {["Morning", "Afternoon", "Evening", "Night"].map((t) => (
-                    <button
-                      key={t}
-                      onClick={() => toggleTime(t)}
-                      style={option(time.includes(t))}
-                    >
-                      {t}
-                    </button>
-                  ))}
-                </div>
-
-                <div style={navRow}>
-                  <span style={back} onClick={() => setStep(1)}>←</span>
-                  <button
-                    className="hero-button"
-                    style={{ padding: "10px 25px" }}
-                    onClick={() => setStep(3)}
-                  >
-                    Next
-                  </button>
-                </div>
-              </>
-            )}
-
-            {step === 3 && (
-              <>
-                <h3 className="section-title">Study Duration</h3>
-
-                <div style={optionWrap}>
-                  {["15 min", "30 min", "45 min", "1 hour"].map((d) => (
-                    <button
-                      key={d}
-                      onClick={() => toggleDuration(d)}
-                      style={option(duration.includes(d))}
-                    >
-                      {d}
-                    </button>
-                  ))}
-                </div>
-
-                <div style={navRow}>
-                  <span style={back} onClick={() => setStep(2)}>←</span>
-                  <button
-                    className="hero-button"
-                    style={{ padding: "10px 25px" }}
-                    onClick={handleSaveSchedule}
-                  >
-                    Save
-                  </button>
-                </div>
-              </>
-            )}
-
-            {step === 4 && (
-              <div style={{ textAlign: "center" }}>
-                <h3 className="section-title">Saved. ✅</h3>
-                <button
-                  className="hero-button"
-                  style={{ marginTop: "15px" }}
-                  onClick={() => setStep(0)}
-                >
-                  Close
-                </button>
+                ))}
               </div>
-            )}
+
+              <div className="time-column">
+                {Array.from({ length: 60 }, (_, i) =>
+                  String(i).padStart(2, "0")
+                ).map((minute) => (
+                  <button
+                    type="button"
+                    key={minute}
+                    className={selectedMinute === minute ? "active-time" : ""}
+                    onClick={() => setSelectedMinute(minute)}
+                  >
+                    {minute}
+                  </button>
+                ))}
+              </div>
+
+              <div className="time-column period-column">
+                {["AM", "PM"].map((period) => (
+                  <button
+                    type="button"
+                    key={period}
+                    className={selectedPeriod === period ? "active-time" : ""}
+                    onClick={() => setSelectedPeriod(period)}
+                  >
+                    {period}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="time-picker-actions">
+              <button
+                type="button"
+                onClick={() => {
+                  setStudyTime(
+                    `${selectedHour}:${selectedMinute} ${selectedPeriod}`
+                  );
+                  setShowTimePicker(false);
+                }}
+              >
+                Set Time
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowTimePicker(false)}
+              >
+                Cancel
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
+
+      <div className="schedule-actions">
+        <button className="set-btn" onClick={handleSetSchedule}>
+          Set
+        </button>
+
+        <button className="cancel-btn" onClick={handleCancelSchedule}>
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+{/* STUDY ALERT */}
+{showStudyAlert && (
+  <div className="study-alert">
+    <strong>Reminder!</strong>
+    <p>Your study session will start in 5 minutes.</p>
+
+    <button onClick={() => setShowStudyAlert(false)}>OK</button>
+  </div>
+)}
 
       {/* GOALS POPUP */}
       {goalStep !== 0 && (
