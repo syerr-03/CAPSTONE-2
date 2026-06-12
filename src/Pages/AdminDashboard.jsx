@@ -1307,14 +1307,23 @@ const [editingQuizSource, setEditingQuizSource] = useState(null);
       }}
     >
       <main className="dashboard-main-single" style={{ background: "transparent" }}>
-        <header style={{ marginBottom: "40px" }}>
+        <header
+          style={{
+            marginBottom: "40px",
+            position: "sticky",
+            top: 0,
+            zIndex: 1000,
+          }}
+        >
           <div
             style={{
               background: "#ffffff",
               borderRadius: "24px",
               padding: "28px",
               boxShadow: "0 10px 25px rgba(124,58,237,0.12)",
-              position: "relative",
+              position: "sticky",
+              top: 0,
+              zIndex: 1000,
               textAlign: "center",
             }}
           >
@@ -1322,7 +1331,7 @@ const [editingQuizSource, setEditingQuizSource] = useState(null);
               style={{
                 fontSize: "52px",
                 fontWeight: "800",
-                color: "#111827",
+                color: "#7c3aed",
                 margin: 0,
               }}
             >
@@ -1337,6 +1346,9 @@ const [editingQuizSource, setEditingQuizSource] = useState(null);
                 right: "30px",
                 top: "50%",
                 transform: "translateY(-50%)",
+                background: "linear-gradient(135deg, #dc2626, #ef4444)",
+                boxShadow: "0 12px 24px rgba(220, 38, 38, 0.22)",
+                color: "#ffffff",
               }}
             >
               Logout
@@ -1364,7 +1376,9 @@ const [editingQuizSource, setEditingQuizSource] = useState(null);
                 setShowQuizList(false);
               }}
             >
-              <h3>📚 List Subject</h3>
+              <h3 style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", color: "black" }}>
+                📚 List of Subjects
+              </h3>
               <p>View all subjects by level.</p>
             </button>
 
@@ -1377,7 +1391,9 @@ const [editingQuizSource, setEditingQuizSource] = useState(null);
                 setShowSubjectList(false);
               }}
             >
-              <h3>📝 List Quizzes</h3>
+              <h3 style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", color: "black" }}>
+                📝 List of Quizzes
+              </h3>
               <p>View all released quizzes.</p>
             </button>
 
@@ -1390,7 +1406,9 @@ const [editingQuizSource, setEditingQuizSource] = useState(null);
                 setShowQuizList(false);
               }}
             >
-              <h3>⚙️ Manage Learning Content</h3>
+              <h3 style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", color: "black" }}>
+                ⚙️ Manage Content
+              </h3>
               <p>Add subjects, modules, readings, videos and quizzes.</p>
             </button>
           </div>
@@ -1413,7 +1431,16 @@ const [editingQuizSource, setEditingQuizSource] = useState(null);
                   className="search-input"
                   value={selectedLevel}
                   onChange={(e) => setSelectedLevel(e.target.value)}
-                  style={{ marginBottom: "15px", maxWidth: "300px" }}
+                  style={{
+                    marginBottom: "15px",
+                    maxWidth: "300px",
+                    background: "#f3e8ff",
+                    color: "#6d28d9",
+                    border: "1px solid #c4b5fd",
+                    borderRadius: "12px",
+                    padding: "10px 12px",
+                    fontWeight: 600,
+                  }}
                 >
                   <option value="beginner">Beginner</option>
                   <option value="intermediate">Intermediate</option>
@@ -1611,7 +1638,7 @@ const [editingQuizSource, setEditingQuizSource] = useState(null);
         >
           <h2
             style={{
-              color: "#111827",
+              color: "#7C3AED",
               textTransform: "uppercase",
               marginBottom: "18px",
               textAlign: "left",

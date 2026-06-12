@@ -1638,9 +1638,33 @@ body {
 .quiz-main-card {
   background: #ffffff;
   border-radius: 24px;
-  padding: 32px;
+  padding: 20px 18px;
   box-shadow: 0 18px 40px rgba(17, 24, 39, 0.08);
   margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.module-card h3,
+.module-card p {
+  margin: 0;
+}
+
+.module-card h3 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  line-height: 1.2;
+  margin-bottom: 4px;
+}
+
+.module-card p {
+  line-height: 1.35;
+  margin-top: 2px;
 }
 
 .module-content-card {
