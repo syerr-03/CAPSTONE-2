@@ -702,12 +702,19 @@ const [editingQuizSource, setEditingQuizSource] = useState(null);
   setShowSubjectList(false);
 };
 
-  const deleteQuiz = (id) => {
-    if (!window.confirm("Delete this quiz?")) return;
+ const deleteQuiz = (id) => {
+  if (!window.confirm("Delete this quiz?")) return;
 
-    const updatedQuizzes = adminQuizzes.filter((quiz) => quiz.id !== id);
-    saveQuizzes(updatedQuizzes);
-  };
+  const savedAdminQuizzes = JSON.parse(
+    localStorage.getItem("bbAdminQuizzes") || "[]"
+  );
+
+  const updatedQuizzes = savedAdminQuizzes.filter(
+    (quiz) => quiz.id !== id
+  );
+
+  saveQuizzes(updatedQuizzes);
+};
 
   const deleteSubject = (id, level) => {
     if (!window.confirm("Delete this subject?")) return;
@@ -1737,12 +1744,8 @@ const [editingQuizSource, setEditingQuizSource] = useState(null);
                       className="hero-button"
                       style={{ background: "#ef4444" }}
                       onClick={() => {
-                        if (quiz.canDelete) {
-                          deleteQuiz(quiz.realId);
-                        } else {
-                          alert("Quiz dari student/system tidak boleh delete.");
-                        }
-                      }}
+  deleteQuiz(quiz.realId);
+}}
                     >
                       Delete
                     </button>

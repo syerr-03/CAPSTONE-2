@@ -160,6 +160,37 @@ useEffect(() => {
 }, [darkMode]);
 
   const [showHelp, setShowHelp] = useState(false);
+const [showAiLimitModal, setShowAiLimitModal] = useState(false);
+
+const AI_FREE_LIMIT = 3;
+
+const realUserPlan =
+  localStorage.getItem(`userPlan_${currentUser}`) ||
+  localStorage.getItem(`userPlan_${studentName}`) ||
+  localStorage.getItem("userPlan") ||
+  localStorage.getItem("plan") ||
+  userPlan ||
+  "standard";
+
+const aiUsageKey = `aiAssistantUsage_${currentUser}`;
+
+const handleOpenAiAssistant = () => {
+  const currentUsage = Number(localStorage.getItem(aiUsageKey)) || 0;
+
+  if (realUserPlan === "premium") {
+    setShowHelp(true);
+    return;
+  }
+
+  if (currentUsage >= AI_FREE_LIMIT) {
+    setShowHelp(false);
+    setShowAiLimitModal(true);
+    return;
+  }
+
+  localStorage.setItem(aiUsageKey, String(currentUsage + 1));
+  setShowHelp(true);
+};
 
   useEffect(() => {
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
@@ -467,6 +498,9 @@ setShowSubscriptionPaymentSuccess(true);
 
 localStorage.setItem("userPlan", "premium");
 localStorage.setItem("plan", "premium");
+localStorage.setItem(`userPlan_${currentUser}`, "premium");
+localStorage.setItem(`userPlan_${studentName}`, "premium");
+localStorage.removeItem(`aiAssistantUsage_${currentUser}`);
 
 // Activate premium subscription after payment success
 if (onPremiumPaymentSuccess) {
@@ -2146,6 +2180,111 @@ const recommendedCourses = weakQuizId
 )}
         </main>
       </div>
+{/* AI ASSISTANT BUTTON */}
+
+{/* AI ASSISTANT CHAT */}
+{showHelp && (
+  <div
+    style={{
+      position: "fixed",
+      inset: 0,
+      zIndex: 4500,
+      display: "flex",
+      justifyContent: "flex-end",
+      alignItems: "flex-end",
+      padding: "24px",
+      pointerEvents: "none"
+    }}
+  >
+    <div style={{ pointerEvents: "auto" }}>
+      <AiChat />
+    </div>
+  </div>
+)}
+
+{/* AI LIMIT MODAL */}
+{showAiLimitModal && (
+  <div
+    style={{
+      position: "fixed",
+      inset: 0,
+      background: "rgba(0,0,0,0.45)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 9999,
+      padding: "16px"
+    }}
+  >
+    <div
+      style={{
+        width: "100%",
+        maxWidth: "430px",
+        background: "#ffffff",
+        borderRadius: "22px",
+        padding: "24px",
+        textAlign: "center",
+        boxShadow: "0 24px 48px rgba(124, 58, 237, 0.22)"
+      }}
+    >
+      <div style={{ fontSize: "42px", marginBottom: "10px" }}>👑</div>
+
+      <h2
+        style={{
+          margin: "0 0 10px",
+          color: "#4b1e9a",
+          fontSize: "24px"
+        }}
+      >
+        Premium Required
+      </h2>
+
+      <p
+        style={{
+          margin: "0 0 20px",
+          color: "#6b7280",
+          fontSize: "15px",
+          lineHeight: 1.6
+        }}
+      >
+        You have reached the free limit of 3 AI Assistant uses.
+        Subscribe to Premium to continue using the chatbot.
+      </p>
+
+      <button
+        type="button"
+        className="cert-preview-primary-btn"
+        onClick={() => {
+          setShowAiLimitModal(false);
+          setActiveTab("subscriptions");
+          setShowPremiumModal(true);
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }}
+        style={{
+          width: "100%",
+          padding: "12px 0",
+          fontSize: "15px",
+          marginBottom: "10px"
+        }}
+      >
+        Subscribe Premium
+      </button>
+
+      <button
+        type="button"
+        className="cert-preview-secondary-btn"
+        onClick={() => setShowAiLimitModal(false)}
+        style={{
+          width: "100%",
+          padding: "12px 0",
+          fontSize: "15px"
+        }}
+      >
+        Cancel
+      </button>
+    </div>
+  </div>
+)}
 
       {/* SCHEDULE POPUP */}
 {showSchedulePopup && (

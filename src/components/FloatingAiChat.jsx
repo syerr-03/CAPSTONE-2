@@ -16,7 +16,13 @@ function FloatingAiChat() {
   const chatLimitKey = `chatCount_${userName}_${moduleName}`;
 
   const getPremiumStatus = () => {
-    return localStorage.getItem("userPlan") === "premium";
+    const plan =
+      localStorage.getItem(`userPlan_${userName}`) ||
+      localStorage.getItem("userPlan") ||
+      localStorage.getItem("plan") ||
+      "standard";
+
+    return plan === "premium";
   };
 
   const [isPremium, setIsPremium] = useState(() => getPremiumStatus());
@@ -69,11 +75,7 @@ function FloatingAiChat() {
       return "Statistics helps us understand data using concepts such as mean, median, probability, and data distribution.";
     }
 
-    if (
-      q.includes("visualization") ||
-      q.includes("chart") ||
-      q.includes("graph")
-    ) {
+    if (q.includes("visualization") || q.includes("chart") || q.includes("graph")) {
       return "Data Visualization presents data using charts and graphs so information becomes easier to understand.";
     }
 
@@ -96,7 +98,7 @@ function FloatingAiChat() {
         ...messages,
         {
           sender: "ai",
-          text: "You have reached the free limit of 3 AI questions for this module. Subscribe to Premium for unlimited AI questions.",
+          text: "You have used all 3 free AI prompts. Subscribe to Premium to continue using the AI Assistant.",
         },
       ];
 
@@ -121,7 +123,7 @@ function FloatingAiChat() {
     if (!isPremium) {
       const newCount = chatCount + 1;
       setChatCount(newCount);
-      localStorage.setItem(chatLimitKey, newCount);
+      localStorage.setItem(chatLimitKey, String(newCount));
     }
 
     setQuestion("");
@@ -189,20 +191,12 @@ function FloatingAiChat() {
             }}
           >
             <div>
-              <h3 style={{ margin: 0, fontSize: "18px" }}>
-                🤖 AI Assistant
-              </h3>
+              <h3 style={{ margin: 0, fontSize: "18px" }}>🤖 AI Assistant</h3>
 
-              <p
-                style={{
-                  margin: "4px 0 0",
-                  fontSize: "13px",
-                  opacity: 0.9,
-                }}
-              >
+              <p style={{ margin: "4px 0 0", fontSize: "13px", opacity: 0.9 }}>
                 {isPremium
                   ? "Premium chatbox is now available."
-                  : "Ask me anything, I'll help you understand better!"}
+                  : `Standard plan: ${Math.max(0, 3 - chatCount)} free prompts left.`}
               </p>
             </div>
 
@@ -224,23 +218,14 @@ function FloatingAiChat() {
           </div>
 
           {isPremium ? (
-            <div
-              style={{
-                flex: 1,
-                background: "white",
-              }}
-            >
+            <div style={{ flex: 1, background: "white" }}>
               <iframe
                 src={`https://www.chatbase.co/chatbot-iframe/${CHATBASE_BOT_ID}`}
                 width="100%"
                 height="100%"
                 frameBorder="0"
                 title="Premium AI Chatbox"
-                style={{
-                  border: "none",
-                  width: "100%",
-                  height: "100%",
-                }}
+                style={{ border: "none", width: "100%", height: "100%" }}
               ></iframe>
             </div>
           ) : (
@@ -258,8 +243,7 @@ function FloatingAiChat() {
                     key={index}
                     style={{
                       display: "flex",
-                      justifyContent:
-                        msg.sender === "user" ? "flex-end" : "flex-start",
+                      justifyContent: msg.sender === "user" ? "flex-end" : "flex-start",
                       marginBottom: "12px",
                     }}
                   >
@@ -271,8 +255,7 @@ function FloatingAiChat() {
                           msg.sender === "user"
                             ? "16px 16px 4px 16px"
                             : "16px 16px 16px 4px",
-                        background:
-                          msg.sender === "user" ? "#7C3AED" : "#F0E9FF",
+                        background: msg.sender === "user" ? "#7C3AED" : "#F0E9FF",
                         color: msg.sender === "user" ? "white" : "#111827",
                         fontSize: "14px",
                         lineHeight: "1.5",
@@ -307,7 +290,7 @@ function FloatingAiChat() {
                     minWidth: "120px",
                   }}
                 >
-                  Free questions left:
+                  Free prompts left:
                   <br />
                   {Math.max(0, 3 - chatCount)} / 3
 
@@ -332,8 +315,13 @@ function FloatingAiChat() {
 
                 <input
                   type="text"
-                  placeholder="Type your question..."
+                  placeholder={
+                    chatCount >= 3
+                      ? "Free limit reached..."
+                      : "Type your question..."
+                  }
                   value={question}
+                  disabled={!isPremium && chatCount >= 3}
                   onChange={(e) => setQuestion(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") askAI();
@@ -346,19 +334,21 @@ function FloatingAiChat() {
                     outline: "none",
                     fontFamily: "Poppins, sans-serif",
                     minWidth: 0,
+                    background: chatCount >= 3 ? "#F3F4F6" : "white",
                   }}
                 />
 
                 <button
                   onClick={askAI}
+                  disabled={!isPremium && chatCount >= 3}
                   style={{
                     width: "46px",
                     height: "46px",
                     borderRadius: "50%",
                     border: "none",
-                    background: "#7C3AED",
+                    background: chatCount >= 3 ? "#9CA3AF" : "#7C3AED",
                     color: "white",
-                    cursor: "pointer",
+                    cursor: chatCount >= 3 ? "not-allowed" : "pointer",
                     fontSize: "18px",
                     flexShrink: 0,
                   }}
