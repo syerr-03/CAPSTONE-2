@@ -20,7 +20,7 @@ function QuizPage({
   updateLeaderboard,
   onSubmitQuiz,
   learningLevel = "beginner",
-  userPlan = "standard"
+  userPlan = localStorage.getItem("userPlan") || "standard"
 }) {
 
   const [selectedQuiz, setSelectedQuiz] = useState(null);
@@ -42,7 +42,34 @@ function QuizPage({
     intermediate: ["beginner", "intermediate"],
     advanced: ["beginner", "intermediate", "advanced"]
   };
- const freeQuizIds = ["dataScience", "pythonBasics"];
+const isPremiumUser = userPlan === "premium";
+
+const currentLearningLevel = (learningLevel || "beginner").toLowerCase();
+
+const quizAccessByLevel = {
+  beginner: {
+    free: ["dataScience", "pythonBasics"],
+    premium: ["artificialIntelligence", "machineLearning"]
+  },
+  intermediate: {
+    free: ["dataScience", "machineLearning"],
+    premium: ["artificialIntelligence", "pythonBasics"]
+  },
+  advanced: {
+    free: ["artificialIntelligence", "machineLearning"],
+    premium: ["dataScience", "pythonBasics"]
+  }
+};
+
+const currentQuizAccess =
+  quizAccessByLevel[currentLearningLevel] || quizAccessByLevel.beginner;
+
+const freeQuizIds = currentQuizAccess.free;
+const premiumQuizIds = currentQuizAccess.premium;
+
+const isLockedQuiz = (key) => {
+  return premiumQuizIds.includes(key) && !isPremiumUser;
+};
  const adminQuizzes = JSON.parse(localStorage.getItem("bbAdminQuizzes") || "[]");
  const studentQuizzes = JSON.parse(localStorage.getItem("bbStudentQuizzes") || "[]");
  const savedSubjects = JSON.parse(localStorage.getItem("bbSubjectsByLevel") || "{}");
@@ -699,18 +726,21 @@ await addDoc(collection(db, "performanceHistory"), {
 >
   {Object.keys(allQuizzes).map((key) => {
   const quizMeta = allQuizzes[key] || {};
-  const isDefaultQuiz = quizMeta.source === "Default Student Quiz";
-  const isPremiumQuiz =
-    userPlan !== "premium" &&
-    (quizMeta.premium === true ||
-      (isDefaultQuiz && !freeQuizIds.includes(key)));
+
+  const locked =
+    isLockedQuiz(key) ||
+    (userPlan !== "premium" && quizMeta.premium === true);
+
+  const visibleQuestions = (quizMeta.questions || []).filter((q) =>
+    allowedLevels[learningLevel || "beginner"]?.includes(q.level)
+  );
 
   return (
     <button
       key={key}
       onClick={() => {
-        if (isPremiumQuiz) {
-          alert("This quiz is locked. Please upgrade to Premium to access all quizzes.");
+        if (locked) {
+          alert("This quiz is only available for Premium users.");
           return;
         }
 
@@ -718,79 +748,119 @@ await addDoc(collection(db, "performanceHistory"), {
         setQuizAnswers({});
         setQuizSubmitted(false);
       }}
-
-
       style={{
-        border: "2px solid #e9d5ff",
+        border: locked ? "2px solid #E5E7EB" : "2px solid #E9D5FF",
         borderRadius: "24px",
         padding: "24px",
-        background: "linear-gradient(135deg, #f6edff, #efe4ff)",
-        boxShadow: "0 12px 28px rgba(124, 58, 237, 0.14)",
+        background: locked ? "#F3F4F6" : "linear-gradient(135deg, #f6edff, #efe4ff)",
+        boxShadow: locked
+          ? "0 8px 20px rgba(0, 0, 0, 0.05)"
+          : "0 12px 28px rgba(124, 58, 237, 0.14)",
         display: "flex",
         alignItems: "center",
         gap: "16px",
         textAlign: "left",
-        cursor: isPremiumQuiz ? "not-allowed" : "pointer",
-        color: "#2f235f",
-        opacity: isPremiumQuiz ? 0.55 : 1,
-        filter: isPremiumQuiz ? "grayscale(80%)" : "none",
-        position: "relative"
+        cursor: locked ? "not-allowed" : "pointer",
+        color: locked ? "#6B7280" : "#2f235f",
+        opacity: locked ? 0.7 : 1,
+        filter: locked ? "grayscale(100%)" : "none",
+        position: "relative",
+        minHeight: "132px"
       }}
     >
-      {isPremiumQuiz && (
-  <span
-    style={{
-      position: "absolute",
-      top: "12px",
-      right: "12px",
-      background: "#111827",
-      color: "white",
-      padding: "6px 10px",
-      borderRadius: "999px",
-      fontSize: "12px",
-      fontWeight: "700"
-    }}
-  >
-    🔒 Premium
-  </span>
-)}
-      <span
-  style={{
-    width: "56px",
-    height: "56px",
-    borderRadius: "18px",
-    background: "white",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "26px"
-  }}
->
-  {quizMeta.icon || (key === "dataScience" ? "📊" : key === "artificialIntelligence" ? "🤖" : key === "machineLearning" ? "🧠" : key === "pythonBasics" ? "🐍" : "📝")}
-</span>
+      {locked && (
+        <div
+          style={{
+            position: "absolute",
+            top: "16px",
+            right: "18px",
+            background: "#6B7280",
+            color: "white",
+            borderRadius: "999px",
+            padding: "9px 18px",
+            fontSize: "14px",
+            fontWeight: "800",
+            display: "flex",
+            alignItems: "center",
+            gap: "7px"
+          }}
+        >
+          🔒 Locked
+        </div>
+      )}
 
-      <div style={{ flex: 1 }}>
-        <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "800" }}>
-          {allQuizzes[key].title}
+      <span
+        style={{
+          width: "56px",
+          height: "56px",
+          borderRadius: "18px",
+          background: "white",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "26px",
+          flexShrink: 0
+        }}
+      >
+        {quizMeta.icon ||
+          (key === "dataScience"
+            ? "📊"
+            : key === "artificialIntelligence"
+            ? "🤖"
+            : key === "machineLearning"
+            ? "🧠"
+            : key === "pythonBasics"
+            ? "🐍"
+            : "📝")}
+      </span>
+
+      <div style={{ flex: 1, paddingRight: locked ? "80px" : "0px" }}>
+        <h3
+          style={{
+            margin: 0,
+            fontSize: "18px",
+            fontWeight: "800",
+            color: locked ? "#6B7280" : "#2D1B69"
+          }}
+        >
+          {quizMeta.title}
         </h3>
-        <p style={{ margin: "6px 0 0", color: "#7c6aa8", fontSize: "14px" }}>
-          {
-            allQuizzes[key].questions.filter((q) =>
-              allowedLevels[learningLevel || "beginner"]?.includes(q.level)
-            ).length
-          } questions • Test your skills
+
+        <p
+          style={{
+            margin: "6px 0 0",
+            color: locked ? "#9CA3AF" : "#7c6aa8",
+            fontSize: "14px"
+          }}
+        >
+          {visibleQuestions.length} questions • Test your skills
         </p>
+
         {quizAttempts[key]?.answered && (
-          <p style={{ margin: "8px 0 0", color: "#7C3AED", fontWeight: "700" }}>
-               ✅ Answered • Best Score: {quizAttempts[key].bestScore}%
-        </p>
+          <p
+            style={{
+              margin: "8px 0 0",
+              color: locked ? "#6B7280" : "#7C3AED",
+              fontWeight: "700"
+            }}
+          >
+            ✅ Answered • Best Score: {quizAttempts[key].bestScore}%
+          </p>
         )}
       </div>
 
-      <span style={{ fontSize: "30px", fontWeight: "800", color: "#8b5cf6" }}>
-        ›
-      </span>
-      </button>
+      {!locked && (
+        <span
+          style={{
+            fontSize: "26px",
+            fontWeight: "800",
+            color: "#8b5cf6"
+          }}
+        >
+          ›
+        </span>
+      )}
+    </button>
   );
 })}
 </div>

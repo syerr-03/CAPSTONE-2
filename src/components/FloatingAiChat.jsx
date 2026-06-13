@@ -1,12 +1,16 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+const CHATBASE_BOT_ID = "E1mIw0rqpfEj31u4lKvar";
 
 function FloatingAiChat() {
   const [isOpen, setIsOpen] = useState(false);
   const [question, setQuestion] = useState("");
+
   const userName =
     localStorage.getItem("loggedInUser") ||
     localStorage.getItem("name") ||
     "Student";
+
   const moduleName = localStorage.getItem("currentModule") || "defaultModule";
   const messageKey = `aiChatMessages_${userName}_${moduleName}`;
 
@@ -14,27 +18,52 @@ function FloatingAiChat() {
   const userPlanKey = `userPlan_${userName}`;
   const chatLimitKey = `chatCount_${userName}_${moduleName}`;
 
-  const initialPlan =
-    localStorage.getItem(userPlanKey) ||
-    (localStorage.getItem(premiumKey) === "true" ? "premium" : "standard");
+  const getPremiumStatus = () => {
+    const globalPlan =
+      localStorage.getItem("userPlan") || localStorage.getItem("plan");
 
-  const [isPremium, setIsPremium] = useState(initialPlan === "premium");
+    const userSpecificPlan = localStorage.getItem(userPlanKey);
+    const oldPremiumStatus = localStorage.getItem(premiumKey);
+
+    return (
+      globalPlan === "premium" ||
+      userSpecificPlan === "premium" ||
+      oldPremiumStatus === "true"
+    );
+  };
+
+  const [isPremium, setIsPremium] = useState(getPremiumStatus);
 
   const [chatCount, setChatCount] = useState(
     Number(localStorage.getItem(chatLimitKey)) || 0
   );
- const [messages, setMessages] = useState(() => {
-  const savedMessages = localStorage.getItem(messageKey);
 
-  return savedMessages
-    ? JSON.parse(savedMessages)
-    : [
-        {
-          sender: "ai",
-          text: "Hi! Ask me anything about this module.",
-        },
-      ];
-});
+  const [messages, setMessages] = useState(() => {
+    const savedMessages = localStorage.getItem(messageKey);
+
+    return savedMessages
+      ? JSON.parse(savedMessages)
+      : [
+          {
+            sender: "ai",
+            text: "Hi! Ask me anything about this module.",
+          },
+        ];
+  });
+
+  useEffect(() => {
+    const updatePremiumStatus = () => {
+      setIsPremium(getPremiumStatus());
+    };
+
+    window.addEventListener("premiumPlanUpdated", updatePremiumStatus);
+    window.addEventListener("storage", updatePremiumStatus);
+
+    return () => {
+      window.removeEventListener("premiumPlanUpdated", updatePremiumStatus);
+      window.removeEventListener("storage", updatePremiumStatus);
+    };
+  }, []);
 
   const generateAnswer = (question) => {
     const q = question.toLowerCase();
@@ -67,66 +96,59 @@ function FloatingAiChat() {
   };
 
   const askAI = () => {
-  if (!question.trim()) return;
+    if (!question.trim()) return;
 
-  if (!isPremium && chatCount >= 3) {
-    const limitMessage = [
+    if (!isPremium && chatCount >= 3) {
+      const limitMessage = [
+        ...messages,
+        {
+          sender: "ai",
+          text: "You have reached the free limit of 3 AI questions for this module. Subscribe to Premium for unlimited AI questions.",
+        },
+      ];
+
+      setMessages(limitMessage);
+      localStorage.setItem(messageKey, JSON.stringify(limitMessage));
+      setQuestion("");
+      return;
+    }
+
+    const userQuestion = question.trim();
+    const aiAnswer = generateAnswer(userQuestion);
+
+    const newMessages = [
       ...messages,
-      {
-        sender: "ai",
-        text: "You have reached the free limit of 3 AI questions for this module. Subscribe to Premium for unlimited AI questions."
-      }
+      { sender: "user", text: userQuestion },
+      { sender: "ai", text: aiAnswer },
     ];
 
-    setMessages(limitMessage);
-    localStorage.setItem(messageKey, JSON.stringify(limitMessage));
-    setQuestion("");
-    return;
-  }
+    setMessages(newMessages);
+    localStorage.setItem(messageKey, JSON.stringify(newMessages));
 
-  const userQuestion = question.trim();
-  const aiAnswer = generateAnswer(userQuestion);
-
-  const newMessages = [
-    ...messages,
-    { sender: "user", text: userQuestion },
-    { sender: "ai", text: aiAnswer },
-  ];
-
-  setMessages(newMessages);
-  localStorage.setItem(messageKey, JSON.stringify(newMessages));
-
-  if (!isPremium) {
-    const newCount = chatCount + 1;
-    setChatCount(newCount);
-    localStorage.setItem(chatLimitKey, newCount);
-  }
-
-  setQuestion("");
-};
-
-const handleSubscribePremium = () => {
-  localStorage.setItem(userPlanKey, "premium");
-  localStorage.setItem(premiumKey, "true");
-  setIsPremium(true);
-
-  const premiumMessage = [
-    ...messages,
-    {
-      sender: "ai",
-      text: "Premium activated! You can now ask unlimited AI questions."
+    if (!isPremium) {
+      const newCount = chatCount + 1;
+      setChatCount(newCount);
+      localStorage.setItem(chatLimitKey, newCount);
     }
-  ];
 
-  setMessages(premiumMessage);
-  localStorage.setItem(messageKey, JSON.stringify(premiumMessage));
-};
+    setQuestion("");
+  };
+
+  const handleSubscribePremium = () => {
+    window.dispatchEvent(new Event("openPremiumSubscription"));
+    setIsOpen(false);
+  };
+
+  const openChat = () => {
+    setIsPremium(getPremiumStatus());
+    setIsOpen(true);
+  };
 
   return (
     <>
       {!isOpen && (
         <button
-          onClick={() => setIsOpen(true)}
+          onClick={openChat}
           style={{
             position: "fixed",
             bottom: "24px",
@@ -152,8 +174,8 @@ const handleSubscribePremium = () => {
             position: "fixed",
             bottom: "24px",
             right: "24px",
-            width: "360px",
-            height: "520px",
+            width: isPremium ? "420px" : "360px",
+            height: isPremium ? "620px" : "520px",
             background: "white",
             borderRadius: "22px",
             boxShadow: "0 18px 45px rgba(17,24,39,0.18)",
@@ -174,9 +196,13 @@ const handleSubscribePremium = () => {
             }}
           >
             <div>
-              <h3 style={{ margin: 0, fontSize: "18px" }}> 🤖AI Assistant</h3>
+              <h3 style={{ margin: 0, fontSize: "18px" }}>
+                🤖 AI Assistant
+              </h3>
               <p style={{ margin: "4px 0 0", fontSize: "13px", opacity: 0.9 }}>
-                Ask me anything, I'll help you understand better!
+                {isPremium
+                  ? "Premium chatbox is now available."
+                  : "Ask me anything, I'll help you understand better!"}
               </p>
             </div>
 
@@ -197,137 +223,151 @@ const handleSubscribePremium = () => {
             </button>
           </div>
 
-          <div
-            style={{
-              flex: 1,
-              padding: "18px",
-              overflowY: "auto",
-              background: "#FAFAFA",
-            }}
-          >
-            {messages.map((msg, index) => (
-              <div
-                key={index}
+          {isPremium ? (
+            <div
+              style={{
+                flex: 1,
+                background: "white",
+                padding: "0",
+              }}
+            >
+              <iframe
+                src={`https://www.chatbase.co/chatbot-iframe/${CHATBASE_BOT_ID}`}
+                width="100%"
+                height="100%"
+                frameBorder="0"
+                title="Premium AI Chatbox"
                 style={{
+                  border: "none",
+                  width: "100%",
+                  height: "100%",
+                }}
+              ></iframe>
+            </div>
+          ) : (
+            <>
+              <div
+                style={{
+                  flex: 1,
+                  padding: "18px",
+                  overflowY: "auto",
+                  background: "#FAFAFA",
+                }}
+              >
+                {messages.map((msg, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      display: "flex",
+                      justifyContent:
+                        msg.sender === "user" ? "flex-end" : "flex-start",
+                      marginBottom: "12px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        maxWidth: "78%",
+                        padding: "12px 14px",
+                        borderRadius:
+                          msg.sender === "user"
+                            ? "16px 16px 4px 16px"
+                            : "16px 16px 16px 4px",
+                        background:
+                          msg.sender === "user" ? "#7C3AED" : "#F0E9FF",
+                        color: msg.sender === "user" ? "white" : "#111827",
+                        fontSize: "14px",
+                        lineHeight: "1.5",
+                      }}
+                    >
+                      {msg.text}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div
+                style={{
+                  padding: "14px",
+                  borderTop: "1px solid #EEE8FF",
+                  background: "white",
                   display: "flex",
-                  justifyContent:
-                    msg.sender === "user" ? "flex-end" : "flex-start",
-                  marginBottom: "12px",
+                  gap: "10px",
+                  alignItems: "center",
                 }}
               >
                 <div
                   style={{
-                    maxWidth: "78%",
-                    padding: "12px 14px",
-                    borderRadius:
-                      msg.sender === "user"
-                        ? "16px 16px 4px 16px"
-                        : "16px 16px 16px 4px",
-                    background:
-                      msg.sender === "user" ? "#7C3AED" : "#F0E9FF",
-                    color: msg.sender === "user" ? "white" : "#111827",
-                    fontSize: "14px",
-                    lineHeight: "1.5",
+                    padding: "10px 12px",
+                    background: "#F5F3FF",
+                    border: "1px solid #EEE8FF",
+                    borderRadius: "14px",
+                    fontSize: "13px",
+                    color: "#5B21B6",
+                    textAlign: "center",
+                    fontWeight: "600",
+                    minWidth: "120px",
                   }}
                 >
-                  {msg.text}
+                  Free questions left:
+                  <br />
+                  {Math.max(0, 3 - chatCount)} / 3
+                  {chatCount >= 3 && (
+                    <button
+                      onClick={handleSubscribePremium}
+                      style={{
+                        marginTop: "8px",
+                        padding: "8px 12px",
+                        borderRadius: "999px",
+                        border: "none",
+                        background: "#7C3AED",
+                        color: "white",
+                        cursor: "pointer",
+                        fontWeight: "700",
+                      }}
+                    >
+                      Subscribe Premium
+                    </button>
+                  )}
                 </div>
-              </div>
-            ))}
-          </div>
 
-          <div
-            style={{
-              padding: "14px",
-              borderTop: "1px solid #EEE8FF",
-              background: "white",
-              display: "flex",
-              gap: "10px",
-            }}
-          >
-            {!isPremium && (
-              <div
-                style={{
-                  padding: "10px 14px",
-                  background: "#F5F3FF",
-                  borderTop: "1px solid #EEE8FF",
-                  fontSize: "13px",
-                  color: "#5B21B6",
-                  textAlign: "center",
-                  fontWeight: "600"
-                }}
-              >
-                Free questions left: {Math.max(0, 3 - chatCount)} / 3
-                {chatCount >= 3 && (
-                  <button
-                    onClick={handleSubscribePremium}
-                    style={{
-                      marginLeft: "10px",
-                      padding: "8px 12px",
-                      borderRadius: "999px",
-                      border: "none",
-                      background: "#7C3AED",
-                      color: "white",
-                      cursor: "pointer",
-                      fontWeight: "700"
-                    }}
-                  >
-                    Subscribe Premium
-                  </button>
-                )}
-              </div>
-            )}
+                <input
+                  type="text"
+                  placeholder="Type your question..."
+                  value={question}
+                  onChange={(e) => setQuestion(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") askAI();
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: "12px 14px",
+                    borderRadius: "999px",
+                    border: "1px solid #DDD6FE",
+                    outline: "none",
+                    fontFamily: "Poppins, sans-serif",
+                    minWidth: 0,
+                  }}
+                />
 
-            {isPremium && (
-              <div
-                style={{
-                  padding: "10px 14px",
-                  background: "#ECFDF5",
-                  borderTop: "1px solid #BBF7D0",
-                  fontSize: "13px",
-                  color: "#166534",
-                  textAlign: "center",
-                  fontWeight: "700"
-                }}
-              >
-                ⭐ Premium Active — Unlimited AI questions
+                <button
+                  onClick={askAI}
+                  style={{
+                    width: "46px",
+                    height: "46px",
+                    borderRadius: "50%",
+                    border: "none",
+                    background: "#7C3AED",
+                    color: "white",
+                    cursor: "pointer",
+                    fontSize: "18px",
+                    flexShrink: 0,
+                  }}
+                >
+                  ➤
+                </button>
               </div>
-            )}
-            
-            <input
-              type="text"
-              placeholder="Type your question..."
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") askAI();
-              }}
-              style={{
-                flex: 1,
-                padding: "12px 14px",
-                borderRadius: "999px",
-                border: "1px solid #DDD6FE",
-                outline: "none",
-                fontFamily: "Poppins, sans-serif",
-              }}
-            />
-
-            <button
-              onClick={askAI}
-              style={{
-                width: "46px",
-                height: "46px",
-                borderRadius: "50%",
-                border: "none",
-                background: "#7C3AED",
-                color: "white",
-                cursor: "pointer",
-                fontSize: "18px",
-              }}
-            >
-              ➤
-            </button>
-          </div>
+            </>
+          )}
         </div>
       )}
     </>

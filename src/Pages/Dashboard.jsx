@@ -182,6 +182,30 @@ useEffect(() => {
   const [subscriptionCardCvv, setSubscriptionCardCvv] = useState("");
   const [subscriptionCardHolderName, setSubscriptionCardHolderName] = useState("");
   const [subscriptionPaymentError, setSubscriptionPaymentError] = useState("");
+  useEffect(() => {
+  const openPremiumSubscription = () => {
+    setActiveTab("subscriptions");
+    setDrawerOpen(false);
+
+    setShowPremiumModal(true);
+    setShowStandardModal(false);
+    setShowInstitutionalModal(false);
+    setShowSubscriptionPaymentModal(false);
+    setShowSubscriptionPaymentSuccess(false);
+    setSubscriptionPaymentError("");
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  window.addEventListener("openPremiumSubscription", openPremiumSubscription);
+
+  return () => {
+    window.removeEventListener(
+      "openPremiumSubscription",
+      openPremiumSubscription
+    );
+  };
+}, []);
 
 // ===== SCHEDULE STATES =====
 const [showSchedulePopup, setShowSchedulePopup] = useState(false);

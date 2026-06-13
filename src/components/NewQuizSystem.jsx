@@ -183,6 +183,137 @@ const getAdminItemContent = (item) => {
   };
 };
 
+const moduleSections = useMemo(() => {
+  const subjectPrefix = getSubjectPrefix();
+
+  if (module?.modules && Array.isArray(module.modules) && module.modules.length > 0) {
+    return module.modules.map((moduleItem, index) => {
+      const moduleNumber = moduleItem.moduleNumber || moduleItem.number || index + 1;
+      const sectionId = moduleItem.id || `${subjectPrefix}-module-${moduleNumber}`;
+
+      if (Array.isArray(moduleItem.items) && moduleItem.items.length > 0) {
+        return {
+          id: sectionId,
+          moduleNumber,
+          heading: moduleItem.heading || moduleItem.title || `Module ${moduleNumber}`,
+          items: moduleItem.items.map((item, itemIndex) => ({
+            ...item,
+            id: item.id || `${sectionId}-item-${itemIndex + 1}`,
+            baseId:
+              item.baseId ||
+              item.id ||
+              `${String(item.type || "item").toLowerCase().replace(/\s+/g, "-")}-${moduleNumber}`,
+            type: item.type || "Reading",
+            title: item.title || `${item.type || "Learning"} ${moduleNumber}`
+          }))
+        };
+      }
+
+      return {
+        id: sectionId,
+        moduleNumber,
+        heading: moduleItem.heading || moduleItem.title || `Module ${moduleNumber}`,
+        items: [
+          {
+            id: `${sectionId}-reading`,
+            baseId: `reading-${moduleNumber}`,
+            type: "Reading",
+            title: moduleItem.readingTitle || `Reading: ${moduleItem.title || topic}`,
+            content: moduleItem.content || moduleItem.readingContent || ""
+          },
+          {
+            id: `${sectionId}-video`,
+            baseId: `video-${moduleNumber}`,
+            type: "Video",
+            title: moduleItem.videoTitle || `Video: ${moduleItem.title || topic}`,
+            videoLink: moduleItem.videoLink || moduleItem.video || ""
+          },
+          {
+            id: `${sectionId}-quiz`,
+            baseId: `quiz-${moduleNumber}`,
+            type: "Quiz",
+            title: moduleItem.quizTitle || `Quiz: ${moduleItem.title || topic}`,
+            questions: moduleItem.questions || []
+          },
+          {
+            id: `${sectionId}-practical`,
+            baseId: `practical-${moduleNumber}`,
+            type: "Practical Assignment",
+            title: moduleItem.practicalTitle || `Practical: ${moduleItem.title || topic}`,
+            instruction: moduleItem.instruction || moduleItem.practicalInstruction || ""
+          }
+        ]
+      };
+    });
+  }
+
+  return [
+    {
+      id: `${subjectPrefix}-module-1`,
+      moduleNumber: 1,
+      heading: `Introduction to ${topic}`,
+      items: [
+        {
+          id: `${subjectPrefix}-reading-1`,
+          baseId: "reading-1",
+          type: "Reading",
+          title: `Reading: Introduction to ${topic}`
+        },
+        {
+          id: `${subjectPrefix}-video-1`,
+          baseId: "video-1",
+          type: "Video",
+          title: `Video: Introduction to ${topic}`
+        },
+        {
+          id: `${subjectPrefix}-quiz-1`,
+          baseId: "quiz-1",
+          type: "Quiz",
+          title: "Test Your Knowledge: Fundamentals Quiz",
+          questions: getSystemQuizSets(topic)["quiz-1"]
+        },
+        {
+          id: `${subjectPrefix}-practical-1`,
+          baseId: "practical-1",
+          type: "Practical Assignment",
+          title: `Practical Activity: ${topic}`
+        }
+      ]
+    },
+    {
+      id: `${subjectPrefix}-module-2`,
+      moduleNumber: 2,
+      heading: `Applying ${topic}`,
+      items: [
+        {
+          id: `${subjectPrefix}-reading-2`,
+          baseId: "reading-2",
+          type: "Reading",
+          title: `Reading: Applying ${topic}`
+        },
+        {
+          id: `${subjectPrefix}-video-2`,
+          baseId: "video-2",
+          type: "Video",
+          title: `Video: Applying ${topic}`
+        },
+        {
+          id: `${subjectPrefix}-quiz-2`,
+          baseId: "quiz-2",
+          type: "Quiz",
+          title: "Check Your Understanding",
+          questions: getSystemQuizSets(topic)["quiz-2"]
+        },
+        {
+          id: `${subjectPrefix}-practical-2`,
+          baseId: "practical-2",
+          type: "Practical Assignment",
+          title: `Practical Activity: Applying ${topic}`
+        }
+      ]
+    }
+  ];
+}, [module, topic, currentLevel]);
   const getStudentQuizEditKey = (quizBaseId) => {
   return `${getSubjectKey()}_${quizBaseId}`;
 };
@@ -210,45 +341,6 @@ const getEditedQuizItem = (item) => {
     questions: edits[editKey].questions || item.questions,
   };
 };
-
-useEffect(() => {
-  const existingStudentQuizzes = JSON.parse(
-    localStorage.getItem("bbStudentQuizzes") || "[]"
-  );
-
-  const subjectKey = getSubjectKey();
-
-  const currentSubjectQuizzes = moduleSections.flatMap((section) =>
-    section.items
-      .filter((item) => item.type === "Quiz")
-      .map((item) => {
-        const quizBaseId = resolveBaseId(item);
-        const editedItem = getEditedQuizItem(item);
-        const editKey = getStudentQuizEditKey(quizBaseId);
-
-        return {
-          id: item.id,
-          baseId: quizBaseId,
-          studentEditKey: editKey,
-          subjectKey,
-          subject: topic,
-          level: currentLevel,
-          icon: "📝",
-          title: editedItem.title,
-          questions: editedItem.questions || [],
-        };
-      })
-  );
-
-  const otherSubjectQuizzes = existingStudentQuizzes.filter(
-    (quiz) => quiz.subjectKey !== subjectKey
-  );
-
-  const updatedStudentQuizzes = [...otherSubjectQuizzes, ...currentSubjectQuizzes];
-
-  localStorage.setItem("bbStudentQuizzes", JSON.stringify(updatedStudentQuizzes));
-  window.dispatchEvent(new Event("bbStudentQuizzesUpdated"));
-}, [moduleSections, topic, currentLevel]);
 
   useEffect(() => {
     if (typeof saveSubjectProgress !== "function") return;
