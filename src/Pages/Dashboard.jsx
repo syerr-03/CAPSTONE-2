@@ -88,16 +88,24 @@ useEffect(() => {
     .toISOString()
     .split("T")[0];
 
+  const currentUser =
+    localStorage.getItem("loggedInUser") ||
+    localStorage.getItem("name") ||
+    "guest";
+
+  const completedDatesKey =
+    `completedDates_${currentUser}`;
+
   const completedDates =
     JSON.parse(
-      localStorage.getItem("completedDates")
+      localStorage.getItem(completedDatesKey)
     ) || [];
 
   if (!completedDates.includes(today)) {
     completedDates.push(today);
 
     localStorage.setItem(
-      "completedDates",
+      completedDatesKey,
       JSON.stringify(completedDates)
     );
   }
@@ -105,6 +113,10 @@ useEffect(() => {
   const welcomeType = localStorage.getItem("welcomeType");
   const studentName =
   localStorage.getItem("name") || "Student";
+  const currentUser =
+  localStorage.getItem("loggedInUser") ||
+  localStorage.getItem("name") ||
+  "guest";
   const [activeTab, setActiveTab] = useState("dashboard");
 
   useEffect(() => {
@@ -236,13 +248,6 @@ const [selectedMinute, setSelectedMinute] = useState("00");
 const [selectedPeriod, setSelectedPeriod] = useState("AM");
 
 const [showStudyAlert, setShowStudyAlert] = useState(false);
-
-const currentUser =
-  localStorage.getItem("loggedInUser") ||
-  localStorage.getItem("userName") ||
-  localStorage.getItem("name") ||
-  "guest";
-
 const scheduleKey = `studySchedule_${currentUser}`;
 
 const [studyReminder, setStudyReminder] = useState(() => {
@@ -666,9 +671,13 @@ if (onPremiumPaymentSuccess) {
 
   const completedToday =
     localStorage.getItem(`completedToday_${todayKey}`) === "true";
+ const completedDatesKey =
+  `completedDates_${currentUser}`;
 
-    const completedDates =
-  JSON.parse(localStorage.getItem("completedDates")) || [];
+const completedDates =
+  JSON.parse(
+    localStorage.getItem(completedDatesKey)
+  ) || [];
 
 const weekDays = [
   "Mon",
@@ -692,8 +701,11 @@ const streakDays = weekDays.map(day => ({
   })
 }));
   useEffect(() => {
+
   const completedDates =
-    JSON.parse(localStorage.getItem("completedDates")) || [];
+    JSON.parse(
+      localStorage.getItem(`completedDates_${currentUser}`)
+    ) || [];
 
   const uniqueDates = [...new Set(completedDates)].sort();
 

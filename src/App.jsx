@@ -132,46 +132,43 @@ function App() {
     return subject.id != null ? `${subject.id}_${normalizedLevel}` : null;
   };
 
-  const updateCertificateProgressMemory = (newMemory) => {
-    const normalizedMemory = {
-      beginner: Boolean(newMemory["1_beginner"] && newMemory["2_beginner"]),
-      intermediate: Boolean(newMemory["3_intermediate"] && newMemory["4_intermediate"]),
-      advanced: Boolean(newMemory["5_advanced"] && newMemory["6_advanced"])
-    };
+const updateCertificateProgressMemory = (newMemory) => {
+  localStorage.setItem(
+    certificateProgressMemoryKey,
+    JSON.stringify(newMemory)
+  );
 
-    localStorage.setItem(
-      certificateProgressMemoryKey,
-      JSON.stringify(normalizedMemory)
-    );
-    setCertificateProgressMemory(normalizedMemory);
+  setCertificateProgressMemory(newMemory);
+};
+
+const getUpdatedCertificateMemory = (subjectCompletion) => {
+  return {
+    beginner:
+      Boolean(subjectCompletion["1_beginner"]) &&
+      Boolean(subjectCompletion["2_beginner"]),
+
+    intermediate:
+      Boolean(subjectCompletion["3_intermediate"]) &&
+      Boolean(subjectCompletion["4_intermediate"]),
+
+    advanced:
+      Boolean(subjectCompletion["5_advanced"]) &&
+      Boolean(subjectCompletion["6_advanced"])
   };
+};
 
-  const getUpdatedCertificateMemory = (subjectCompletion) => {
-    const nextMemory = {
-      beginner:
-        Boolean(subjectCompletion["1_beginner"]) &&
-        Boolean(subjectCompletion["2_beginner"]),
-      intermediate:
-        Boolean(subjectCompletion["3_intermediate"]) &&
-        Boolean(subjectCompletion["4_intermediate"]),
-      advanced:
-        Boolean(subjectCompletion["5_advanced"]) &&
-        Boolean(subjectCompletion["6_advanced"])
-    };
+useEffect(() => {
+  const restoredMemory =
+    getUpdatedCertificateMemory(completedSubjectMemory);
 
-    return nextMemory;
-  };
-
-  useEffect(() => {
-    const restoredMemory = getUpdatedCertificateMemory(completedSubjectMemory);
-    if (
-      restoredMemory.beginner !== certificateProgressMemory.beginner ||
-      restoredMemory.intermediate !== certificateProgressMemory.intermediate ||
-      restoredMemory.advanced !== certificateProgressMemory.advanced
-    ) {
-      updateCertificateProgressMemory(restoredMemory);
-    }
-  }, [completedSubjectMemory, certificateProgressMemory]);
+  if (
+    restoredMemory.beginner !== certificateProgressMemory.beginner ||
+    restoredMemory.intermediate !== certificateProgressMemory.intermediate ||
+    restoredMemory.advanced !== certificateProgressMemory.advanced
+  ) {
+    updateCertificateProgressMemory(restoredMemory);
+  }
+}, [completedSubjectMemory]);
 
   const handleSelectLevel = (level) => {
     setLearningLevel(level);

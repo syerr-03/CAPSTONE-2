@@ -57,7 +57,6 @@ const quizScoreList = Object.entries(quizSource).map(([key, value]) => ({
 
   const chartData = [
     { name: "Quiz", score: quiz },
-    { name: "Practical", score: practical },
     { name: "Average", score: average },
   ];
 
@@ -128,24 +127,6 @@ const quizScoreList = Object.entries(quizSource).map(([key, value]) => ({
   {quiz}%
 </p>
 </button>
-
-            <button
-              className="module-card"
-              style={{
-                border:
-                  selectedMetric === "practical"
-                    ? "2px solid #7C3AED"
-                    : "none",
-                cursor: "pointer",
-              }}
-              onClick={() => setSelectedMetric("practical")}
-            >
-              <h3 className="section-title">Practical</h3>
-              <p className="main-title" style={{ fontSize: "32px" }}>
-                {practical}%
-              </p>
-            </button>
-
             <button
               className="module-card"
               style={{
@@ -206,13 +187,6 @@ const quizScoreList = Object.entries(quizSource).map(([key, value]) => ({
         </div>
       )}
 
-            {selectedMetric === "practical" && (
-              <p>
-                Applied understanding based on your latest assignment.{" "}
-                <strong>{practical}%</strong>
-              </p>
-            )}
-
             {selectedMetric === "difficulty" && (
             <p>
               Current learning level:
@@ -229,7 +203,7 @@ const quizScoreList = Object.entries(quizSource).map(([key, value]) => ({
                 <BarChart
                   data={chartData}
                   margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
-                  key={`chart-${quiz}-${practical}`}
+                  key={`chart-${quiz}-${average}`}
                 >
                   <CartesianGrid
                     strokeDasharray="3 3"
@@ -276,7 +250,7 @@ const quizScoreList = Object.entries(quizSource).map(([key, value]) => ({
                   marginTop: "10px",
                 }}
               >
-                No quiz or practical score yet. Complete a quiz to see the chart.
+                No quiz score yet. Complete a quiz to see the chart.
               </p>
             )}
           </div>
