@@ -1404,6 +1404,21 @@ const recommendedCourses = weakQuizId
                   </h2>
                   <p>Keep going. Small progress still counts.</p>
                 </div>
+                {studyReminder && (
+  <div
+    style={{
+      marginTop: "15px",
+      background: "#f3e8ff",
+      border: "1px solid #d8b4fe",
+      borderRadius: "12px",
+      padding: "12px 16px",
+      color: "#6b21a8",
+      fontWeight: "600",
+    }}
+  >
+    ⏰ Study Reminder: {studyReminder.date} • {studyReminder.time}
+  </div>
+)}
 
               </section>
                           
