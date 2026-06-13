@@ -207,11 +207,6 @@ function Drawer({
               <span>›</span>
             </button>
 
-          <button className="drawer-popup-link" onClick={() => {}}>
-            <span>Notification</span>
-            <span>›</span>
-          </button>
-
           {/* FEEDBACK FORM */}
           <button
             className="drawer-popup-link"

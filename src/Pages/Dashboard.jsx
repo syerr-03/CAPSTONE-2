@@ -185,6 +185,20 @@ useEffect(() => {
 
 // ===== SCHEDULE STATES =====
 const [showSchedulePopup, setShowSchedulePopup] = useState(false);
+useEffect(() => {
+  if (showSchedulePopup) {
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+  } else {
+    document.body.style.overflow = "";
+    document.documentElement.style.overflow = "";
+  }
+
+  return () => {
+    document.body.style.overflow = "";
+    document.documentElement.style.overflow = "";
+  };
+}, [showSchedulePopup]);
 
 const [studyDate, setStudyDate] = useState(null);
 
@@ -1278,7 +1292,10 @@ const recommendedCourses = weakQuizId
               ☰
             </button>
 
+           <div className="simple-menu-brand">
+            <img src="/logo-no-bg.png" alt="BrainyBits Logo" />
             <h1 className="simple-menu-logo">BrainyBits</h1>
+          </div>
 
             <nav className="simple-menu-tabs">
              <button
@@ -2084,9 +2101,13 @@ const recommendedCourses = weakQuizId
       <label>Study Date</label>
 
       <div className="date-input-wrapper">
-        <DatePicker
+       <DatePicker
           selected={studyDate}
-          onChange={(date) => setStudyDate(date)}
+          onChange={(date) => {
+            setStudyDate(date);
+            setShowTimePicker(false);
+          }}
+          onCalendarOpen={() => setShowTimePicker(false)}
           minDate={new Date()}
           dateFormat="dd/MM/yyyy"
           placeholderText="dd/mm/yyyy"
@@ -2110,7 +2131,10 @@ const recommendedCourses = weakQuizId
         <button
           type="button"
           className="clock-btn"
-          onClick={() => setShowTimePicker(true)}
+          onClick={() => {
+            document.activeElement.blur();
+            setShowTimePicker(true);
+          }}
         >
           🕒
         </button>

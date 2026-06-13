@@ -1299,66 +1299,68 @@ const [editingQuizSource, setEditingQuizSource] = useState(null);
   }
 
   return (
-    <div
-      className="dashboard-page"
-      style={{
-        background: "linear-gradient(135deg, #F5F3FF, #EDE9FE)",
-        color: "#111827",
-        minHeight: "100vh",
-        padding: "30px",
-      }}
-    >
-      <main className="dashboard-main-single" style={{ background: "transparent" }}>
-        <header
+  <div
+    className="dashboard-page"
+    style={{
+      background: "linear-gradient(135deg, #F5F3FF, #EDE9FE)",
+      color: "#111827",
+      minHeight: "100vh",
+      padding: "30px",
+    }}
+  >
+    <main className="dashboard-main-single" style={{ background: "transparent" }}>
+      
+      <header
+  style={{
+    position: "fixed",
+    top: "30px",
+    left: "30px",
+    right: "30px",
+    zIndex: 9999,
+    background: "linear-gradient(135deg, #F5F3FF, #EDE9FE)",
+    paddingBottom: "15px",
+  }}
+>
+        <div
           style={{
-            marginBottom: "40px",
-            position: "sticky",
-            top: 0,
-            zIndex: 1000,
+            background: "#ffffff",
+            borderRadius: "24px",
+            padding: "28px",
+            boxShadow: "0 10px 25px rgba(124,58,237,0.12)",
+            textAlign: "center",
+            position: "relative",
+            marginBottom: "20px",
           }}
         >
-          <div
+          <h1
             style={{
-              background: "#ffffff",
-              borderRadius: "24px",
-              padding: "28px",
-              boxShadow: "0 10px 25px rgba(124,58,237,0.12)",
-              position: "sticky",
-              top: 0,
-              zIndex: 1000,
-              textAlign: "center",
+              fontSize: "52px",
+              fontWeight: "800",
+              color: "#7c3aed",
+              margin: 0,
             }}
           >
-            <h1
-              style={{
-                fontSize: "52px",
-                fontWeight: "800",
-                color: "#7c3aed",
-                margin: 0,
-              }}
-            >
-              Admin Panel
-            </h1>
+            Admin Panel
+          </h1>
 
-            <button
-              className="hero-button"
-              onClick={() => setShowLogoutModal(true)}
-              style={{
-                position: "absolute",
-                right: "30px",
-                top: "50%",
-                transform: "translateY(-50%)",
-                background: "linear-gradient(135deg, #dc2626, #ef4444)",
-                boxShadow: "0 12px 24px rgba(220, 38, 38, 0.22)",
-                color: "#ffffff",
-              }}
-            >
-              Logout
-            </button>
-          </div>
-        </header>
+          <button
+            className="hero-button"
+            onClick={() => setShowLogoutModal(true)}
+            style={{
+              position: "absolute",
+              right: "30px",
+              top: "50%",
+              transform: "translateY(-50%)",
+              background: "linear-gradient(135deg, #dc2626, #ef4444)",
+              boxShadow: "0 12px 24px rgba(220, 38, 38, 0.22)",
+              color: "#ffffff",
+            }}
+          >
+            Logout
+          </button>
+        </div>
 
-        <section className="dashboard-content-section">
+        <section className="dashboard-content-section" style={{ marginBottom: 0 }}>
           <h2 className="section-title">Manage Learning Content</h2>
 
           <div
@@ -1366,54 +1368,102 @@ const [editingQuizSource, setEditingQuizSource] = useState(null);
               display: "grid",
               gridTemplateColumns: "repeat(3, minmax(220px, 1fr))",
               gap: "20px",
-              marginBottom: "30px",
+              marginBottom: "0",
             }}
           >
             <button
               className="module-card"
               style={{ cursor: "pointer", textAlign: "center" }}
               onClick={() => {
-                setAdminView("subjects");
-                setShowSubjectList(true);
-                setShowQuizList(false);
-              }}
+  if (adminView === "subjects" && showSubjectList) {
+    setAdminView("");
+    setShowSubjectList(false);
+    setShowQuizList(false);
+  } else {
+    setAdminView("subjects");
+    setShowSubjectList(true);
+    setShowQuizList(false);
+  }
+}}
             >
-              <h3 style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", color: "black" }}>
+              <h3
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                  color: "black",
+                }}
+              >
                 📚 List of Subjects
               </h3>
-              <p>View all subjects by level.</p>
             </button>
 
             <button
               className="module-card"
               style={{ cursor: "pointer", textAlign: "center" }}
               onClick={() => {
-                setAdminView("quizzes");
-                setShowQuizList(true);
-                setShowSubjectList(false);
-              }}
+  if (adminView === "quizzes" && showQuizList) {
+    setAdminView("");
+    setShowQuizList(false);
+    setShowSubjectList(false);
+  } else {
+    setAdminView("quizzes");
+    setShowQuizList(true);
+    setShowSubjectList(false);
+  }
+}}
             >
-              <h3 style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", color: "black" }}>
+              <h3
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                  color: "black",
+                }}
+              >
                 📝 List of Quizzes
               </h3>
-              <p>View all released quizzes.</p>
             </button>
 
             <button
               className="module-card"
               style={{ cursor: "pointer", textAlign: "center" }}
               onClick={() => {
-                setAdminView("manage");
-                setShowSubjectList(false);
-                setShowQuizList(false);
-              }}
+  if (adminView === "manage") {
+    setAdminView("");
+    setShowSubjectList(false);
+    setShowQuizList(false);
+  } else {
+    setAdminView("manage");
+    setShowSubjectList(false);
+    setShowQuizList(false);
+  }
+}}
             >
-              <h3 style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", color: "black" }}>
+              <h3
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                  color: "black",
+                }}
+              >
                 ⚙️ Manage Content
               </h3>
-              <p>Add subjects, modules, readings, videos and quizzes.</p>
             </button>
           </div>
+        </section>
+      </header>
+
+      <section
+  className="dashboard-content-section"
+  style={{
+    marginTop: "150px",
+  }}
+>
 
           {adminView === "manage" && (
             <>

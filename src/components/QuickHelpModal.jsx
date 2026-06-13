@@ -4,6 +4,17 @@ import { MessageCircle, Mail, X, Copy } from "lucide-react";
 const QuickHelpModal = ({ closeHelp }) => {
   const [copiedText, setCopiedText] = useState("");
 
+  const whatsappMessage =
+    "Hello BrainyBits , I want to ask you something. ";
+
+  const whatsappLink = `https://wa.me/60133152376?text=${encodeURIComponent(
+    whatsappMessage
+  )}`;
+
+  const emailLink = `mailto:syarifahnaniey@gmail.com?subject=${encodeURIComponent(
+    "BrainyBits Support"
+  )}&body=${encodeURIComponent(whatsappMessage)}`;
+
   const copyText = async (text, type) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -127,15 +138,21 @@ const QuickHelpModal = ({ closeHelp }) => {
                 WhatsApp Support
               </h4>
 
-              <p
+              <a
+                href={whatsappLink}
+                target="_blank"
+                rel="noopener noreferrer"
                 style={{
+                  display: "inline-block",
                   margin: "3px 0 0",
                   color: "#6B7280",
                   fontSize: "14px",
+                  textDecoration: "underline",
+                  cursor: "pointer",
                 }}
               >
                 +60 13-315 2376
-              </p>
+              </a>
             </div>
 
             <button
@@ -197,15 +214,21 @@ const QuickHelpModal = ({ closeHelp }) => {
                 Email Us
               </h4>
 
-              <p
-                style={{
-                  margin: "3px 0 0",
-                  color: "#6B7280",
-                  fontSize: "14px",
-                }}
-              >
-                syarifahnaniey@gmail.com
-              </p>
+              <a
+  href="mailto:syarifahnaniey@gmail.com"
+  target="_blank"
+  rel="noopener noreferrer"
+  style={{
+    display: "inline-block",
+    margin: "3px 0 0",
+    color: "#6B7280",
+    fontSize: "14px",
+    textDecoration: "underline",
+    cursor: "pointer",
+  }}
+>
+  syarifahnaniey@gmail.com
+</a>
             </div>
 
             <button
