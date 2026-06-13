@@ -1039,15 +1039,19 @@ const getEditedQuizItem = (item) => {
     });
   };
 
-  const openContent = (item, section) => {
-    const moduleKey = `${topic}_Module_${section.moduleNumber}`;
+const openContent = (item, section) => {
+  const moduleKey = `${topic}_Module_${section.moduleNumber}`;
 
   localStorage.setItem("currentModule", moduleKey);
 
   setActiveItem(getEditedQuizItem(item));
   setActiveSection(section);
   setActiveModuleNumber(section.moduleNumber);
-  markItemCompleted(item.id);
+
+  // Auto complete Reading, Video & Practical
+  if (item.type !== "Quiz") {
+    markItemCompleted(item.id);
+  }
 
   window.scrollTo({
     top: 0,
@@ -1066,10 +1070,19 @@ const getEditedQuizItem = (item) => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const progress =
-    allItems.length > 0
-      ? Math.round((safeCompletedItems.length / allItems.length) * 100)
-      : 0;
+const currentSubjectCompleted = safeCompletedItems.filter(id =>
+  allItems.some(item => item.id === id)
+);
+
+const progress =
+  allItems.length > 0
+    ? Math.min(
+        100,
+        Math.round(
+          (currentSubjectCompleted.length / allItems.length) * 100
+        )
+      )
+    : 0;
 
   const quizSets = getSystemQuizSets(topic);
 
@@ -1187,15 +1200,14 @@ const getEditedQuizItem = (item) => {
                 marginBottom: "16px"
               }}
             />
+<p className="content-text">
+  {isAdminCreatedSubject
+    ? activeItem.content || "No reading content added yet."
+    : moduleContent[resolveBaseId(activeItem)]?.intro || "No reading content added yet."}
+</p>
+</div>
 
-            <p className="content-text">
-            {isAdminCreatedSubject
-              ? activeItem.content || "No reading content added yet."
-              : moduleContent[resolveBaseId(activeItem)]?.intro || "No reading content added yet."}
-          </p>
-          </div>
-
-          <ContentNoteActions item={activeItem} section={activeSection} />
+<ContentNoteActions item={activeItem} section={activeSection} />
         </div>
 
         {renderModuleNotePanel()}
@@ -1268,7 +1280,6 @@ const getEditedQuizItem = (item) => {
     <div className="play-button">No Video Available</div>
   </div>
 )}
-
           <ContentNoteActions item={activeItem} section={activeSection} />
         </div>
 
@@ -1528,5 +1539,4 @@ const getEditedQuizItem = (item) => {
     </div>
   );
 }
-
 export default NewQuizSystem;
