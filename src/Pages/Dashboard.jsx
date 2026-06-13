@@ -57,24 +57,32 @@ function Dashboard({
   sessionStorage.getItem("reminderShown") === "true"
 );
 
-  useEffect(() => {
-    const raw = localStorage.getItem("bbSubjectsByLevel");
-    if (!raw) {
-      setSubjectsForLevel([]);
-      return;
-    }
+useEffect(() => {
+  const raw = localStorage.getItem("bbSubjectsByLevel");
+  if (!raw) {
+    setSubjectsForLevel([]);
+    return;
+  }
 
-    try {
-      const parsed = JSON.parse(raw) || {};
-      const level = (learningLevel || "beginner").toLowerCase();
+  try {
+    const parsed = JSON.parse(raw) || {};
+    const level = (learningLevel || "beginner").toLowerCase();
 
-      const subjectList = getStudentSubjectsForLevel(level, parsed);
-      setSubjectsForLevel(subjectList);
-    } catch (e) {
-      setSubjectsForLevel([]);
-    }
-  }, [learningLevel]);
+    const subjectList = getStudentSubjectsForLevel(level, parsed);
 
+    const uniqueSubjects = subjectList.filter(
+      (subject, index, self) =>
+        index === self.findIndex(
+          (s) => s.id === subject.id
+        )
+    );
+
+    setSubjectsForLevel(uniqueSubjects);
+
+  } catch (e) {
+    setSubjectsForLevel([]);
+  }
+}, [learningLevel]);
 
 const [weeklyLoginDays, setWeeklyLoginDays] = useState({});
 
