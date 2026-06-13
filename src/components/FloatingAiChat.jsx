@@ -13,26 +13,13 @@ function FloatingAiChat() {
 
   const moduleName = localStorage.getItem("currentModule") || "defaultModule";
   const messageKey = `aiChatMessages_${userName}_${moduleName}`;
-
-  const premiumKey = `premium_${userName}`;
-  const userPlanKey = `userPlan_${userName}`;
   const chatLimitKey = `chatCount_${userName}_${moduleName}`;
 
   const getPremiumStatus = () => {
-    const globalPlan =
-      localStorage.getItem("userPlan") || localStorage.getItem("plan");
-
-    const userSpecificPlan = localStorage.getItem(userPlanKey);
-    const oldPremiumStatus = localStorage.getItem(premiumKey);
-
-    return (
-      globalPlan === "premium" ||
-      userSpecificPlan === "premium" ||
-      oldPremiumStatus === "true"
-    );
+    return localStorage.getItem("userPlan") === "premium";
   };
 
-  const [isPremium, setIsPremium] = useState(getPremiumStatus);
+  const [isPremium, setIsPremium] = useState(() => getPremiumStatus());
 
   const [chatCount, setChatCount] = useState(
     Number(localStorage.getItem(chatLimitKey)) || 0
@@ -55,6 +42,8 @@ function FloatingAiChat() {
     const updatePremiumStatus = () => {
       setIsPremium(getPremiumStatus());
     };
+
+    updatePremiumStatus();
 
     window.addEventListener("premiumPlanUpdated", updatePremiumStatus);
     window.addEventListener("storage", updatePremiumStatus);
@@ -80,7 +69,11 @@ function FloatingAiChat() {
       return "Statistics helps us understand data using concepts such as mean, median, probability, and data distribution.";
     }
 
-    if (q.includes("visualization") || q.includes("chart") || q.includes("graph")) {
+    if (
+      q.includes("visualization") ||
+      q.includes("chart") ||
+      q.includes("graph")
+    ) {
       return "Data Visualization presents data using charts and graphs so information becomes easier to understand.";
     }
 
@@ -199,7 +192,14 @@ function FloatingAiChat() {
               <h3 style={{ margin: 0, fontSize: "18px" }}>
                 🤖 AI Assistant
               </h3>
-              <p style={{ margin: "4px 0 0", fontSize: "13px", opacity: 0.9 }}>
+
+              <p
+                style={{
+                  margin: "4px 0 0",
+                  fontSize: "13px",
+                  opacity: 0.9,
+                }}
+              >
                 {isPremium
                   ? "Premium chatbox is now available."
                   : "Ask me anything, I'll help you understand better!"}
@@ -228,7 +228,6 @@ function FloatingAiChat() {
               style={{
                 flex: 1,
                 background: "white",
-                padding: "0",
               }}
             >
               <iframe
@@ -311,6 +310,7 @@ function FloatingAiChat() {
                   Free questions left:
                   <br />
                   {Math.max(0, 3 - chatCount)} / 3
+
                   {chatCount >= 3 && (
                     <button
                       onClick={handleSubscribePremium}

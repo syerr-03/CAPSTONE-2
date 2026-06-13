@@ -483,20 +483,37 @@ const activeQuiz = selectedQuiz ? allQuizzes[selectedQuiz] : null;
 
   const handleSubmit = async () => {
     const percent = Math.round((getScore() / activeQuestions.length) * 100);
-    if (onSubmitQuiz) onSubmitQuiz(percent);
-    const previousBest = quizAttempts[selectedQuiz]?.bestScore || 0;
-    const bestScore = Math.max(previousBest, percent);
-    const updatedAttempts = {
-        ...quizAttempts,
-        [selectedQuiz]: {
-          answered: true,
-          bestScore,
-          lastScore: percent
-        }
-      };
 
-      setQuizAttempts(updatedAttempts);
-      localStorage.setItem(quizAttemptKey, JSON.stringify(updatedAttempts));
+const previousBest = quizAttempts[selectedQuiz]?.bestScore || 0;
+const bestScore = Math.max(previousBest, percent);
+
+const updatedAttempts = {
+  ...quizAttempts,
+  [selectedQuiz]: {
+    answered: true,
+    bestScore,
+    lastScore: percent
+  }
+};
+
+setQuizAttempts(updatedAttempts);
+localStorage.setItem(quizAttemptKey, JSON.stringify(updatedAttempts));
+
+// ✅ Calculate average quiz score based on all answered quizzes
+const answeredQuizScores = Object.values(updatedAttempts)
+  .filter((attempt) => attempt.answered)
+  .map((attempt) => attempt.bestScore || attempt.lastScore || 0);
+
+const averageQuizScore =
+  answeredQuizScores.length > 0
+    ? Math.round(
+        answeredQuizScores.reduce((total, score) => total + score, 0) /
+          answeredQuizScores.length
+      )
+    : percent;
+
+// ✅ Send average quiz score to Performance Report
+if (onSubmitQuiz) onSubmitQuiz(averageQuizScore);
 
     const user = auth.currentUser;
 

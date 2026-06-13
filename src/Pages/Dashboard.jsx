@@ -1547,19 +1547,16 @@ const recommendedCourses = weakQuizId
           )}
 
           {/* PERFORMANCE TAB */}
-          {activeTab === "performance" && (
-            <section className="dashboard-content-section">
-              <PerformancePage 
-                studentData={performanceData} 
-                leaderboard={leaderboard}
-                learningLevel={learningLevel}
-                darkMode={darkMode}
-                studentData={performanceData}
-                leaderboard={leaderboard}
-                learningLevel={learningLevel}
-              />
-            </section>
-          )}
+{activeTab === "performance" && (
+  <section className="dashboard-content-section">
+    <PerformancePage
+      studentData={performanceData}
+      leaderboard={leaderboard}
+      learningLevel={learningLevel}
+      darkMode={darkMode}
+    />
+  </section>
+)}
 
          {activeTab === "notes" && (
           <section className="dashboard-content-section">
